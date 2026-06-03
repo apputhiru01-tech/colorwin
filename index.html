@@ -1,0 +1,559 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>ColorWin — Color Trading Game</title>
+<style>
+  :root {
+    --bg: #0d0f1a; --surface: #161926; --card: #1e2235; --border: #2a2f4a;
+    --text: #e8eaf0; --muted: #7880a0; --red: #ff4d6a; --green: #00d68f;
+    --violet: #9b59ff; --yellow: #ffd84d; --accent: #5b8fff;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: 'Segoe UI', system-ui, sans-serif; min-height: 100vh; display: flex; flex-direction: column; align-items: center; }
+
+  header {
+    width: 100%; max-width: 480px;
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 14px 16px 10px;
+  }
+  .logo { font-size: 20px; font-weight: 800; }
+  .logo span { color: var(--yellow); }
+
+  .header-right { display: flex; align-items: center; gap: 10px; }
+
+  .user-chip {
+    background: var(--card); border: 1px solid var(--border); border-radius: 99px;
+    padding: 6px 14px; font-size: 13px; font-weight: 700;
+    display: flex; align-items: center; gap: 7px; cursor: pointer;
+  }
+  .user-chip .avatar {
+    width: 24px; height: 24px; border-radius: 50%;
+    background: linear-gradient(135deg, var(--accent), var(--violet));
+    display: flex; align-items: center; justify-content: center;
+    font-size: 11px; font-weight: 900; color: #fff;
+  }
+
+  .wallet-pill {
+    background: var(--card); border: 1px solid var(--border); border-radius: 99px;
+    padding: 6px 14px; font-size: 13px; font-weight: 700;
+    display: flex; align-items: center; gap: 6px; cursor: pointer;
+  }
+  .wallet-pill .coin { color: var(--yellow); }
+
+  main { width: 100%; max-width: 480px; padding: 0 16px 100px; display: flex; flex-direction: column; gap: 16px; }
+
+  .timer-card {
+    background: linear-gradient(135deg, #1a1f38 0%, #12162a 100%);
+    border: 1px solid var(--border); border-radius: 20px;
+    padding: 22px 24px; text-align: center; position: relative; overflow: hidden;
+  }
+  .timer-card::before { content:''; position:absolute; inset:0; background:radial-gradient(ellipse at 50% 0%, rgba(91,143,255,.12) 0%, transparent 70%); }
+  .round-label { font-size: 12px; color: var(--muted); letter-spacing: 1px; text-transform: uppercase; margin-bottom: 4px; }
+  .round-number { font-size: 18px; font-weight: 800; color: var(--accent); margin-bottom: 16px; }
+  .countdown { font-size: 56px; font-weight: 900; letter-spacing: -2px; font-variant-numeric: tabular-nums; line-height: 1; }
+  .countdown.urgent { color: var(--red); animation: pulse 0.5s infinite alternate; }
+  @keyframes pulse { from{opacity:1} to{opacity:.6} }
+  .phase-label { font-size: 13px; color: var(--muted); margin-top: 8px; }
+
+  .result-banner { border-radius: 16px; padding: 18px 24px; text-align: center; font-size: 20px; font-weight: 800; display: none; animation: slideDown .4s cubic-bezier(.34,1.56,.64,1); }
+  @keyframes slideDown { from{opacity:0;transform:translateY(-16px)} to{opacity:1;transform:translateY(0)} }
+  .result-banner.win  { background: rgba(0,214,143,.15); border: 1.5px solid var(--green); color: var(--green); }
+  .result-banner.lose { background: rgba(255,77,106,.12); border: 1.5px solid var(--red); color: var(--red); }
+  .result-banner.show { display: block; }
+
+  .section-label { font-size: 12px; color: var(--muted); letter-spacing: 1px; text-transform: uppercase; margin-bottom: 2px; padding: 0 2px; }
+
+  .color-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
+  .color-btn {
+    border: none; border-radius: 16px; padding: 22px 10px;
+    font-size: 15px; font-weight: 800; cursor: pointer;
+    transition: transform .15s, box-shadow .15s;
+    display: flex; flex-direction: column; align-items: center; gap: 8px;
+    letter-spacing: .5px; text-transform: uppercase; position: relative; overflow: hidden;
+  }
+  .color-btn::after { content:''; position:absolute; inset:0; background:rgba(255,255,255,0); transition:background .15s; }
+  .color-btn:hover::after { background: rgba(255,255,255,.06); }
+  .color-btn:active { transform: scale(.96); }
+  .color-btn.selected { transform: scale(1.04); box-shadow: 0 0 0 3px white, 0 8px 24px rgba(0,0,0,.4); }
+  .color-btn:disabled { opacity: .35; cursor: not-allowed; transform: none; }
+  .color-btn.red    { background: linear-gradient(160deg,#ff4d6a,#c9182e); color:#fff; }
+  .color-btn.green  { background: linear-gradient(160deg,#00d68f,#00956a); color:#fff; }
+  .color-btn.violet { background: linear-gradient(160deg,#9b59ff,#6b20e0); color:#fff; }
+  .color-btn .multiplier { font-size:12px; font-weight:600; opacity:.85; background:rgba(0,0,0,.2); border-radius:99px; padding:2px 10px; }
+
+  .bet-card { background: var(--card); border: 1px solid var(--border); border-radius: 20px; padding: 20px; display: flex; flex-direction: column; gap: 14px; }
+  .quick-amounts { display: flex; gap: 8px; flex-wrap: wrap; }
+  .amt-btn { background:var(--surface); border:1px solid var(--border); border-radius:10px; color:var(--text); font-size:13px; font-weight:700; padding:8px 16px; cursor:pointer; transition:background .15s,border-color .15s; }
+  .amt-btn:hover, .amt-btn.active { background:var(--accent); border-color:var(--accent); color:#fff; }
+  .bet-input-row { display: flex; gap: 10px; align-items: center; }
+  .bet-input { flex:1; background:var(--surface); border:1px solid var(--border); border-radius:12px; color:var(--text); font-size:20px; font-weight:800; padding:12px 16px; outline:none; transition:border-color .2s; }
+  .bet-input:focus { border-color: var(--accent); }
+  .place-btn { background:linear-gradient(135deg,#5b8fff,#3b5fff); border:none; border-radius:14px; color:#fff; font-size:15px; font-weight:800; padding:14px 24px; cursor:pointer; transition:opacity .15s,transform .15s; white-space:nowrap; }
+  .place-btn:hover { opacity:.9; }
+  .place-btn:active { transform:scale(.97); }
+  .place-btn:disabled { opacity:.35; cursor:not-allowed; transform:none; }
+  .bet-summary { font-size:13px; color:var(--muted); min-height:18px; }
+  .bet-summary.ready { color:var(--green); }
+
+  .history-card { background:var(--card); border:1px solid var(--border); border-radius:20px; overflow:hidden; }
+  .history-header { padding:16px 20px; font-size:14px; font-weight:700; border-bottom:1px solid var(--border); display:flex; justify-content:space-between; align-items:center; }
+  .history-dots { display:flex; gap:6px; padding:14px 20px; flex-wrap:wrap; }
+  .dot { width:28px; height:28px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:9px; font-weight:900; color:rgba(255,255,255,.9); }
+  .dot.red { background:var(--red); } .dot.green { background:var(--green); } .dot.violet { background:var(--violet); }
+  .history-rows { padding:0 0 8px; }
+  .h-row { display:grid; grid-template-columns:80px 1fr 90px 90px; padding:10px 20px; font-size:13px; border-bottom:1px solid rgba(255,255,255,.04); align-items:center; }
+  .h-row:last-child { border-bottom:none; }
+  .h-row .h-round { color:var(--muted); font-size:12px; }
+  .h-row .h-color { font-weight:700; }
+  .h-row .h-color.red { color:var(--red); } .h-row .h-color.green { color:var(--green); } .h-row .h-color.violet { color:var(--violet); }
+  .h-row .h-amount { text-align:right; font-weight:600; }
+  .h-row .h-result { text-align:right; font-weight:700; }
+  .h-row .h-result.win { color:var(--green); } .h-row .h-result.lose { color:var(--red); } .h-row .h-result.pending { color:var(--muted); }
+  .prob-row { display:flex; border-radius:10px; overflow:hidden; height:8px; margin:0 20px 16px; }
+  .prob-seg { transition:width .5s; }
+  .prob-seg.red { background:var(--red); } .prob-seg.green { background:var(--green); } .prob-seg.violet { background:var(--violet); }
+
+  /* ── Withdraw modal ── */
+  .modal-overlay {
+    position: fixed; inset: 0; background: rgba(0,0,0,.7);
+    display: flex; align-items: flex-end; justify-content: center;
+    z-index: 100; display: none;
+  }
+  .modal-overlay.show { display: flex; }
+  .modal-sheet {
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: 24px 24px 0 0; padding: 28px 24px 40px;
+    width: 100%; max-width: 480px;
+    animation: slideUp .3s cubic-bezier(.34,1.56,.64,1);
+  }
+  @keyframes slideUp { from{transform:translateY(100%)} to{transform:translateY(0)} }
+  .modal-title { font-size: 20px; font-weight: 800; margin-bottom: 4px; }
+  .modal-sub { font-size: 13px; color: var(--muted); margin-bottom: 20px; }
+  .modal-bal { font-size: 32px; font-weight: 900; color: var(--green); margin-bottom: 20px; }
+
+  .m-input-group { display:flex; flex-direction:column; gap:6px; margin-bottom:14px; }
+  .m-label { font-size:12px; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:.5px; }
+  .m-inp { background:var(--surface); border:1.5px solid var(--border); border-radius:13px; color:var(--text); font-size:15px; font-weight:600; padding:13px 16px; outline:none; width:100%; transition:border-color .2s; font-family:inherit; }
+  .m-inp:focus { border-color:var(--accent); }
+  .m-err { font-size:12px; color:var(--red); min-height:16px; }
+
+  .btn-withdraw { width:100%; background:linear-gradient(135deg,#00d68f,#00a86b); border:none; border-radius:14px; color:#fff; font-size:15px; font-weight:800; padding:15px; cursor:pointer; margin-top:4px; font-family:inherit; }
+  .btn-withdraw:hover { opacity:.9; }
+  .btn-close { position:absolute; top:20px; right:20px; background:none; border:none; color:var(--muted); font-size:22px; cursor:pointer; }
+
+  .withdraw-btn-trigger {
+    background: rgba(0,214,143,.1);
+    border: 1.5px solid var(--green);
+    border-radius: 14px;
+    color: var(--green);
+    font-size: 14px;
+    font-weight: 700;
+    padding: 12px 20px;
+    cursor: pointer;
+    width: 100%;
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+    transition: background .2s;
+  }
+  .withdraw-btn-trigger:hover { background: rgba(0,214,143,.18); }
+
+  .req-success { background:rgba(0,214,143,.1); border:1px solid rgba(0,214,143,.3); border-radius:12px; padding:14px 16px; color:var(--green); font-size:13px; font-weight:600; display:none; }
+  .req-success.show { display:block; }
+
+  /* ── Toast ── */
+  #toast { position:fixed; bottom:24px; left:50%; transform:translateX(-50%) translateY(80px); background:var(--card); border:1px solid var(--border); border-radius:14px; padding:12px 24px; font-size:14px; font-weight:600; z-index:999; transition:transform .35s cubic-bezier(.34,1.56,.64,1); pointer-events:none; white-space:nowrap; }
+  #toast.show { transform:translateX(-50%) translateY(0); }
+
+  /* ── Profile dropdown ── */
+  .profile-menu {
+    position: fixed; top: 60px; right: 16px;
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: 16px; padding: 8px;
+    z-index: 50; display: none; min-width: 180px;
+    animation: fadeIn .2s ease;
+  }
+  @keyframes fadeIn { from{opacity:0;transform:translateY(-8px)} to{opacity:1;transform:translateY(0)} }
+  .profile-menu.show { display: block; }
+  .menu-item { padding: 10px 14px; font-size: 13px; font-weight: 600; border-radius: 10px; cursor: pointer; display: flex; align-items: center; gap: 10px; }
+  .menu-item:hover { background: var(--surface); }
+  .menu-item.danger { color: var(--red); }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">Color<span>Win</span></div>
+  <div class="header-right">
+    <div class="wallet-pill" onclick="openWithdraw()">
+      <span class="coin">₹</span>
+      <span id="walletDisplay">0.00</span>
+    </div>
+    <div class="user-chip" onclick="toggleMenu()">
+      <div class="avatar" id="userAvatar">?</div>
+      <span id="usernameDisplay">...</span>
+    </div>
+  </div>
+</header>
+
+<!-- Profile menu -->
+<div class="profile-menu" id="profileMenu">
+  <div class="menu-item" onclick="openWithdraw()">💸 Withdraw</div>
+  <div class="menu-item" id="menuUpi" style="font-size:12px;color:var(--muted);cursor:default;padding:6px 14px;"></div>
+  <div class="menu-item danger" onclick="logout()">🚪 Logout</div>
+</div>
+
+<main>
+  <div class="timer-card">
+    <div class="round-label">Round</div>
+    <div class="round-number" id="roundNumber">#0001</div>
+    <div class="countdown" id="countdown">30</div>
+    <div class="phase-label" id="phaseLabel">Place your bet before time runs out</div>
+  </div>
+
+  <div class="result-banner" id="resultBanner"></div>
+
+  <div class="section-label">Choose a color</div>
+  <div class="color-grid">
+    <button class="color-btn red"    id="btn-red"    onclick="selectColor('red')">🔴 Red<span class="multiplier">2×</span></button>
+    <button class="color-btn violet" id="btn-violet" onclick="selectColor('violet')">🟣 Violet<span class="multiplier">4.5×</span></button>
+    <button class="color-btn green"  id="btn-green"  onclick="selectColor('green')">🟢 Green<span class="multiplier">2×</span></button>
+  </div>
+
+  <div class="bet-card">
+    <div class="section-label">Bet amount</div>
+    <div class="quick-amounts">
+      <button class="amt-btn" onclick="setAmount(10)">₹10</button>
+      <button class="amt-btn" onclick="setAmount(50)">₹50</button>
+      <button class="amt-btn" onclick="setAmount(100)">₹100</button>
+      <button class="amt-btn" onclick="setAmount(500)">₹500</button>
+      <button class="amt-btn" onclick="setAmount(1000)">₹1K</button>
+    </div>
+    <div class="bet-input-row">
+      <input class="bet-input" id="betInput" type="number" min="1" value="50" placeholder="₹ amount" />
+      <button class="place-btn" id="placeBtn" onclick="placeBet()">Place Bet</button>
+    </div>
+    <div class="bet-summary" id="betSummary">Select a color and enter amount</div>
+  </div>
+
+  <!-- Withdraw button -->
+  <button class="withdraw-btn-trigger" onclick="openWithdraw()">💸 Withdraw Winnings to UPI</button>
+
+  <div class="history-card">
+    <div class="history-header">
+      <span>Recent Results</span>
+      <span id="statsLabel" style="color:var(--muted);font-size:12px;font-weight:500;"></span>
+    </div>
+    <div class="history-dots" id="historyDots"></div>
+    <div class="prob-row" id="probRow">
+      <div class="prob-seg red" style="width:45%"></div>
+      <div class="prob-seg violet" style="width:10%"></div>
+      <div class="prob-seg green" style="width:45%"></div>
+    </div>
+    <div class="history-rows" id="historyRows">
+      <div style="padding:20px;text-align:center;color:var(--muted);font-size:13px;">No bets placed yet</div>
+    </div>
+  </div>
+</main>
+
+<!-- Withdraw modal -->
+<div class="modal-overlay" id="withdrawModal" onclick="closeWithdrawOutside(event)">
+  <div class="modal-sheet" style="position:relative;">
+    <button class="btn-close" onclick="closeWithdraw()">✕</button>
+    <div class="modal-title">💸 Withdraw</div>
+    <div class="modal-sub">Transfer winnings directly to your UPI</div>
+    <div class="modal-bal" id="modalBal">₹0.00</div>
+
+    <div class="m-input-group">
+      <div class="m-label">Amount to Withdraw</div>
+      <input class="m-inp" id="wAmount" type="number" min="100" placeholder="Min ₹100" />
+    </div>
+
+    <div class="m-input-group">
+      <div class="m-label">UPI ID</div>
+      <input class="m-inp" id="wUpi" type="text" placeholder="name@upi or 9876543210@ybl" />
+    </div>
+
+    <div class="m-err" id="wErr"></div>
+
+    <div class="req-success" id="wSuccess">
+      ✅ Withdrawal request submitted! Admin will transfer within 24 hours.
+    </div>
+
+    <button class="btn-withdraw" onclick="submitWithdraw()">Request Withdrawal →</button>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+// ── Auth guard ──
+const cu = JSON.parse(localStorage.getItem('cw_current') || 'null');
+if (!cu) { location.href = 'login.html'; }
+
+function getUsers()    { return JSON.parse(localStorage.getItem('cw_users') || '[]'); }
+function saveUsers(u)  { localStorage.setItem('cw_users', JSON.stringify(u)); }
+function getWithdrawals()   { return JSON.parse(localStorage.getItem('cw_withdrawals') || '[]'); }
+function saveWithdrawals(w) { localStorage.setItem('cw_withdrawals', JSON.stringify(w)); }
+
+// Load current user
+let currentUser = getUsers().find(u => u.id === cu.userId);
+if (!currentUser) { location.href = 'login.html'; }
+
+// Sync wallet from localStorage
+let wallet = currentUser.wallet || 0;
+
+function saveWallet() {
+  const users = getUsers();
+  const idx   = users.findIndex(u => u.id === currentUser.id);
+  if (idx > -1) { users[idx].wallet = wallet; saveUsers(users); }
+}
+
+// ── Header ──
+document.getElementById('userAvatar').textContent = (currentUser.name || 'U')[0].toUpperCase();
+document.getElementById('usernameDisplay').textContent = '@' + (currentUser.username || 'user');
+if (currentUser.upiId) document.getElementById('menuUpi').textContent = '💳 ' + currentUser.upiId;
+
+function updateWalletDisplay() {
+  document.getElementById('walletDisplay').textContent = wallet.toLocaleString('en-IN', { minimumFractionDigits: 2 });
+  document.getElementById('modalBal').textContent = '₹' + wallet.toLocaleString('en-IN', { minimumFractionDigits: 2 });
+}
+updateWalletDisplay();
+
+function toggleMenu() {
+  document.getElementById('profileMenu').classList.toggle('show');
+}
+document.addEventListener('click', e => {
+  if (!e.target.closest('.user-chip') && !e.target.closest('.profile-menu')) {
+    document.getElementById('profileMenu').classList.remove('show');
+  }
+});
+
+function logout() {
+  localStorage.removeItem('cw_current');
+  location.href = 'login.html';
+}
+
+// ── Withdraw modal ──
+function openWithdraw() {
+  document.getElementById('profileMenu').classList.remove('show');
+  document.getElementById('wUpi').value = currentUser.upiId || '';
+  document.getElementById('wAmount').value = '';
+  document.getElementById('wErr').textContent = '';
+  document.getElementById('wSuccess').classList.remove('show');
+  updateWalletDisplay();
+  document.getElementById('withdrawModal').classList.add('show');
+}
+
+function closeWithdraw() { document.getElementById('withdrawModal').classList.remove('show'); }
+
+function closeWithdrawOutside(e) {
+  if (e.target === document.getElementById('withdrawModal')) closeWithdraw();
+}
+
+function submitWithdraw() {
+  const amt  = parseFloat(document.getElementById('wAmount').value);
+  const upi  = document.getElementById('wUpi').value.trim();
+  const errEl = document.getElementById('wErr');
+  errEl.textContent = '';
+
+  if (!amt || amt < 100)  { errEl.textContent = 'Minimum withdrawal is ₹100'; return; }
+  if (amt > wallet)        { errEl.textContent = 'Insufficient balance'; return; }
+  if (!upi)                { errEl.textContent = 'Enter your UPI ID'; return; }
+
+  // Deduct from wallet, create request
+  wallet -= amt;
+  saveWallet();
+  updateWalletDisplay();
+
+  const req = {
+    id: 'req_' + Date.now(),
+    userId: currentUser.id,
+    name: currentUser.name,
+    username: currentUser.username,
+    amount: amt,
+    upiId: upi,
+    status: 'pending',
+    createdAt: Date.now()
+  };
+  const withdrawals = getWithdrawals();
+  withdrawals.unshift(req);
+  saveWithdrawals(withdrawals);
+
+  broadcastState();
+  document.getElementById('wSuccess').classList.add('show');
+  showToast(`₹${amt} withdrawal request sent!`);
+}
+
+// ── BroadcastChannel ──
+const ch = new BroadcastChannel('colorwin');
+let forcedColor = null;
+
+ch.onmessage = (e) => {
+  const { type, value } = e.data;
+  if (type === 'FORCE_COLOR') { forcedColor = value; broadcastState(); }
+  if (type === 'ADD_BALANCE')  { wallet += value; saveWallet(); updateWalletDisplay(); showToast(`+₹${value} added by admin!`); broadcastState(); }
+  if (type === 'SKIP_ROUND')   { clearTimeout(timerInterval); timeLeft = 0; endRound(); }
+  if (type === 'PING')         { broadcastState(); }
+};
+
+function broadcastState() {
+  ch.postMessage({
+    type: 'STATE',
+    round, timeLeft, phase, currentBet,
+    history: history.slice(0, 20),
+    wallet, forcedColor,
+    userId: currentUser.id,
+    username: currentUser.username,
+    totalBets: history.filter(h => h.bet).length,
+    housePnl: history.filter(h => h.bet).reduce((a, h) => a + (h.bet.amount - h.payout), 0),
+  });
+}
+
+// ── Game state ──
+let round = 1, timeLeft = 30, phase = 'betting';
+let selectedColor = null, currentBet = null, history = [];
+let timerInterval = null;
+
+const MULTIPLIERS = { red: 2, green: 2, violet: 4.5 };
+const WEIGHTS = [...Array(45).fill('red'), ...Array(45).fill('green'), ...Array(10).fill('violet')];
+
+function fmt(n) { return n.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
+
+function selectColor(color) {
+  if (phase !== 'betting') return;
+  selectedColor = color;
+  ['red','green','violet'].forEach(c => document.getElementById('btn-'+c).classList.toggle('selected', c===color));
+  updateSummary();
+}
+
+function setAmount(val) {
+  document.getElementById('betInput').value = val;
+  document.querySelectorAll('.amt-btn').forEach(b => b.classList.remove('active'));
+  updateSummary();
+}
+
+document.getElementById('betInput').addEventListener('input', () => {
+  document.querySelectorAll('.amt-btn').forEach(b => b.classList.remove('active'));
+  updateSummary();
+});
+
+function updateSummary() {
+  const amt = parseFloat(document.getElementById('betInput').value);
+  const el  = document.getElementById('betSummary');
+  if (!selectedColor)   { el.textContent='Select a color and enter amount'; el.className='bet-summary'; return; }
+  if (!amt||amt<=0)     { el.textContent='Enter a valid amount'; el.className='bet-summary'; return; }
+  if (amt>wallet)       { el.textContent='Insufficient balance'; el.className='bet-summary'; return; }
+  el.textContent = `Betting ₹${amt} on ${selectedColor.toUpperCase()} → Win ₹${(amt*MULTIPLIERS[selectedColor]).toFixed(2)}`;
+  el.className = 'bet-summary ready';
+}
+
+function placeBet() {
+  if (phase!=='betting') { showToast('Betting is closed'); return; }
+  if (currentBet) { showToast('Bet already placed this round'); return; }
+  const amt = parseFloat(document.getElementById('betInput').value);
+  if (!selectedColor)   { showToast('Select a color first'); return; }
+  if (!amt||amt<=0)     { showToast('Enter a valid amount'); return; }
+  if (amt>wallet)       { showToast('Insufficient balance'); return; }
+
+  wallet -= amt; saveWallet(); updateWalletDisplay();
+  currentBet = { color: selectedColor, amount: amt };
+  document.getElementById('placeBtn').disabled = true;
+  document.getElementById('placeBtn').textContent = '✓ Bet Placed';
+  showToast(`₹${amt} bet on ${selectedColor.toUpperCase()}`);
+  updateSummary();
+  broadcastState();
+}
+
+function startRound() {
+  phase='betting'; timeLeft=30; currentBet=null; selectedColor=null;
+  document.getElementById('resultBanner').className='result-banner';
+  document.getElementById('placeBtn').disabled=false;
+  document.getElementById('placeBtn').textContent='Place Bet';
+  ['red','green','violet'].forEach(c => { const b=document.getElementById('btn-'+c); b.classList.remove('selected'); b.disabled=false; });
+  document.getElementById('roundNumber').textContent='#'+String(round).padStart(4,'0');
+  updateSummary(); broadcastState(); tick();
+}
+
+function tick() {
+  renderTimer(); broadcastState();
+  timerInterval = setTimeout(() => { timeLeft--; if(timeLeft>0) tick(); else endRound(); }, 1000);
+}
+
+function renderTimer() {
+  document.getElementById('countdown').textContent = timeLeft;
+  document.getElementById('countdown').className = 'countdown'+(timeLeft<=5?' urgent':'');
+  if (timeLeft>10) {
+    document.getElementById('phaseLabel').textContent='Place your bet before time runs out';
+  } else if (timeLeft>0) {
+    document.getElementById('phaseLabel').textContent=`⚡ Hurry! ${timeLeft}s remaining`;
+    if (timeLeft<=5) {
+      document.getElementById('placeBtn').disabled=true;
+      if (!currentBet) document.getElementById('placeBtn').textContent='Time Up';
+      ['red','green','violet'].forEach(c => document.getElementById('btn-'+c).disabled=true);
+    }
+  }
+}
+
+function endRound() {
+  phase='result';
+  document.getElementById('countdown').textContent='0';
+  document.getElementById('phaseLabel').textContent='Drawing result…';
+  setTimeout(() => {
+    const resultColor = forcedColor || WEIGHTS[Math.floor(Math.random()*WEIGHTS.length)];
+    forcedColor = null;
+    let payout = 0;
+    if (currentBet) {
+      if (currentBet.color===resultColor) {
+        payout = currentBet.amount*MULTIPLIERS[resultColor];
+        wallet += payout; saveWallet(); updateWalletDisplay();
+        showBanner(`🎉 ${resultColor.toUpperCase()} wins! You won ₹${payout.toFixed(2)}`, 'win');
+      } else {
+        showBanner(`😔 ${resultColor.toUpperCase()} wins! Better luck next round`, 'lose');
+      }
+      history.unshift({ round, result: resultColor, bet: currentBet, payout, win: currentBet.color===resultColor });
+    } else {
+      history.unshift({ round, result: resultColor, bet: null, payout:0, win:null });
+      showBanner(`Result: ${resultColor.toUpperCase()}`, 'lose');
+    }
+    renderHistory(); broadcastState(); round++;
+    setTimeout(startRound, 4000);
+  }, 1000);
+}
+
+function showBanner(msg, type) {
+  const el = document.getElementById('resultBanner');
+  el.textContent = msg;
+  el.className = `result-banner ${type} show`;
+}
+
+function renderHistory() {
+  const $dots = document.getElementById('historyDots');
+  const $rows = document.getElementById('historyRows');
+  $dots.innerHTML = history.slice(0,20).map(h=>`<div class="dot ${h.result}">${h.result[0].toUpperCase()}</div>`).join('');
+  const recent=history.slice(0,50), total=recent.length||1;
+  const rp=(recent.filter(h=>h.result==='red').length/total*100).toFixed(1);
+  const gp=(recent.filter(h=>h.result==='green').length/total*100).toFixed(1);
+  const vp=(recent.filter(h=>h.result==='violet').length/total*100).toFixed(1);
+  document.getElementById('probRow').innerHTML=`<div class="prob-seg red" style="width:${rp}%"></div><div class="prob-seg violet" style="width:${vp}%"></div><div class="prob-seg green" style="width:${gp}%"></div>`;
+  const myBets=history.filter(h=>h.bet), wins=myBets.filter(h=>h.win).length;
+  document.getElementById('statsLabel').textContent=myBets.length?`${wins}W/${myBets.length-wins}L`:'';
+  if (!history.length) { $rows.innerHTML='<div style="padding:20px;text-align:center;color:var(--muted);font-size:13px;">No bets yet</div>'; return; }
+  $rows.innerHTML=history.slice(0,10).map(h=>{
+    const cn=h.result.charAt(0).toUpperCase()+h.result.slice(1);
+    let a='—',r='—',rc='pending';
+    if(h.bet){ a=`₹${h.bet.amount.toFixed(2)}`; r=h.win?`+₹${h.payout.toFixed(2)}`:`-₹${h.bet.amount.toFixed(2)}`; rc=h.win?'win':'lose'; }
+    return `<div class="h-row"><span class="h-round">#${String(h.round).padStart(4,'0')}</span><span class="h-color ${h.result}">${cn}</span><span class="h-amount">${a}</span><span class="h-result ${rc}">${r}</span></div>`;
+  }).join('');
+}
+
+function showToast(msg) {
+  const t=document.getElementById('toast');
+  t.textContent=msg; t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),2500);
+}
+
+startRound();
+</script>
+</body>
+</html>

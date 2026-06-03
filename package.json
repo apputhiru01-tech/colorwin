@@ -1,0 +1,28 @@
+{
+  "name": "colorwin-game",
+  "version": "1.0.0",
+  "description": "Color Trading Game — Real Money Platform",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "nodemon server.js"
+  },
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "cors": "^2.8.5",
+    "dotenv": "^16.3.1",
+    "express": "^4.18.2",
+    "google-auth-library": "^9.4.1",
+    "jsonwebtoken": "^9.0.2",
+    "mongoose": "^8.0.3",
+    "nodemailer": "^6.9.7",
+    "razorpay": "^2.9.2",
+    "socket.io": "^4.6.2"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.2"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

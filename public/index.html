@@ -1,0 +1,652 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>ColorWin — Game</title>
+<style>
+:root{--bg:#0d0f1a;--surface:#161926;--card:#1e2235;--border:#2a2f4a;--text:#e8eaf0;--muted:#7880a0;--red:#ff4d6a;--green:#00d68f;--violet:#9b59ff;--yellow:#ffd84d;--accent:#5b8fff;}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,sans-serif;min-height:100vh;display:flex;flex-direction:column;align-items:center;}
+header{width:100%;max-width:480px;display:flex;justify-content:space-between;align-items:center;padding:14px 16px 10px;}
+.logo{font-size:20px;font-weight:800;} .logo span{color:var(--yellow);}
+.header-right{display:flex;align-items:center;gap:8px;}
+.wallet-pill{background:var(--card);border:1px solid var(--border);border-radius:99px;padding:6px 14px;font-size:13px;font-weight:700;display:flex;align-items:center;gap:6px;cursor:pointer;}
+.wallet-pill .coin{color:var(--yellow);}
+.user-chip{background:var(--card);border:1px solid var(--border);border-radius:99px;padding:6px 14px;font-size:13px;font-weight:700;display:flex;align-items:center;gap:7px;cursor:pointer;position:relative;}
+.avatar{width:24px;height:24px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--violet));display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:900;color:#fff;}
+.dropdown{position:fixed;top:56px;right:16px;background:var(--card);border:1px solid var(--border);border-radius:16px;padding:8px;z-index:50;display:none;min-width:180px;animation:fadeDown .2s ease;}
+@keyframes fadeDown{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:translateY(0)}}
+.dropdown.show{display:block;}
+.d-item{padding:10px 14px;font-size:13px;font-weight:600;border-radius:10px;cursor:pointer;display:flex;align-items:center;gap:10px;}
+.d-item:hover{background:var(--surface);}
+.d-item.danger{color:var(--red);}
+main{width:100%;max-width:480px;padding:0 16px 100px;display:flex;flex-direction:column;gap:16px;}
+.timer-card{background:linear-gradient(135deg,#1a1f38,#12162a);border:1px solid var(--border);border-radius:20px;padding:22px 24px;text-align:center;position:relative;overflow:hidden;}
+.timer-card::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 50% 0%,rgba(91,143,255,.12),transparent 70%);}
+.round-label{font-size:12px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;margin-bottom:4px;}
+.round-num{font-size:18px;font-weight:800;color:var(--accent);margin-bottom:14px;}
+.countdown{font-size:56px;font-weight:900;letter-spacing:-2px;font-variant-numeric:tabular-nums;line-height:1;}
+.countdown.urgent{color:var(--red);animation:pulse .5s infinite alternate;}
+@keyframes pulse{from{opacity:1}to{opacity:.6}}
+.phase-lbl{font-size:13px;color:var(--muted);margin-top:8px;}
+.result-banner{border-radius:16px;padding:18px 24px;text-align:center;font-size:20px;font-weight:800;display:none;animation:sDown .4s cubic-bezier(.34,1.56,.64,1);}
+@keyframes sDown{from{opacity:0;transform:translateY(-16px)}to{opacity:1;transform:translateY(0)}}
+.result-banner.win{background:rgba(0,214,143,.15);border:1.5px solid var(--green);color:var(--green);}
+.result-banner.lose{background:rgba(255,77,106,.12);border:1.5px solid var(--red);color:var(--red);}
+.result-banner.show{display:block;}
+.section-lbl{font-size:12px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;margin-bottom:2px;padding:0 2px;}
+.color-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;}
+.cbtn{border:none;border-radius:16px;padding:22px 10px;font-size:15px;font-weight:800;cursor:pointer;transition:transform .15s,box-shadow .15s;display:flex;flex-direction:column;align-items:center;gap:8px;letter-spacing:.5px;text-transform:uppercase;position:relative;overflow:hidden;}
+.cbtn::after{content:'';position:absolute;inset:0;background:rgba(255,255,255,0);transition:background .15s;}
+.cbtn:hover::after{background:rgba(255,255,255,.06);}
+.cbtn:active{transform:scale(.96);}
+.cbtn.selected{transform:scale(1.04);box-shadow:0 0 0 3px white,0 8px 24px rgba(0,0,0,.4);}
+.cbtn:disabled{opacity:.35;cursor:not-allowed;transform:none;}
+.cbtn.red{background:linear-gradient(160deg,#ff4d6a,#c9182e);color:#fff;}
+.cbtn.green{background:linear-gradient(160deg,#00d68f,#00956a);color:#fff;}
+.cbtn.violet{background:linear-gradient(160deg,#9b59ff,#6b20e0);color:#fff;}
+.cbtn .mult{font-size:12px;font-weight:600;opacity:.85;background:rgba(0,0,0,.2);border-radius:99px;padding:2px 10px;}
+.bet-card{background:var(--card);border:1px solid var(--border);border-radius:20px;padding:20px;display:flex;flex-direction:column;gap:14px;}
+.quick-amts{display:flex;gap:8px;flex-wrap:wrap;}
+.amt-btn{background:var(--surface);border:1px solid var(--border);border-radius:10px;color:var(--text);font-size:13px;font-weight:700;padding:8px 16px;cursor:pointer;transition:background .15s,border-color .15s;}
+.amt-btn:hover,.amt-btn.active{background:var(--accent);border-color:var(--accent);color:#fff;}
+.bet-row{display:flex;gap:10px;align-items:center;}
+.bet-input{flex:1;background:var(--surface);border:1px solid var(--border);border-radius:12px;color:var(--text);font-size:20px;font-weight:800;padding:12px 16px;outline:none;transition:border-color .2s;}
+.bet-input:focus{border-color:var(--accent);}
+.place-btn{background:linear-gradient(135deg,#5b8fff,#3b5fff);border:none;border-radius:14px;color:#fff;font-size:15px;font-weight:800;padding:14px 24px;cursor:pointer;transition:opacity .15s,transform .15s;white-space:nowrap;}
+.place-btn:hover{opacity:.9;}
+.place-btn:active{transform:scale(.97);}
+.place-btn:disabled{opacity:.35;cursor:not-allowed;transform:none;}
+.bet-sum{font-size:13px;color:var(--muted);min-height:18px;}
+.bet-sum.ready{color:var(--green);}
+.w-btn{background:rgba(0,214,143,.1);border:1.5px solid var(--green);border-radius:14px;color:var(--green);font-size:14px;font-weight:700;padding:12px 20px;cursor:pointer;width:100%;display:flex;align-items:center;justify-content:center;gap:8px;transition:background .2s;}
+.w-btn:hover{background:rgba(0,214,143,.18);}
+.deposit-btn{background:rgba(91,143,255,.1);border:1.5px solid var(--accent);border-radius:14px;color:var(--accent);font-size:14px;font-weight:700;padding:12px 20px;cursor:pointer;width:100%;display:flex;align-items:center;justify-content:center;gap:8px;transition:background .2s;}
+.deposit-btn:hover{background:rgba(91,143,255,.18);}
+.history-card{background:var(--card);border:1px solid var(--border);border-radius:20px;overflow:hidden;}
+.hist-hdr{padding:16px 20px;font-size:14px;font-weight:700;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;}
+.dots{display:flex;gap:6px;padding:14px 20px;flex-wrap:wrap;}
+.dot{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:900;color:rgba(255,255,255,.9);}
+.dot.red{background:var(--red);} .dot.green{background:var(--green);} .dot.violet{background:var(--violet);}
+.hist-rows{padding:0 0 8px;}
+.h-row{display:grid;grid-template-columns:80px 1fr 90px 90px;padding:10px 20px;font-size:13px;border-bottom:1px solid rgba(255,255,255,.04);align-items:center;}
+.h-row:last-child{border-bottom:none;}
+.h-rnd{color:var(--muted);font-size:12px;}
+.h-col{font-weight:700;}
+.h-col.red{color:var(--red);} .h-col.green{color:var(--green);} .h-col.violet{color:var(--violet);}
+.h-amt{text-align:right;font-weight:600;}
+.h-res{text-align:right;font-weight:700;}
+.h-res.win{color:var(--green);} .h-res.lose{color:var(--red);} .h-res.pending{color:var(--muted);}
+.prob-row{display:flex;border-radius:10px;overflow:hidden;height:8px;margin:0 20px 16px;}
+.prob-seg{transition:width .5s;}
+.prob-seg.red{background:var(--red);} .prob-seg.green{background:var(--green);} .prob-seg.violet{background:var(--violet);}
+/* Modals */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);display:none;align-items:flex-end;justify-content:center;z-index:100;}
+.modal-overlay.show{display:flex;}
+.modal-sheet{background:var(--card);border:1px solid var(--border);border-radius:24px 24px 0 0;padding:28px 24px 40px;width:100%;max-width:480px;animation:sUp .3s cubic-bezier(.34,1.56,.64,1);position:relative;}
+@keyframes sUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
+.modal-title{font-size:20px;font-weight:800;margin-bottom:4px;}
+.modal-sub{font-size:13px;color:var(--muted);margin-bottom:20px;}
+.modal-bal{font-size:32px;font-weight:900;color:var(--green);margin-bottom:20px;}
+.m-grp{display:flex;flex-direction:column;gap:6px;margin-bottom:14px;}
+.m-lbl{font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;}
+.m-inp{background:var(--surface);border:1.5px solid var(--border);border-radius:13px;color:var(--text);font-size:15px;font-weight:600;padding:13px 16px;outline:none;width:100%;transition:border-color .2s;font-family:inherit;}
+.m-inp:focus{border-color:var(--accent);}
+.m-err{font-size:12px;color:var(--red);min-height:16px;}
+.m-close{position:absolute;top:20px;right:20px;background:none;border:none;color:var(--muted);font-size:22px;cursor:pointer;}
+.btn-withdraw{width:100%;background:linear-gradient(135deg,#00d68f,#00a86b);border:none;border-radius:14px;color:#fff;font-size:15px;font-weight:800;padding:15px;cursor:pointer;margin-top:4px;font-family:inherit;}
+.btn-deposit{width:100%;background:linear-gradient(135deg,#5b8fff,#3b5fff);border:none;border-radius:14px;color:#fff;font-size:15px;font-weight:800;padding:15px;cursor:pointer;margin-top:4px;font-family:inherit;}
+.quick-deps{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:4px;}
+.qdep{background:var(--surface);border:1px solid var(--border);border-radius:10px;color:var(--text);font-size:13px;font-weight:700;padding:8px 16px;cursor:pointer;}
+.qdep:hover{border-color:var(--accent);color:var(--accent);}
+.success-msg{background:rgba(0,214,143,.1);border:1px solid rgba(0,214,143,.3);border-radius:12px;padding:14px 16px;color:var(--green);font-size:13px;font-weight:600;display:none;}
+.success-msg.show{display:block;}
+/* Deposit modal extras */
+.dep-tabs{display:flex;gap:6px;margin-bottom:20px;}
+.dep-tab{flex:1;background:var(--surface);border:1px solid var(--border);border-radius:10px;color:var(--muted);font-size:13px;font-weight:700;padding:9px 4px;cursor:pointer;transition:all .15s;font-family:inherit;}
+.dep-tab.active{background:rgba(91,143,255,.12);border-color:var(--accent);color:var(--accent);}
+.upi-info-box{background:linear-gradient(135deg,rgba(91,143,255,.08),rgba(155,89,255,.06));border:1.5px solid var(--accent);border-radius:16px;padding:20px;text-align:center;margin-bottom:16px;}
+.upi-biz-name{font-size:17px;font-weight:900;margin-bottom:10px;}
+.upi-id-row{display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:10px;}
+.upi-id-val{font-size:18px;font-weight:900;color:var(--accent);font-family:monospace;letter-spacing:.5px;}
+.copy-upi-btn{background:rgba(91,143,255,.15);border:1px solid var(--accent);border-radius:8px;color:var(--accent);font-size:12px;font-weight:700;padding:5px 12px;cursor:pointer;font-family:inherit;}
+.copy-upi-btn:active{transform:scale(.95);}
+.upi-hint{font-size:12px;color:var(--muted);}
+.dep-steps{display:flex;flex-direction:column;gap:6px;margin:14px 0 18px;}
+.dep-step{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:9px 14px;font-size:12px;color:var(--muted);display:flex;align-items:center;gap:10px;}
+.dep-step-num{background:var(--accent);color:#fff;width:20px;height:20px;border-radius:50%;font-size:11px;font-weight:900;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.dep-hist-item{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:12px 14px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center;}
+.dhi-left{display:flex;flex-direction:column;gap:3px;}
+.dhi-amt{font-size:16px;font-weight:800;}
+.dhi-utr{font-size:11px;color:var(--muted);font-family:monospace;}
+.dhi-date{font-size:11px;color:var(--muted);}
+.dep-empty{text-align:center;color:var(--muted);padding:30px;font-size:13px;}
+/* Toast */
+#toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(80px);background:var(--card);border:1px solid var(--border);border-radius:14px;padding:12px 24px;font-size:14px;font-weight:600;z-index:999;transition:transform .35s cubic-bezier(.34,1.56,.64,1);pointer-events:none;white-space:nowrap;}
+#toast.show{transform:translateX(-50%) translateY(0);}
+/* Connecting overlay */
+#connecting{position:fixed;inset:0;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;z-index:200;font-size:16px;color:var(--muted);}
+.spinner{width:40px;height:40px;border:3px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin 1s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg)}}
+</style>
+</head>
+<body>
+
+<div id="connecting"><div class="spinner"></div>Connecting…</div>
+
+<header>
+  <div class="logo">Color<span>Win</span></div>
+  <div class="header-right">
+    <div class="wallet-pill" onclick="openWithdraw()">
+      <span class="coin">₹</span><span id="walletAmt">0.00</span>
+    </div>
+    <div class="user-chip" onclick="toggleDrop()">
+      <div class="avatar" id="userAvatar">?</div>
+      <span id="userLabel">...</span>
+    </div>
+  </div>
+</header>
+
+<div class="dropdown" id="dropdown">
+  <div class="d-item" onclick="openDeposit()">💰 Add Money</div>
+  <div class="d-item" onclick="openWithdraw()">💸 Withdraw</div>
+  <div class="d-item" id="dUpi" style="font-size:12px;color:var(--muted);cursor:default;"></div>
+  <div class="d-item danger" onclick="doLogout()">🚪 Logout</div>
+</div>
+
+<main>
+  <div class="timer-card">
+    <div class="round-label">Round</div>
+    <div class="round-num" id="roundNum">#0001</div>
+    <div class="countdown" id="countdown">30</div>
+    <div class="phase-lbl" id="phaseLbl">Place your bet before time runs out</div>
+  </div>
+
+  <div class="result-banner" id="resultBanner"></div>
+
+  <div class="section-lbl">Choose a color</div>
+  <div class="color-grid">
+    <button class="cbtn red"    id="btn-red"    onclick="selectColor('red')">🔴 Red<span class="mult">2×</span></button>
+    <button class="cbtn violet" id="btn-violet" onclick="selectColor('violet')">🟣 Violet<span class="mult">4.5×</span></button>
+    <button class="cbtn green"  id="btn-green"  onclick="selectColor('green')">🟢 Green<span class="mult">2×</span></button>
+  </div>
+
+  <div class="bet-card">
+    <div class="section-lbl">Bet amount</div>
+    <div class="quick-amts">
+      <button class="amt-btn" onclick="setAmt(10)">₹10</button>
+      <button class="amt-btn" onclick="setAmt(50)">₹50</button>
+      <button class="amt-btn" onclick="setAmt(100)">₹100</button>
+      <button class="amt-btn" onclick="setAmt(500)">₹500</button>
+      <button class="amt-btn" onclick="setAmt(1000)">₹1K</button>
+    </div>
+    <div class="bet-row">
+      <input class="bet-input" id="betAmt" type="number" min="1" value="50" placeholder="₹ amount"/>
+      <button class="place-btn" id="placeBtn" onclick="placeBet()">Place Bet</button>
+    </div>
+    <div class="bet-sum" id="betSum">Select a color and enter amount</div>
+  </div>
+
+  <button class="deposit-btn" onclick="openDeposit()">💰 Add Money to Wallet</button>
+  <button class="w-btn" onclick="openWithdraw()">💸 Withdraw Winnings via UPI</button>
+
+  <div class="history-card">
+    <div class="hist-hdr"><span>Recent Results</span><span id="statsLbl" style="font-size:12px;color:var(--muted);"></span></div>
+    <div class="dots" id="histDots"></div>
+    <div class="prob-row" id="probRow">
+      <div class="prob-seg red" style="width:45%"></div>
+      <div class="prob-seg violet" style="width:10%"></div>
+      <div class="prob-seg green" style="width:45%"></div>
+    </div>
+    <div class="hist-rows" id="histRows">
+      <div style="padding:20px;text-align:center;color:var(--muted);font-size:13px;">No bets yet</div>
+    </div>
+  </div>
+</main>
+
+<!-- Withdraw Modal -->
+<div class="modal-overlay" id="wModal" onclick="closeIfOut(event,'wModal')">
+  <div class="modal-sheet">
+    <button class="m-close" onclick="closeModal('wModal')">✕</button>
+    <div class="modal-title">💸 Withdraw</div>
+    <div class="modal-sub">Transfer winnings to your UPI account</div>
+    <div class="modal-bal" id="wBal">₹0.00</div>
+    <div class="m-grp"><div class="m-lbl">Amount (min ₹100)</div><input class="m-inp" id="wAmt" type="number" min="100" placeholder="₹500"/></div>
+    <div class="m-grp"><div class="m-lbl">UPI ID</div><input class="m-inp" id="wUpi" type="text" placeholder="name@upi"/></div>
+    <div class="m-err" id="wErr"></div>
+    <div class="success-msg" id="wOk">✅ Withdrawal request submitted! Admin will transfer within 24 hours.</div>
+    <button class="btn-withdraw" onclick="submitWithdraw()">Request Withdrawal →</button>
+  </div>
+</div>
+
+<!-- Deposit Modal -->
+<div class="modal-overlay" id="dModal" onclick="closeIfOut(event,'dModal')">
+  <div class="modal-sheet" style="max-height:92vh;overflow-y:auto;padding-bottom:48px;">
+    <button class="m-close" onclick="closeModal('dModal')">✕</button>
+    <div class="dep-tabs">
+      <button class="dep-tab active" id="depTab1" onclick="switchDepTab(1)">1. Pay</button>
+      <button class="dep-tab"        id="depTab2" onclick="switchDepTab(2)">2. Submit</button>
+      <button class="dep-tab"        id="depTab3" onclick="switchDepTab(3)">History</button>
+    </div>
+
+    <!-- TAB 1 — Pay -->
+    <div id="depStep1">
+      <div class="modal-title">💰 Add Money</div>
+      <div class="modal-sub">Send money via UPI to the account below</div>
+      <div class="upi-info-box">
+        <div class="upi-biz-name" id="depAdminName">ColorWin</div>
+        <div class="upi-id-row">
+          <span class="upi-id-val" id="depAdminUpi">loading…</span>
+          <button class="copy-upi-btn" onclick="copyDepUpi()">📋 Copy</button>
+        </div>
+        <div class="upi-hint">Pay via PhonePe · GPay · Paytm · BHIM</div>
+      </div>
+      <div class="dep-steps">
+        <div class="dep-step"><span class="dep-step-num">1</span>Open any UPI app (PhonePe / GPay / Paytm)</div>
+        <div class="dep-step"><span class="dep-step-num">2</span>Send money to the UPI ID shown above</div>
+        <div class="dep-step"><span class="dep-step-num">3</span>Note the UTR / Transaction ID from receipt</div>
+        <div class="dep-step"><span class="dep-step-num">4</span>Tap "Submit" tab below and fill the form</div>
+      </div>
+      <button class="btn-deposit" onclick="switchDepTab(2)">I've paid — Submit UTR →</button>
+    </div>
+
+    <!-- TAB 2 — Submit UTR -->
+    <div id="depStep2" style="display:none;">
+      <div class="modal-title">📝 Submit Payment</div>
+      <div class="modal-sub">Tell us how much you paid and your UTR number</div>
+      <div class="m-grp">
+        <div class="m-lbl">Amount paid (₹)</div>
+        <div class="quick-deps">
+          <button class="qdep" onclick="setDep(100)">₹100</button>
+          <button class="qdep" onclick="setDep(200)">₹200</button>
+          <button class="qdep" onclick="setDep(500)">₹500</button>
+          <button class="qdep" onclick="setDep(1000)">₹1K</button>
+          <button class="qdep" onclick="setDep(2000)">₹2K</button>
+        </div>
+        <input class="m-inp" id="dAmt" type="number" min="50" value="500" placeholder="₹ amount"/>
+      </div>
+      <div class="m-grp">
+        <div class="m-lbl">UTR / Transaction ID</div>
+        <input class="m-inp" id="dUtr" type="text" maxlength="30" placeholder="e.g. 407123456789"/>
+        <div style="font-size:11px;color:var(--muted);margin-top:4px;">Open UPI app → Payment receipt → UTR Number</div>
+      </div>
+      <div class="m-grp">
+        <div class="m-lbl">Your UPI ID <span style="font-weight:400;">(optional)</span></div>
+        <input class="m-inp" id="dSenderUpi" type="text" placeholder="yourname@upi"/>
+      </div>
+      <div class="m-err" id="dErr"></div>
+      <div class="success-msg" id="dOk">✅ Deposit submitted! Admin will approve within 30 min. Check History tab.</div>
+      <button class="btn-deposit" onclick="submitManualDeposit()">Submit Deposit Request →</button>
+    </div>
+
+    <!-- TAB 3 — History -->
+    <div id="depStep3" style="display:none;">
+      <div class="modal-title">📋 My Deposits</div>
+      <div class="modal-sub">Status of your recent deposit requests</div>
+      <div id="depHistList"><div class="dep-empty">Loading…</div></div>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script src="/socket.io/socket.io.js"></script>
+<script>
+const API   = '';
+const token = localStorage.getItem('cw_token');
+
+// Auth guard
+if(!token){location.href='login.html';}
+
+let user          = null;
+let wallet        = 0;
+let selectedColor = null;
+let phaseCurrent  = 'betting';
+let currentRound  = 1;
+let hasBet        = false;
+let betHistory    = [];
+let adminUpiId    = '';
+let adminUpiName  = 'ColorWin';
+let minDeposit    = 50;
+
+// ── Socket setup ──
+const socket = io({ auth: { token } });
+
+socket.on('connect', () => {
+  socket.emit('auth', token);
+});
+
+socket.on('auth:error', () => {
+  localStorage.removeItem('cw_token');
+  location.href = 'login.html';
+});
+
+socket.on('round:state', (s) => {
+  document.getElementById('connecting').style.display = 'none';
+  currentRound = s.roundNumber;
+  phaseCurrent = s.phase;
+  renderTimer(s.timeLeft, s.phase);
+  updateRoundNum(s.roundNumber);
+  if(s.lastResult) addDot(s.lastResult);
+});
+
+socket.on('round:start', (s) => {
+  currentRound  = s.roundNumber;
+  phaseCurrent  = 'betting';
+  hasBet        = false;
+  selectedColor = null;
+  updateRoundNum(s.roundNumber);
+  resetBetUI();
+  document.getElementById('resultBanner').className='result-banner';
+  renderTimer(s.timeLeft, 'betting');
+});
+
+socket.on('round:tick', (s) => {
+  phaseCurrent = s.phase;
+  renderTimer(s.timeLeft, s.phase);
+});
+
+socket.on('round:result', (s) => {
+  addDot(s.result);
+  updateProbBar();
+  if(!hasBet){
+    showBanner(`Result: ${s.result.toUpperCase()}`, 'lose');
+  }
+});
+
+socket.on('bet:result', (s) => {
+  if(s.win){
+    showBanner(`🎉 You WON ₹${s.payout.toFixed(2)}! Result: ${s.result.toUpperCase()}`, 'win');
+    showToast(`+₹${s.payout.toFixed(2)} credited!`);
+  } else {
+    showBanner(`😔 Result: ${s.result.toUpperCase()} — Better luck next round`, 'lose');
+  }
+  if(s.newBalance != null) updateWallet(s.newBalance);
+  loadHistory();
+});
+
+socket.on('wallet:sync', (s) => { updateWallet(s.wallet); });
+socket.on('wallet:update', (s) => {
+  if(s.wallet != null) updateWallet(s.wallet);
+  if(s.message) showToast(s.message);
+});
+
+// ── Load user ──
+async function loadUser(){
+  try{
+    const r = await fetch(API+'/api/auth/me',{headers:{Authorization:'Bearer '+token}});
+    if(!r.ok){localStorage.removeItem('cw_token');location.href='login.html';return;}
+    const d = await r.json();
+    user = d.user;
+    updateWallet(user.wallet);
+    document.getElementById('userAvatar').textContent = user.name[0].toUpperCase();
+    document.getElementById('userLabel').textContent  = '@'+user.username;
+    if(user.upiId) document.getElementById('dUpi').textContent = '💳 '+user.upiId;
+    document.getElementById('wUpi').value = user.upiId || '';
+  }catch{}
+}
+
+async function loadHistory(){
+  try{
+    const r=await fetch(API+'/api/game/history',{headers:{Authorization:'Bearer '+token}});
+    const d=await r.json();
+    betHistory=d.bets||[];
+    renderHistory();
+  }catch{}
+}
+
+async function loadConfig(){
+  try{
+    const d=await fetch(API+'/api/config').then(r=>r.json());
+    adminUpiId   = d.adminUpiId  || '';
+    adminUpiName = d.adminUpiName|| 'ColorWin';
+    minDeposit   = d.minDeposit  || 50;
+    document.getElementById('depAdminName').textContent = adminUpiName;
+    document.getElementById('depAdminUpi').textContent  = adminUpiId || 'Contact admin for UPI ID';
+    document.getElementById('dAmt').min = minDeposit;
+  }catch{}
+}
+
+// ── Wallet ──
+function updateWallet(bal){
+  wallet=bal;
+  document.getElementById('walletAmt').textContent=fmtMoney(bal);
+  document.getElementById('wBal').textContent='₹'+fmtMoney(bal);
+  updateBetSummary();
+}
+function fmtMoney(n){return(+n||0).toLocaleString('en-IN',{minimumFractionDigits:2,maximumFractionDigits:2});}
+
+// ── Timer ──
+function renderTimer(t, phase){
+  document.getElementById('countdown').textContent=t;
+  document.getElementById('countdown').className='countdown'+(t<=5?' urgent':'');
+  const pl=document.getElementById('phaseLbl');
+  if(phase==='betting'&&t>5) pl.textContent='Place your bet before time runs out';
+  else if(phase==='betting'||phase==='closing'){
+    pl.textContent=t<=0?'Drawing result…':`⚡ Hurry! ${t}s remaining — Betting ${t<=5?'CLOSED':'open'}`;
+    if(t<=5){
+      document.getElementById('placeBtn').disabled=true;
+      if(!hasBet) document.getElementById('placeBtn').textContent='Closed';
+      ['red','green','violet'].forEach(c=>document.getElementById('btn-'+c).disabled=true);
+    }
+  } else { pl.textContent='Drawing result…'; }
+}
+function updateRoundNum(n){document.getElementById('roundNum').textContent='#'+String(n).padStart(4,'0');}
+
+// ── Color select ──
+function selectColor(c){
+  if(phaseCurrent!=='betting'||hasBet) return;
+  selectedColor=c;
+  ['red','green','violet'].forEach(x=>document.getElementById('btn-'+x).classList.toggle('selected',x===c));
+  updateBetSummary();
+}
+
+function setAmt(v){
+  document.getElementById('betAmt').value=v;
+  document.querySelectorAll('.amt-btn').forEach(b=>b.classList.remove('active'));
+  updateBetSummary();
+}
+document.getElementById('betAmt').addEventListener('input',()=>{
+  document.querySelectorAll('.amt-btn').forEach(b=>b.classList.remove('active'));
+  updateBetSummary();
+});
+
+const MULT={red:2,green:2,violet:4.5};
+function updateBetSummary(){
+  const amt=parseFloat(document.getElementById('betAmt').value);
+  const el=document.getElementById('betSum');
+  if(!selectedColor){el.textContent='Select a color and enter amount';el.className='bet-sum';return;}
+  if(!amt||amt<=0){el.textContent='Enter a valid amount';el.className='bet-sum';return;}
+  if(amt>wallet){el.textContent='Insufficient balance';el.className='bet-sum';return;}
+  el.textContent=`Betting ₹${amt} on ${selectedColor.toUpperCase()} → Win ₹${(amt*MULT[selectedColor]).toFixed(2)}`;
+  el.className='bet-sum ready';
+}
+
+function resetBetUI(){
+  ['red','green','violet'].forEach(c=>{const b=document.getElementById('btn-'+c);b.classList.remove('selected');b.disabled=false;});
+  document.getElementById('placeBtn').disabled=false;
+  document.getElementById('placeBtn').textContent='Place Bet';
+  updateBetSummary();
+}
+
+async function placeBet(){
+  if(phaseCurrent!=='betting'){showToast('Betting is closed');return;}
+  if(hasBet){showToast('Already placed a bet this round');return;}
+  const amt=parseFloat(document.getElementById('betAmt').value);
+  if(!selectedColor){showToast('Select a color first');return;}
+  if(!amt||amt<1){showToast('Enter valid amount');return;}
+  if(amt>wallet){showToast('Insufficient balance');return;}
+
+  document.getElementById('placeBtn').disabled=true;
+  document.getElementById('placeBtn').textContent='Placing…';
+
+  try{
+    const r=await fetch(API+'/api/game/bet',{
+      method:'POST',
+      headers:{'Authorization':'Bearer '+token,'Content-Type':'application/json'},
+      body:JSON.stringify({color:selectedColor,amount:amt})
+    });
+    const d=await r.json();
+    if(!r.ok){showToast(d.error||'Bet failed');document.getElementById('placeBtn').disabled=false;document.getElementById('placeBtn').textContent='Place Bet';return;}
+    hasBet=true;
+    updateWallet(d.newBalance);
+    document.getElementById('placeBtn').textContent='✓ Bet Placed ₹'+amt;
+    showToast(`₹${amt} bet on ${selectedColor.toUpperCase()}`);
+    ['red','green','violet'].forEach(c=>document.getElementById('btn-'+c).disabled=true);
+  }catch{showToast('Network error');document.getElementById('placeBtn').disabled=false;document.getElementById('placeBtn').textContent='Place Bet';}
+}
+
+// ── History ──
+let resultDots=[];
+function addDot(color){resultDots.unshift(color);if(resultDots.length>20)resultDots.pop();renderDots();}
+function renderDots(){
+  document.getElementById('histDots').innerHTML=resultDots.map(c=>`<div class="dot ${c}">${c[0].toUpperCase()}</div>`).join('');
+}
+function updateProbBar(){
+  const total=resultDots.length||1;
+  const rp=(resultDots.filter(c=>c==='red').length/total*100).toFixed(1);
+  const gp=(resultDots.filter(c=>c==='green').length/total*100).toFixed(1);
+  const vp=(resultDots.filter(c=>c==='violet').length/total*100).toFixed(1);
+  document.getElementById('probRow').innerHTML=`<div class="prob-seg red" style="width:${rp}%"></div><div class="prob-seg violet" style="width:${vp}%"></div><div class="prob-seg green" style="width:${gp}%"></div>`;
+}
+function renderHistory(){
+  const el=document.getElementById('histRows');
+  const wins=betHistory.filter(b=>b.win).length;
+  document.getElementById('statsLbl').textContent=betHistory.length?`${wins}W/${betHistory.length-wins}L`:'';
+  if(!betHistory.length){el.innerHTML='<div style="padding:20px;text-align:center;color:var(--muted);font-size:13px;">No bets yet</div>';return;}
+  el.innerHTML=betHistory.slice(0,10).map(b=>{
+    const cn=b.color.charAt(0).toUpperCase()+b.color.slice(1);
+    const res=b.win?`+₹${b.payout.toFixed(2)}`:`-₹${b.amount.toFixed(2)}`;
+    return `<div class="h-row"><span class="h-rnd">#${String(b.roundNumber).padStart(4,'0')}</span><span class="h-col ${b.result}">${b.result.charAt(0).toUpperCase()+b.result.slice(1)}</span><span class="h-amt">₹${b.amount.toFixed(2)}</span><span class="h-res ${b.win?'win':'lose'}">${res}</span></div>`;
+  }).join('');
+}
+function showBanner(msg,type){const el=document.getElementById('resultBanner');el.textContent=msg;el.className=`result-banner ${type} show`;}
+
+// ── Modals ──
+function openWithdraw(){
+  closeDrop();
+  document.getElementById('wAmt').value='';
+  document.getElementById('wErr').textContent='';
+  document.getElementById('wOk').classList.remove('show');
+  document.getElementById('wModal').classList.add('show');
+}
+function openDeposit(){
+  closeDrop();
+  switchDepTab(1);
+  document.getElementById('dErr').textContent='';
+  document.getElementById('dOk').classList.remove('show');
+  document.getElementById('dModal').classList.add('show');
+}
+function switchDepTab(n){
+  [1,2,3].forEach(i=>{
+    document.getElementById('depStep'+i).style.display = i===n?'block':'none';
+    document.getElementById('depTab'+i).classList.toggle('active', i===n);
+  });
+  if(n===3) loadDepositHistory();
+}
+function copyDepUpi(){
+  if(!adminUpiId){showToast('No UPI ID configured');return;}
+  navigator.clipboard.writeText(adminUpiId).catch(()=>{});
+  showToast('UPI ID copied!');
+}
+function closeModal(id){document.getElementById(id).classList.remove('show');}
+function closeIfOut(e,id){if(e.target===document.getElementById(id))closeModal(id);}
+
+async function submitWithdraw(){
+  const amt=parseFloat(document.getElementById('wAmt').value);
+  const upi=document.getElementById('wUpi').value.trim();
+  const el=document.getElementById('wErr');
+  el.textContent='';
+  if(!amt||amt<100){el.textContent='Minimum withdrawal is ₹100';return;}
+  if(amt>wallet){el.textContent='Insufficient balance';return;}
+  if(!upi){el.textContent='Enter your UPI ID';return;}
+  try{
+    const r=await fetch(API+'/api/payment/withdraw',{method:'POST',headers:{'Authorization':'Bearer '+token,'Content-Type':'application/json'},body:JSON.stringify({amount:amt,upiId:upi})});
+    const d=await r.json();
+    if(!r.ok){el.textContent=d.error||'Failed';return;}
+    updateWallet(d.newBalance);
+    document.getElementById('wOk').classList.add('show');
+    showToast(`₹${amt} withdrawal requested!`);
+  }catch{el.textContent='Network error';}
+}
+
+function setDep(v){document.getElementById('dAmt').value=v;}
+
+async function submitManualDeposit(){
+  const amt = parseFloat(document.getElementById('dAmt').value);
+  const utr = document.getElementById('dUtr').value.trim();
+  const sUpi= document.getElementById('dSenderUpi').value.trim();
+  const el  = document.getElementById('dErr');
+  el.textContent = '';
+  document.getElementById('dOk').classList.remove('show');
+  if(!amt||amt<minDeposit){el.textContent=`Minimum deposit ₹${minDeposit}`;return;}
+  if(!utr||utr.length<6){el.textContent='Enter a valid UTR / Transaction ID';return;}
+  try{
+    const r=await fetch(API+'/api/deposit/manual',{
+      method:'POST',
+      headers:{'Authorization':'Bearer '+token,'Content-Type':'application/json'},
+      body:JSON.stringify({amount:amt,utrNumber:utr,senderUpi:sUpi})
+    });
+    const d=await r.json();
+    if(!r.ok){el.textContent=d.error||'Submission failed';return;}
+    document.getElementById('dOk').classList.add('show');
+    document.getElementById('dUtr').value='';
+    document.getElementById('dSenderUpi').value='';
+    showToast('Deposit submitted — pending approval');
+  }catch{el.textContent='Network error';}
+}
+
+async function loadDepositHistory(){
+  const el=document.getElementById('depHistList');
+  el.innerHTML='<div class="dep-empty">Loading…</div>';
+  try{
+    const r=await fetch(API+'/api/deposit/my',{headers:{Authorization:'Bearer '+token}});
+    const d=await r.json();
+    const deps=d.deposits||[];
+    if(!deps.length){el.innerHTML='<div class="dep-empty">No deposit requests yet.</div>';return;}
+    el.innerHTML=deps.map(dep=>{
+      const color=dep.status==='approved'?'var(--green)':dep.status==='rejected'?'var(--red)':'var(--yellow)';
+      const icon =dep.status==='approved'?'✅':dep.status==='rejected'?'❌':'⏳';
+      const note =dep.adminNote?`<div style="font-size:11px;color:var(--muted);margin-top:2px;">${dep.adminNote}</div>`:'';
+      return `<div class="dep-hist-item">
+        <div class="dhi-left">
+          <div class="dhi-amt">₹${(+dep.amount).toFixed(2)}</div>
+          <div class="dhi-utr">UTR: ${dep.utrNumber}</div>
+          <div class="dhi-date">${new Date(dep.createdAt).toLocaleString('en-IN',{dateStyle:'short',timeStyle:'short'})}</div>
+          ${note}
+        </div>
+        <div style="font-size:13px;font-weight:800;color:${color};">${icon} ${dep.status.toUpperCase()}</div>
+      </div>`;
+    }).join('');
+  }catch{el.innerHTML='<div class="dep-empty">Failed to load history.</div>';}
+}
+
+// ── Dropdown ──
+function toggleDrop(){document.getElementById('dropdown').classList.toggle('show');}
+function closeDrop(){document.getElementById('dropdown').classList.remove('show');}
+document.addEventListener('click',e=>{if(!e.target.closest('.user-chip')&&!e.target.closest('.dropdown'))closeDrop();});
+
+function doLogout(){localStorage.removeItem('cw_token');location.href='login.html';}
+
+// ── Toast ──
+function showToast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2500);}
+
+// Load results history (dots)
+async function loadResults(){
+  try{
+    const r=await fetch(API+'/api/game/results');
+    const d=await r.json();
+    resultDots=(d.rounds||[]).map(r=>r.result).filter(Boolean);
+    renderDots();updateProbBar();
+  }catch{}
+}
+
+// ── Boot ──
+loadUser();
+loadHistory();
+loadConfig();
+loadResults();
+</script>
+</body>
+</html>

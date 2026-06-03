@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>ColorWin — Login</title>
+<style>
+:root{--bg:#0d0f1a;--surface:#161926;--card:#1e2235;--border:#2a2f4a;--text:#e8eaf0;--muted:#7880a0;--red:#ff4d6a;--green:#00d68f;--violet:#9b59ff;--yellow:#ffd84d;--accent:#5b8fff;}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,sans-serif;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px;}
+.screen{display:none;flex-direction:column;align-items:center;width:100%;max-width:420px;}
+.screen.active{display:flex;animation:fadeUp .4s ease;}
+@keyframes fadeUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+.logo{font-size:32px;font-weight:900;letter-spacing:-1px;margin-bottom:6px;}
+.logo span{color:var(--yellow);}
+.tagline{font-size:14px;color:var(--muted);margin-bottom:28px;}
+.auth-card{width:100%;background:var(--card);border:1px solid var(--border);border-radius:24px;padding:28px;display:flex;flex-direction:column;gap:14px;}
+.card-title{font-size:20px;font-weight:800;}
+.card-sub{font-size:13px;color:var(--muted);}
+.google-btn{width:100%;background:#fff;border:none;border-radius:14px;color:#222;font-size:15px;font-weight:700;padding:14px 20px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:12px;transition:box-shadow .2s,transform .15s;}
+.google-btn:hover{box-shadow:0 4px 20px rgba(255,255,255,.15);transform:translateY(-1px);}
+.google-btn:disabled{opacity:.5;cursor:not-allowed;}
+.g-icon{width:22px;height:22px;background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 48 48'%3E%3Cpath fill='%23EA4335' d='M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z'/%3E%3Cpath fill='%234285F4' d='M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z'/%3E%3Cpath fill='%23FBBC05' d='M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z'/%3E%3Cpath fill='%2334A853' d='M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z'/%3E%3C/svg%3E") center/contain no-repeat;}
+.divider{display:flex;align-items:center;gap:12px;color:var(--muted);font-size:13px;font-weight:600;}
+.divider::before,.divider::after{content:'';flex:1;height:1px;background:var(--border);}
+.inp-group{display:flex;flex-direction:column;gap:5px;}
+.inp-label{font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;}
+.inp{width:100%;background:var(--surface);border:1.5px solid var(--border);border-radius:13px;color:var(--text);font-size:15px;font-weight:600;padding:12px 15px;outline:none;transition:border-color .2s;font-family:inherit;}
+.inp:focus{border-color:var(--accent);}
+.inp.err{border-color:var(--red);}
+.inp::placeholder{color:var(--muted);font-weight:400;}
+.inp-row{display:flex;gap:10px;}
+.btn-primary{width:100%;background:linear-gradient(135deg,#5b8fff,#3b5fff);border:none;border-radius:14px;color:#fff;font-size:15px;font-weight:800;padding:14px;cursor:pointer;transition:opacity .15s,transform .15s;font-family:inherit;}
+.btn-primary:hover{opacity:.9;}
+.btn-primary:active{transform:scale(.98);}
+.btn-primary:disabled{opacity:.4;cursor:not-allowed;}
+.btn-secondary{width:100%;background:transparent;border:1.5px solid var(--border);border-radius:14px;color:var(--text);font-size:14px;font-weight:700;padding:12px;cursor:pointer;transition:border-color .2s;font-family:inherit;}
+.btn-secondary:hover{border-color:var(--accent);color:var(--accent);}
+.otp-row{display:flex;gap:10px;justify-content:center;}
+.otp-box{width:50px;height:58px;background:var(--surface);border:2px solid var(--border);border-radius:13px;color:var(--text);font-size:24px;font-weight:900;text-align:center;outline:none;transition:border-color .2s;font-family:inherit;}
+.otp-box:focus{border-color:var(--accent);}
+.otp-box.filled{border-color:var(--green);}
+.err-msg{font-size:12px;color:var(--red);min-height:16px;}
+.switch-text{text-align:center;font-size:13px;color:var(--muted);margin-top:12px;}
+.switch-text a{color:var(--accent);cursor:pointer;font-weight:700;text-decoration:none;}
+.back-btn{background:none;border:none;color:var(--muted);font-size:13px;font-weight:600;cursor:pointer;padding:0;display:flex;align-items:center;gap:6px;font-family:inherit;}
+.back-btn:hover{color:var(--text);}
+.upi-note{background:rgba(0,214,143,.08);border:1px solid rgba(0,214,143,.2);border-radius:12px;padding:11px 14px;font-size:12px;color:var(--green);line-height:1.5;}
+.resend{text-align:center;font-size:13px;color:var(--muted);}
+.resend a{color:var(--accent);cursor:pointer;font-weight:700;}
+.success-icon{font-size:64px;margin-bottom:16px;animation:pop .5s cubic-bezier(.34,1.56,.64,1);}
+@keyframes pop{from{transform:scale(0)}to{transform:scale(1)}}
+.success-title{font-size:24px;font-weight:900;margin-bottom:8px;}
+.success-sub{font-size:14px;color:var(--muted);text-align:center;}
+#otpToast{position:fixed;top:20px;right:20px;background:var(--card);border:1px solid var(--green);border-radius:16px;padding:14px 20px;font-size:13px;z-index:999;display:none;animation:sIn .4s ease;max-width:260px;}
+@keyframes sIn{from{opacity:0;transform:translateX(40px)}to{opacity:1;transform:translateX(0)}}
+#otpToast.show{display:block;}
+.otp-num{font-size:28px;font-weight:900;color:var(--green);letter-spacing:4px;margin:6px 0;}
+</style>
+</head>
+<body>
+
+<div id="otpToast">
+  <div style="color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:1px;">📱 OTP Code</div>
+  <div class="otp-num" id="toastOtp">------</div>
+  <div style="color:var(--muted);font-size:11px;">Check console if email not set up</div>
+</div>
+
+<!-- SCREEN: Main Login -->
+<div class="screen active" id="s-main">
+  <div class="logo">Color<span>Win</span></div>
+  <div class="tagline">Play. Predict. Win Real Cash.</div>
+  <div class="auth-card">
+    <div class="card-title">Welcome Back</div>
+    <div class="card-sub">Sign in to continue</div>
+    <button class="google-btn" id="googleBtn" onclick="startGoogle()"><div class="g-icon"></div>Continue with Google</button>
+    <div class="divider">or login with email</div>
+    <div class="inp-group"><div class="inp-label">Email</div><input class="inp" id="lEmail" type="email" placeholder="you@gmail.com"/></div>
+    <div class="inp-group"><div class="inp-label">Password</div><input class="inp" id="lPass" type="password" placeholder="••••••••" onkeydown="if(event.key==='Enter')doLogin()"/></div>
+    <div class="err-msg" id="lErr"></div>
+    <button class="btn-primary" id="lBtn" onclick="doLogin()">Login →</button>
+  </div>
+  <div class="switch-text">New here? <a onclick="goTo('s-signup')">Create Account</a></div>
+</div>
+
+<!-- SCREEN: Signup -->
+<div class="screen" id="s-signup">
+  <div class="logo">Color<span>Win</span></div>
+  <div class="auth-card">
+    <button class="back-btn" onclick="goTo('s-main')">← Back</button>
+    <div class="card-title">Create Account</div>
+    <div class="card-sub">Join & get ₹500 signup bonus</div>
+    <div class="inp-row">
+      <div class="inp-group" style="flex:1"><div class="inp-label">First Name</div><input class="inp" id="rFirst" type="text" placeholder="Rahul"/></div>
+      <div class="inp-group" style="flex:1"><div class="inp-label">Last Name</div><input class="inp" id="rLast" type="text" placeholder="Sharma"/></div>
+    </div>
+    <div class="inp-group"><div class="inp-label">Username</div><input class="inp" id="rUser" type="text" placeholder="rahul99" oninput="this.value=this.value.replace(/[^a-z0-9_]/gi,'').toLowerCase()"/></div>
+    <div class="inp-group"><div class="inp-label">Email</div><input class="inp" id="rEmail" type="email" placeholder="you@gmail.com"/></div>
+    <div class="inp-group"><div class="inp-label">Phone</div><input class="inp" id="rPhone" type="tel" placeholder="9876543210" maxlength="10"/></div>
+    <div class="inp-group"><div class="inp-label">UPI ID (for withdrawals)</div><input class="inp" id="rUpi" type="text" placeholder="name@upi or 98765@ybl"/></div>
+    <div class="upi-note">💳 Your UPI ID is used to send winnings directly to your bank.</div>
+    <div class="inp-group"><div class="inp-label">Password</div><input class="inp" id="rPass" type="password" placeholder="Min 8 characters"/></div>
+    <div class="inp-group"><div class="inp-label">Confirm Password</div><input class="inp" id="rPass2" type="password" placeholder="Re-enter password"/></div>
+    <div class="err-msg" id="rErr"></div>
+    <button class="btn-primary" id="rBtn" onclick="doSignup()">Send OTP & Create Account →</button>
+  </div>
+  <div class="switch-text">Already have an account? <a onclick="goTo('s-main')">Login</a></div>
+</div>
+
+<!-- SCREEN: OTP -->
+<div class="screen" id="s-otp">
+  <div class="logo">Color<span>Win</span></div>
+  <div class="auth-card">
+    <button class="back-btn" id="otpBack" onclick="goTo('s-main')">← Back</button>
+    <div style="text-align:center"><div style="font-size:48px;margin-bottom:10px">📱</div>
+    <div class="card-title">Enter OTP</div>
+    <div class="card-sub" id="otpSub">OTP sent to your email</div></div>
+    <div class="otp-row">
+      <input class="otp-box" id="o0" maxlength="1" type="text" inputmode="numeric" oninput="oi(0)" onkeydown="ok(event,0)"/>
+      <input class="otp-box" id="o1" maxlength="1" type="text" inputmode="numeric" oninput="oi(1)" onkeydown="ok(event,1)"/>
+      <input class="otp-box" id="o2" maxlength="1" type="text" inputmode="numeric" oninput="oi(2)" onkeydown="ok(event,2)"/>
+      <input class="otp-box" id="o3" maxlength="1" type="text" inputmode="numeric" oninput="oi(3)" onkeydown="ok(event,3)"/>
+      <input class="otp-box" id="o4" maxlength="1" type="text" inputmode="numeric" oninput="oi(4)" onkeydown="ok(event,4)"/>
+      <input class="otp-box" id="o5" maxlength="1" type="text" inputmode="numeric" oninput="oi(5)" onkeydown="ok(event,5)"/>
+    </div>
+    <div class="err-msg" id="oErr" style="text-align:center"></div>
+    <button class="btn-primary" id="oBtn" onclick="verifyOtp()">Verify OTP →</button>
+    <div class="resend">Didn't get it? <a onclick="resendOtp()">Resend OTP</a></div>
+  </div>
+</div>
+
+<!-- SCREEN: Google Profile -->
+<div class="screen" id="s-profile">
+  <div class="logo">Color<span>Win</span></div>
+  <div class="auth-card">
+    <div class="card-title">Complete Profile</div>
+    <div class="card-sub">Just a few more details</div>
+    <div class="inp-group"><div class="inp-label">Username</div><input class="inp" id="pUser" type="text" placeholder="coolplayer99" oninput="this.value=this.value.replace(/[^a-z0-9_]/gi,'').toLowerCase()"/></div>
+    <div class="inp-group"><div class="inp-label">Phone</div><input class="inp" id="pPhone" type="tel" placeholder="9876543210" maxlength="10"/></div>
+    <div class="inp-group"><div class="inp-label">UPI ID</div><input class="inp" id="pUpi" type="text" placeholder="name@upi"/></div>
+    <div class="upi-note">💳 Winnings will be sent to this UPI ID. Update anytime.</div>
+    <div class="err-msg" id="pErr"></div>
+    <button class="btn-primary" onclick="completeProfile()">Start Playing →</button>
+  </div>
+</div>
+
+<!-- SCREEN: Success -->
+<div class="screen" id="s-success">
+  <div class="success-icon">🎉</div>
+  <div class="success-title">You're all set!</div>
+  <div class="success-sub" id="successMsg">Redirecting to game…</div>
+</div>
+
+<script>
+const API = '';
+let flow = '', pendingEmail = '', pendingSignupData = null, pendingGoogleData = null;
+
+// Redirect if already logged in
+(async()=>{
+  const token = localStorage.getItem('cw_token');
+  if(!token) return;
+  try{
+    const r = await fetch(API+'/api/auth/me',{headers:{Authorization:'Bearer '+token}});
+    if(r.ok) location.href='index.html';
+    else localStorage.removeItem('cw_token');
+  }catch{}
+})();
+
+// Load Google GSI
+(async()=>{
+  try{
+    const cfg = await fetch(API+'/api/config').then(r=>r.json());
+    if(cfg.googleClientId){
+      const s=document.createElement('script');
+      s.src='https://accounts.google.com/gsi/client';
+      s.onload=()=>{
+        google.accounts.id.initialize({
+          client_id: cfg.googleClientId,
+          callback: handleGoogleCred,
+        });
+        google.accounts.id.renderButton(document.getElementById('googleBtn'),{theme:'outline',size:'large'});
+      };
+      document.head.appendChild(s);
+    } else {
+      document.getElementById('googleBtn').textContent='Google OAuth not configured';
+      document.getElementById('googleBtn').disabled=true;
+    }
+  }catch{}
+})();
+
+function goTo(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+// ── OTP boxes ──
+function oi(i){
+  const el=document.getElementById('o'+i);
+  el.value=el.value.replace(/\D/g,'').slice(0,1);
+  el.classList.toggle('filled',!!el.value);
+  if(el.value&&i<5)document.getElementById('o'+(i+1)).focus();
+}
+function ok(e,i){if(e.key==='Backspace'&&!document.getElementById('o'+i).value&&i>0)document.getElementById('o'+(i-1)).focus();}
+function getOtp(){return[0,1,2,3,4,5].map(i=>document.getElementById('o'+i).value).join('');}
+function clearOtp(){[0,1,2,3,4,5].forEach(i=>{const el=document.getElementById('o'+i);el.value='';el.classList.remove('filled');});}
+
+// ── Google ──
+function startGoogle(){
+  if(typeof google!=='undefined') google.accounts.id.prompt();
+}
+async function handleGoogleCred(resp){
+  try{
+    const r=await fetch(API+'/api/auth/google',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({idToken:resp.credential})});
+    const d=await r.json();
+    if(!r.ok) return alert(d.error||'Google login failed');
+    if(d.needsProfile){
+      pendingGoogleData={email:d.email,name:d.name};
+      goTo('s-profile');
+    } else {
+      finish(d.token,`Welcome back, ${d.user.name}!`);
+    }
+  }catch(e){alert('Google login failed');}
+}
+
+async function completeProfile(){
+  const username=document.getElementById('pUser').value.trim();
+  const phone=document.getElementById('pPhone').value.trim();
+  const upiId=document.getElementById('pUpi').value.trim();
+  const el=document.getElementById('pErr');
+  el.textContent='';
+  if(!username||username.length<3){el.textContent='Username must be 3+ characters';return;}
+  if(phone.replace(/\D/g,'').length<10){el.textContent='Enter valid 10-digit phone';return;}
+  try{
+    const r=await fetch(API+'/api/auth/google/complete',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({...pendingGoogleData,username,phone,upiId})});
+    const d=await r.json();
+    if(!r.ok){el.textContent=d.error||'Setup failed';return;}
+    finish(d.token,`Welcome, ${d.user.name}! ₹500 bonus added!`);
+  }catch{el.textContent='Network error';}
+}
+
+// ── Email Login ──
+async function doLogin(){
+  const email=document.getElementById('lEmail').value.trim();
+  const pass=document.getElementById('lPass').value;
+  const el=document.getElementById('lErr');
+  const btn=document.getElementById('lBtn');
+  el.textContent='';
+  if(!email||!pass){el.textContent='Fill in all fields';return;}
+  btn.disabled=true;btn.textContent='Logging in…';
+  try{
+    const r=await fetch(API+'/api/auth/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email,password:pass})});
+    const d=await r.json();
+    if(!r.ok){el.textContent=d.error||'Login failed';return;}
+    finish(d.token,`Welcome back, ${d.user.name}!`);
+  }catch{el.textContent='Network error. Is server running?';}
+  finally{btn.disabled=false;btn.textContent='Login →';}
+}
+
+// ── Signup ──
+async function doSignup(){
+  const first=document.getElementById('rFirst').value.trim();
+  const last=document.getElementById('rLast').value.trim();
+  const username=document.getElementById('rUser').value.trim();
+  const email=document.getElementById('rEmail').value.trim();
+  const phone=document.getElementById('rPhone').value.trim();
+  const upiId=document.getElementById('rUpi').value.trim();
+  const pass=document.getElementById('rPass').value;
+  const pass2=document.getElementById('rPass2').value;
+  const el=document.getElementById('rErr');
+  const btn=document.getElementById('rBtn');
+  el.textContent='';
+  if(!first||!last||!username||!email||!phone||!pass){el.textContent='All fields are required';return;}
+  if(username.length<3){el.textContent='Username must be 3+ characters';return;}
+  if(phone.replace(/\D/g,'').length<10){el.textContent='Enter valid 10-digit phone number';return;}
+  if(pass.length<8){el.textContent='Password must be at least 8 characters';return;}
+  if(pass!==pass2){el.textContent='Passwords do not match';return;}
+
+  pendingSignupData={name:first+' '+last,username,email,phone,upiId,password:pass};
+  pendingEmail=email;
+  flow='signup';
+
+  btn.disabled=true;btn.textContent='Sending OTP…';
+  try{
+    const r=await fetch(API+'/api/auth/send-otp',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email})});
+    const d=await r.json();
+    if(!r.ok){el.textContent=d.error||'Failed to send OTP';return;}
+    showOtpToast();
+    document.getElementById('otpSub').textContent=`OTP sent to ${email}`;
+    document.getElementById('otpBack').setAttribute('onclick',"goTo('s-signup')");
+    clearOtp();
+    goTo('s-otp');
+    setTimeout(()=>document.getElementById('o0').focus(),300);
+  }catch{el.textContent='Network error';}
+  finally{btn.disabled=false;btn.textContent='Send OTP & Create Account →';}
+}
+
+// ── Verify OTP ──
+async function verifyOtp(){
+  const otp=getOtp();
+  const el=document.getElementById('oErr');
+  const btn=document.getElementById('oBtn');
+  el.textContent='';
+  if(otp.length<6){el.textContent='Enter all 6 digits';return;}
+  btn.disabled=true;btn.textContent='Verifying…';
+  try{
+    // Verify OTP
+    const vr=await fetch(API+'/api/auth/verify-otp',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:pendingEmail,otp})});
+    const vd=await vr.json();
+    if(!vr.ok){el.textContent=vd.error||'Invalid OTP';btn.disabled=false;btn.textContent='Verify OTP →';return;}
+
+    if(flow==='signup'){
+      const sr=await fetch(API+'/api/auth/signup',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(pendingSignupData)});
+      const sd=await sr.json();
+      if(!sr.ok){el.textContent=sd.error||'Signup failed';btn.disabled=false;btn.textContent='Verify OTP →';return;}
+      finish(sd.token,`Welcome, ${sd.user.name}! ₹500 bonus added!`);
+    }
+  }catch{el.textContent='Network error';}
+  finally{btn.disabled=false;btn.textContent='Verify OTP →';}
+}
+
+async function resendOtp(){
+  document.getElementById('oErr').textContent='';
+  try{
+    await fetch(API+'/api/auth/send-otp',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:pendingEmail})});
+    showOtpToast();
+    clearOtp();
+    document.getElementById('o0').focus();
+  }catch{}
+}
+
+function showOtpToast(){
+  const t=document.getElementById('otpToast');
+  document.getElementById('toastOtp').textContent='Check email / console';
+  t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),8000);
+}
+
+function finish(token,msg){
+  localStorage.setItem('cw_token',token);
+  document.getElementById('successMsg').textContent=msg+' Redirecting…';
+  goTo('s-success');
+  setTimeout(()=>location.href='index.html',2000);
+}
+</script>
+</body>
+</html>

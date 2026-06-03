@@ -1,0 +1,103 @@
+╔══════════════════════════════════════════════════════════════╗
+║              COLORWIN — FULL SETUP GUIDE                    ║
+╚══════════════════════════════════════════════════════════════╝
+
+STEP 1 — MongoDB Atlas (Free Database)
+───────────────────────────────────────
+1. Go to https://cloud.mongodb.com → Sign up free
+2. Create a FREE cluster (M0)
+3. Database Access → Add user → username + password
+4. Network Access → Add IP → 0.0.0.0/0 (allow all)
+5. Connect → Drivers → Copy URI
+6. Paste in .env:
+   MONGODB_URI=mongodb+srv://USERNAME:PASSWORD@cluster.mongodb.net/colorwin
+
+STEP 2 — Edit .env file
+─────────────────────────
+Open .env and fill in:
+
+  JWT_SECRET=any_long_random_string_here
+  ADMIN_USERNAME=admin
+  ADMIN_PASSWORD=YourSecurePassword
+
+  # MongoDB from Step 1
+  MONGODB_URI=mongodb+srv://...
+
+  # Gmail OTP (Step 3)
+  EMAIL_USER=yourgmail@gmail.com
+  EMAIL_PASS=xxxx xxxx xxxx xxxx
+
+  # Google OAuth (Step 4) — OPTIONAL
+  GOOGLE_CLIENT_ID=your_client_id.apps.googleusercontent.com
+
+  # Razorpay (Step 5) — OPTIONAL
+  RAZORPAY_KEY_ID=rzp_live_xxx
+  RAZORPAY_KEY_SECRET=xxx
+
+STEP 3 — Gmail OTP Setup
+──────────────────────────
+1. Go to https://myaccount.google.com/security
+2. Enable 2-Step Verification
+3. Search "App Passwords" → Generate
+4. Select "Mail" → Copy the 16-char password
+5. Paste in .env as EMAIL_PASS (no spaces needed)
+
+NOTE: If you skip this, OTPs will print in the server console.
+
+STEP 4 — Google OAuth (Optional)
+───────────────────────────────────
+1. https://console.cloud.google.com
+2. Create project → APIs & Services → Credentials
+3. Create OAuth 2.0 Client ID → Web Application
+4. Authorized JS Origins: http://localhost:3000
+   (Add your domain too when deployed)
+5. Copy Client ID → paste in .env as GOOGLE_CLIENT_ID
+
+STEP 5 — Razorpay UPI Deposits (Optional)
+───────────────────────────────────────────
+1. https://razorpay.com → Sign up
+2. Settings → API Keys → Generate Test Key
+3. Copy Key ID and Key Secret to .env
+4. For live payments: complete KYC and use live keys
+
+STEP 6 — Run the Server
+─────────────────────────
+  npm start
+
+  Opens:
+  • Game  → http://localhost:3000/index.html
+  • Login → http://localhost:3000/login.html
+  • Admin → http://localhost:3000/admin.html
+
+STEP 7 — Deploy Online (Free on Railway)
+──────────────────────────────────────────
+1. https://railway.app → Sign up with GitHub
+2. New Project → Deploy from GitHub repo
+3. Add all .env variables in Railway dashboard
+4. Your site goes live at: https://yourapp.railway.app
+
+OR use Render.com (also free):
+1. https://render.com → New Web Service
+2. Connect GitHub → Set environment variables
+3. Build: npm install  |  Start: npm start
+
+══════════════════════════════════════════
+
+ADMIN LOGIN:
+  URL:      http://localhost:3000/admin.html
+  Username: admin (from .env ADMIN_USERNAME)
+  Password: Admin@123 (from .env ADMIN_PASSWORD)
+
+FEATURES:
+  ✅ Real-time multiplayer via Socket.io
+  ✅ MongoDB database (all data persisted)
+  ✅ JWT authentication
+  ✅ Email OTP verification
+  ✅ Google OAuth login
+  ✅ Razorpay UPI deposits
+  ✅ Manual UPI withdrawal system
+  ✅ Admin: force results, add balance, skip rounds
+  ✅ Admin: view all users + passwords
+  ✅ Admin: approve/reject withdrawals
+  ✅ ₹500 signup bonus
+  ✅ Server-side game engine (tamper-proof)

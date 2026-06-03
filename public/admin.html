@@ -1,0 +1,660 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>ColorWin — Admin</title>
+<style>
+:root{--bg:#080b14;--surface:#0f1320;--card:#141826;--border:#222740;--text:#e8eaf0;--muted:#6b729a;--red:#ff4d6a;--green:#00d68f;--violet:#9b59ff;--yellow:#ffd84d;--accent:#5b8fff;--orange:#ff8c42;}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,sans-serif;min-height:100vh;}
+.layout{display:grid;grid-template-columns:220px 1fr;min-height:100vh;}
+.sidebar{background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;}
+.s-logo{padding:20px;font-size:17px;font-weight:900;border-bottom:1px solid var(--border);}
+.s-logo .tag{display:inline-block;background:var(--red);color:#fff;font-size:10px;padding:2px 8px;border-radius:6px;margin-left:6px;font-weight:700;}
+.nav{padding:10px 0;font-size:13px;font-weight:600;color:var(--muted);cursor:pointer;display:flex;align-items:center;gap:10px;border-left:3px solid transparent;padding:11px 20px;transition:all .15s;}
+.nav:hover{color:var(--text);background:rgba(255,255,255,.03);}
+.nav.active{color:var(--accent);border-left-color:var(--accent);background:rgba(91,143,255,.07);}
+.nbadge{background:var(--red);color:#fff;font-size:10px;font-weight:800;padding:1px 7px;border-radius:99px;margin-left:auto;}
+.sfooter{margin-top:auto;padding:16px 20px;border-top:1px solid var(--border);}
+.sdot{width:8px;height:8px;border-radius:50%;background:var(--muted);display:inline-block;margin-right:6px;}
+.sdot.on{background:var(--green);box-shadow:0 0 6px var(--green);animation:blink 2s infinite;}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.4}}
+.stxt{font-size:12px;color:var(--muted);}
+.content{padding:24px;overflow-y:auto;}
+.page{display:none;}
+.page.active{display:flex;flex-direction:column;gap:18px;animation:fi .3s ease;}
+@keyframes fi{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+.ptitle{font-size:22px;font-weight:800;}
+.psub{font-size:13px;color:var(--muted);margin-top:2px;}
+.stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;}
+.scard{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:16px 18px;}
+.slbl{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;}
+.sval{font-size:24px;font-weight:900;line-height:1;}
+.sval.green{color:var(--green);} .sval.red{color:var(--red);} .sval.accent{color:var(--accent);} .sval.yellow{color:var(--yellow);}
+.ssub{font-size:12px;color:var(--muted);margin-top:4px;}
+.card{background:var(--card);border:1px solid var(--border);border-radius:18px;overflow:hidden;}
+.card-hdr{padding:14px 18px;border-bottom:1px solid var(--border);font-size:14px;font-weight:700;display:flex;justify-content:space-between;align-items:center;}
+.card-body{padding:18px;display:flex;flex-direction:column;gap:12px;}
+.round-panel{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+.tdisplay{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:18px;text-align:center;}
+.tnum{font-size:60px;font-weight:900;letter-spacing:-3px;font-variant-numeric:tabular-nums;line-height:1;}
+.tnum.urgent{color:var(--red);}
+.rinfo{display:flex;flex-direction:column;gap:8px;}
+.irow{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:10px 14px;display:flex;justify-content:space-between;align-items:center;font-size:13px;}
+.irow .lbl{color:var(--muted);}
+.irow .val{font-weight:700;}
+.irow .val.red{color:var(--red);} .irow .val.green{color:var(--green);} .irow .val.violet{color:var(--violet);} .irow .val.none{color:var(--muted);font-style:italic;}
+.force-grid{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:10px;}
+.fbtn{border:2px solid transparent;border-radius:14px;padding:14px 8px;font-size:13px;font-weight:800;cursor:pointer;transition:all .2s;display:flex;flex-direction:column;align-items:center;gap:5px;text-transform:uppercase;letter-spacing:.5px;font-family:inherit;}
+.fbtn .fsub{font-size:10px;font-weight:600;opacity:.8;}
+.fbtn.red{background:rgba(255,77,106,.12);border-color:var(--red);color:var(--red);}
+.fbtn.green{background:rgba(0,214,143,.1);border-color:var(--green);color:var(--green);}
+.fbtn.violet{background:rgba(155,89,255,.12);border-color:var(--violet);color:var(--violet);}
+.fbtn.auto{background:rgba(91,143,255,.1);border-color:var(--accent);color:var(--accent);}
+.fbtn:hover{transform:scale(1.03);}
+.fbtn.active{filter:brightness(1.3);box-shadow:0 0 0 2px currentColor;}
+.arow{display:flex;gap:10px;flex-wrap:wrap;}
+.abtn{border:1px solid var(--border);border-radius:12px;background:var(--surface);color:var(--text);font-size:13px;font-weight:700;padding:9px 18px;cursor:pointer;transition:all .15s;display:flex;align-items:center;gap:7px;font-family:inherit;}
+.abtn:hover{border-color:var(--accent);color:var(--accent);background:rgba(91,143,255,.07);}
+.abtn.danger:hover{border-color:var(--red);color:var(--red);background:rgba(255,77,106,.07);}
+.bal-row{display:flex;gap:10px;align-items:center;flex-wrap:wrap;}
+.bal-inp{background:var(--surface);border:1px solid var(--border);border-radius:12px;color:var(--text);font-size:15px;font-weight:700;padding:10px 14px;outline:none;width:130px;font-family:inherit;}
+.bal-inp:focus{border-color:var(--green);}
+.add-btn{background:linear-gradient(135deg,#00d68f,#00a86b);border:none;border-radius:12px;color:#fff;font-size:13px;font-weight:800;padding:10px 18px;cursor:pointer;font-family:inherit;}
+.alert{border-radius:12px;padding:11px 16px;font-size:13px;font-weight:600;display:none;}
+.alert.show{display:block;animation:fi .3s;}
+.alert.info{background:rgba(91,143,255,.12);border:1px solid var(--accent);color:var(--accent);}
+.alert.success{background:rgba(0,214,143,.12);border:1px solid var(--green);color:var(--green);}
+.alert.warn{background:rgba(255,140,66,.12);border:1px solid var(--orange);color:var(--orange);}
+table{width:100%;border-collapse:collapse;}
+th{text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:1px;color:var(--muted);padding:10px 16px;border-bottom:1px solid var(--border);white-space:nowrap;}
+td{padding:11px 16px;font-size:13px;border-bottom:1px solid rgba(255,255,255,.04);vertical-align:middle;}
+tr:last-child td{border-bottom:none;}
+tr:hover td{background:rgba(255,255,255,.02);}
+.badge{display:inline-block;padding:3px 10px;border-radius:99px;font-size:11px;font-weight:700;text-transform:uppercase;}
+.badge.green{background:rgba(0,214,143,.12);color:var(--green);}
+.badge.red{background:rgba(255,77,106,.12);color:var(--red);}
+.badge.violet{background:rgba(155,89,255,.15);color:var(--violet);}
+.badge.orange{background:rgba(255,140,66,.12);color:var(--orange);}
+.badge.muted{background:rgba(255,255,255,.06);color:var(--muted);}
+.badge.accent{background:rgba(91,143,255,.12);color:var(--accent);}
+.pass-cell{display:flex;align-items:center;gap:8px;}
+.pass-txt{font-family:monospace;letter-spacing:2px;}
+.eye-btn{background:none;border:none;color:var(--muted);cursor:pointer;font-size:14px;}
+.app-btn{background:rgba(0,214,143,.12);border:1px solid rgba(0,214,143,.3);color:var(--green);border-radius:8px;padding:5px 14px;font-size:12px;font-weight:700;cursor:pointer;transition:all .15s;}
+.app-btn:hover{background:rgba(0,214,143,.25);}
+.rej-btn{background:rgba(255,77,106,.1);border:1px solid rgba(255,77,106,.25);color:var(--red);border-radius:8px;padding:5px 14px;font-size:12px;font-weight:700;cursor:pointer;margin-left:6px;transition:all .15s;}
+.rej-btn:hover{background:rgba(255,77,106,.2);}
+.upi-code{font-family:monospace;background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:3px 8px;font-size:12px;cursor:pointer;}
+.upi-code:hover{border-color:var(--accent);}
+/* Login overlay */
+#loginOverlay{position:fixed;inset:0;background:var(--bg);display:flex;align-items:center;justify-content:center;z-index:200;}
+.login-box{background:var(--card);border:1px solid var(--border);border-radius:24px;padding:32px;width:360px;display:flex;flex-direction:column;gap:14px;}
+.l-logo{font-size:24px;font-weight:900;text-align:center;}
+.l-logo span{color:var(--yellow);}
+.l-title{font-size:16px;font-weight:700;text-align:center;color:var(--muted);}
+.l-inp{background:var(--surface);border:1.5px solid var(--border);border-radius:13px;color:var(--text);font-size:15px;font-weight:600;padding:12px 16px;outline:none;width:100%;transition:border-color .2s;font-family:inherit;}
+.l-inp:focus{border-color:var(--accent);}
+.l-btn{background:linear-gradient(135deg,#5b8fff,#3b5fff);border:none;border-radius:14px;color:#fff;font-size:15px;font-weight:800;padding:14px;cursor:pointer;font-family:inherit;}
+.l-btn:hover{opacity:.9;}
+.l-err{font-size:12px;color:var(--red);min-height:16px;text-align:center;}
+/* Notifications */
+.notif{position:fixed;bottom:24px;right:24px;background:var(--card);border:1px solid var(--border);border-radius:12px;padding:12px 20px;font-size:13px;font-weight:600;z-index:999;animation:fi .3s ease;max-width:320px;}
+</style>
+</head>
+<body>
+
+<!-- Admin Login Overlay -->
+<div id="loginOverlay">
+  <div class="login-box">
+    <div class="l-logo">Color<span>Win</span></div>
+    <div class="l-title">Admin Panel</div>
+    <input class="l-inp" id="aUser" type="text" placeholder="Admin username" value="admin"/>
+    <input class="l-inp" id="aPass" type="password" placeholder="Admin password" onkeydown="if(event.key==='Enter')adminLogin()"/>
+    <div class="l-err" id="aErr"></div>
+    <button class="l-btn" onclick="adminLogin()">Login to Admin →</button>
+  </div>
+</div>
+
+<div class="layout">
+  <aside class="sidebar">
+    <div class="s-logo">Admin <span class="tag">PANEL</span></div>
+    <div class="nav active" id="nav-dashboard" onclick="showPage('dashboard',this)">📊 Dashboard</div>
+    <div class="nav" id="nav-control"          onclick="showPage('control',this)">🎮 Game Control</div>
+    <div class="nav" id="nav-users"            onclick="showPage('users',this)">👤 Users <span class="nbadge" id="uCount">0</span></div>
+    <div class="nav" id="nav-withdrawals"      onclick="showPage('withdrawals',this)">💸 Withdrawals <span class="nbadge" id="pCount" style="display:none"></span></div>
+    <div class="nav" id="nav-deposits"         onclick="showPage('deposits',this)">💰 Deposits <span class="nbadge" id="dCount" style="display:none"></span></div>
+    <div class="nav" id="nav-history"          onclick="showPage('history',this)">📋 History</div>
+    <div class="sfooter"><span class="sdot" id="sDot"></span><span class="stxt" id="sTxt">Connecting…</span></div>
+  </aside>
+
+  <main class="content">
+
+    <!-- DASHBOARD -->
+    <div class="page active" id="page-dashboard">
+      <div><div class="ptitle">Dashboard</div><div class="psub">Live game overview</div></div>
+      <div class="stats-row">
+        <div class="scard"><div class="slbl">House P&L</div><div class="sval green" id="d-pnl">₹0</div><div class="ssub">all time</div></div>
+        <div class="scard"><div class="slbl">Total Users</div><div class="sval accent" id="d-users">0</div></div>
+        <div class="scard"><div class="slbl">Total Rounds</div><div class="sval yellow" id="d-rounds">0</div></div>
+        <div class="scard"><div class="slbl">Total Bets</div><div class="sval accent" id="d-bets">0</div></div>
+      </div>
+      <div class="card">
+        <div class="card-hdr"><span>Live Round</span><span id="d-badge" style="font-size:12px;color:var(--muted);"></span></div>
+        <div class="card-body">
+          <div class="round-panel">
+            <div class="tdisplay"><div class="tnum" id="d-timer">30</div><div style="font-size:12px;color:var(--muted);margin-top:6px;">seconds remaining</div></div>
+            <div class="rinfo">
+              <div class="irow"><span class="lbl">Round</span><span class="val accent" id="d-round">—</span></div>
+              <div class="irow"><span class="lbl">Phase</span><span class="val" id="d-phase">—</span></div>
+              <div class="irow"><span class="lbl">Bets This Round</span><span class="val yellow" id="d-rbets">0</span></div>
+              <div class="irow"><span class="lbl">Amount This Round</span><span class="val green" id="d-ramt">₹0</span></div>
+              <div class="irow"><span class="lbl">Forced Color</span><span class="val none" id="d-forced">None (random)</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- GAME CONTROL -->
+    <div class="page" id="page-control">
+      <div><div class="ptitle">Game Control</div><div class="psub">Force results, manage balances, control rounds</div></div>
+      <div class="alert info show" id="forceAlert">No color forced — next result will be random.</div>
+      <div class="card">
+        <div class="card-hdr">Force Next Result</div>
+        <div class="card-body">
+          <div style="font-size:13px;color:var(--muted);">Force the winning color for the <strong style="color:var(--text)">next round</strong>. Auto-resets after use.</div>
+          <div class="force-grid">
+            <button class="fbtn red"    id="f-red"    onclick="forceColor('red')">🔴 Red<span class="fsub">×2</span></button>
+            <button class="fbtn green"  id="f-green"  onclick="forceColor('green')">🟢 Green<span class="fsub">×2</span></button>
+            <button class="fbtn violet" id="f-violet" onclick="forceColor('violet')">🟣 Violet<span class="fsub">×4.5</span></button>
+            <button class="fbtn auto active" id="f-auto" onclick="forceColor(null)">🎲 Auto<span class="fsub">random</span></button>
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-hdr">Round Actions</div>
+        <div class="card-body">
+          <div class="arow">
+            <button class="abtn danger" onclick="skipRound()">⏩ Skip to Result Now</button>
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-hdr">Add Balance to Player</div>
+        <div class="card-body">
+          <div style="font-size:13px;color:var(--muted);">Select a user and add funds to their wallet.</div>
+          <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;">
+            <select class="bal-inp" id="balUser" style="width:200px;"><option value="">Select user…</option></select>
+            <input class="bal-inp" id="balAmt" type="number" min="1" value="500" placeholder="₹ amount"/>
+            <button class="add-btn" onclick="addBalance()">+ Add ₹</button>
+            <button class="abtn" onclick="addBalance(100)">+₹100</button>
+            <button class="abtn" onclick="addBalance(500)">+₹500</button>
+            <button class="abtn" onclick="addBalance(1000)">+₹1K</button>
+          </div>
+          <div class="alert success" id="balAlert"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- USERS -->
+    <div class="page" id="page-users">
+      <div><div class="ptitle">Users</div><div class="psub">All registered player accounts</div></div>
+      <div class="card">
+        <div class="card-hdr"><span>All Users</span><span id="uTableCount" style="font-size:12px;color:var(--muted);"></span></div>
+        <div style="overflow-x:auto;">
+          <table>
+            <thead><tr><th>#</th><th>Name</th><th>Username</th><th>Email</th><th>Phone</th><th>Password</th><th>UPI ID</th><th>Wallet</th><th>Bets</th><th>Wins</th><th>Method</th><th>Joined</th><th>Action</th></tr></thead>
+            <tbody id="uBody"><tr><td colspan="13" style="text-align:center;color:var(--muted);padding:30px;">Loading…</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- WITHDRAWALS -->
+    <div class="page" id="page-withdrawals">
+      <div><div class="ptitle">Withdrawals</div><div class="psub">Approve and manually transfer via your UPI app</div></div>
+      <div class="alert warn show">⚠️ After approving — manually transfer via PhonePe / GPay / Paytm to the player's UPI ID shown below.</div>
+      <div class="card">
+        <div class="card-hdr"><span>Pending Requests</span><span id="pendLabel" style="font-size:12px;color:var(--muted);"></span></div>
+        <div style="overflow-x:auto;">
+          <table>
+            <thead><tr><th>ID</th><th>Player</th><th>Amount</th><th>UPI ID</th><th>Status</th><th>Date</th><th>Action</th></tr></thead>
+            <tbody id="pendBody"><tr><td colspan="7" style="text-align:center;color:var(--muted);padding:30px;">Loading…</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-hdr">Completed</div>
+        <div style="overflow-x:auto;">
+          <table>
+            <thead><tr><th>ID</th><th>Player</th><th>Amount</th><th>UPI ID</th><th>Status</th><th>Note</th><th>Date</th></tr></thead>
+            <tbody id="doneBody"><tr><td colspan="7" style="text-align:center;color:var(--muted);padding:24px;">No completed requests</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- DEPOSITS -->
+    <div class="page" id="page-deposits">
+      <div><div class="ptitle">Deposits</div><div class="psub">Manual UPI deposit requests — verify UTR then approve</div></div>
+      <div class="alert warn show">⚠️ Before approving — verify the UTR number in your UPI app / bank SMS. Only approve confirmed payments.</div>
+      <div class="card">
+        <div class="card-hdr"><span>Pending Requests</span><span id="depPendLabel" style="font-size:12px;color:var(--muted);"></span></div>
+        <div style="overflow-x:auto;">
+          <table>
+            <thead><tr><th>ID</th><th>Player</th><th>Amount</th><th>UTR Number</th><th>Sender UPI</th><th>Status</th><th>Date</th><th>Action</th></tr></thead>
+            <tbody id="depPendBody"><tr><td colspan="8" style="text-align:center;color:var(--muted);padding:30px;">Loading…</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-hdr"><span>Processed</span><span id="depDoneLabel" style="font-size:12px;color:var(--muted);"></span></div>
+        <div style="overflow-x:auto;">
+          <table>
+            <thead><tr><th>ID</th><th>Player</th><th>Amount</th><th>UTR Number</th><th>Status</th><th>Note</th><th>Date</th></tr></thead>
+            <tbody id="depDoneBody"><tr><td colspan="7" style="text-align:center;color:var(--muted);padding:24px;">No processed requests</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- HISTORY -->
+    <div class="page" id="page-history">
+      <div><div class="ptitle">Round History</div><div class="psub">All rounds from the database</div></div>
+      <div class="card">
+        <div class="card-hdr"><span>Rounds</span><span id="histCount" style="font-size:12px;color:var(--muted);"></span></div>
+        <div style="overflow-x:auto;">
+          <table>
+            <thead><tr><th>Round</th><th>Result</th><th>Total Bets</th><th>Amount In</th><th>Payout</th><th>House Profit</th><th>Forced</th><th>Time</th></tr></thead>
+            <tbody id="histBody"><tr><td colspan="8" style="text-align:center;color:var(--muted);padding:30px;">Loading…</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<script src="/socket.io/socket.io.js"></script>
+<script>
+const API = '';
+let adminToken = localStorage.getItem('cw_admin_token');
+let socket = null;
+let usersCache = [];
+
+// Check admin session
+(async()=>{
+  if(adminToken){
+    const ok = await verifyAdmin();
+    if(ok) bootAdmin();
+    else { adminToken=null; localStorage.removeItem('cw_admin_token'); }
+  }
+})();
+
+async function verifyAdmin(){
+  try{
+    const r=await fetch(API+'/api/admin/stats',{headers:{Authorization:'Bearer '+adminToken}});
+    return r.ok;
+  }catch{return false;}
+}
+
+async function adminLogin(){
+  const u=document.getElementById('aUser').value.trim();
+  const p=document.getElementById('aPass').value;
+  const el=document.getElementById('aErr');
+  el.textContent='';
+  try{
+    const r=await fetch(API+'/api/admin/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({username:u,password:p})});
+    const d=await r.json();
+    if(!r.ok){el.textContent=d.error||'Invalid credentials';return;}
+    adminToken=d.token;
+    localStorage.setItem('cw_admin_token',adminToken);
+    bootAdmin();
+  }catch{el.textContent='Server not reachable';}
+}
+
+function bootAdmin(){
+  document.getElementById('loginOverlay').style.display='none';
+  initSocket();
+  loadStats();
+  loadUsers();
+  loadWithdrawals();
+  loadManualDeposits();
+  loadRoundHistory();
+  setInterval(()=>{loadStats();loadWithdrawals();loadManualDeposits();}, 15000);
+}
+
+// ── Socket ──
+function initSocket(){
+  socket=io();
+  socket.emit('admin:auth', adminToken);
+
+  socket.on('admin:state', s=>{
+    document.getElementById('sDot').className='sdot on';
+    document.getElementById('sTxt').textContent=`Round #${String(s.roundNumber).padStart(4,'0')} · ${s.phase}`;
+    updateLive(s);
+  });
+  socket.on('admin:tick', s=>{
+    updateLiveTick(s);
+  });
+  socket.on('admin:result', s=>{
+    flash(`Round #${s.roundNumber} → ${s.result.toUpperCase()} | Bets: ${s.totalBets} | House: ₹${s.housePnl?.toFixed(2)||0}`);
+    loadStats();
+    loadRoundHistory();
+  });
+  socket.on('admin:forced', s=>{
+    updateForcedDisplay(s.color);
+  });
+  socket.on('disconnect',()=>{
+    document.getElementById('sDot').className='sdot';
+    document.getElementById('sTxt').textContent='Disconnected';
+  });
+}
+
+function updateLive(s){
+  document.getElementById('d-round').textContent ='#'+String(s.roundNumber).padStart(4,'0');
+  document.getElementById('d-phase').textContent = s.phase;
+  document.getElementById('d-badge').textContent = s.phase==='betting'?'🟢 Bets Open':'⏳ Closing…';
+  document.getElementById('d-rbets').textContent = s.totalBetsThisRound||0;
+  document.getElementById('d-ramt').textContent  = '₹'+(s.totalAmountThisRound||0).toFixed(2);
+  const timer=document.getElementById('d-timer');
+  timer.textContent=s.timeLeft;
+  timer.className='tnum'+(s.timeLeft<=5?' urgent':'');
+  updateForcedDisplay(s.forcedColor);
+}
+function updateLiveTick(s){
+  const timer=document.getElementById('d-timer');
+  timer.textContent=s.timeLeft;
+  timer.className='tnum'+(s.timeLeft<=5?' urgent':'');
+  document.getElementById('d-phase').textContent=s.phase;
+  document.getElementById('d-rbets').textContent=s.totalBetsThisRound||0;
+  document.getElementById('d-ramt').textContent='₹'+(s.totalAmountThisRound||0).toFixed(2);
+}
+function updateForcedDisplay(color){
+  const el=document.getElementById('d-forced');
+  el.textContent=color?color.toUpperCase():'None (random)';
+  el.className='val '+(color?color:'none');
+}
+
+// ── Stats ──
+async function loadStats(){
+  try{
+    const r=await fetch(API+'/api/admin/stats',{headers:{Authorization:'Bearer '+adminToken}});
+    if(!r.ok)return;
+    const d=await r.json();
+    const pnl=d.housePnl||0;
+    const pnlEl=document.getElementById('d-pnl');
+    pnlEl.textContent=(pnl>=0?'+':'')+'₹'+Math.abs(pnl).toFixed(2);
+    pnlEl.className='sval '+(pnl>=0?'green':'red');
+    document.getElementById('d-users').textContent=d.totalUsers||0;
+    document.getElementById('d-rounds').textContent=d.totalRounds||0;
+    document.getElementById('d-bets').textContent=d.totalBets||0;
+  }catch{}
+}
+
+// ── Navigation ──
+function showPage(name, el){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav').forEach(n=>n.classList.remove('active'));
+  document.getElementById('page-'+name).classList.add('active');
+  el.classList.add('active');
+  if(name==='users')       loadUsers();
+  if(name==='withdrawals') loadWithdrawals();
+  if(name==='deposits')    loadManualDeposits();
+  if(name==='history')     loadRoundHistory();
+}
+
+// ── Users ──
+async function loadUsers(){
+  try{
+    const r=await fetch(API+'/api/admin/users',{headers:{Authorization:'Bearer '+adminToken}});
+    if(!r.ok)return;
+    const d=await r.json();
+    usersCache=d.users||[];
+    document.getElementById('uCount').textContent=usersCache.length;
+    document.getElementById('uTableCount').textContent=usersCache.length+' users';
+
+    // Populate user dropdown in control
+    const sel=document.getElementById('balUser');
+    sel.innerHTML='<option value="">Select user…</option>'+usersCache.map(u=>`<option value="${u._id}">@${u.username} — ${u.name}</option>`).join('');
+
+    document.getElementById('uBody').innerHTML=usersCache.length
+      ?usersCache.map((u,i)=>{
+          const pass=u.loginMethod==='google'
+            ?'<span class="badge accent">Google</span>'
+            :`<div class="pass-cell"><span class="pass-txt" id="pw_${u._id}">••••••••</span><button class="eye-btn" onclick="togglePw('${u._id}','${escHtml(u.password||'')}')">👁</button></div>`;
+          return `<tr>
+            <td style="color:var(--muted);font-size:12px;">${i+1}</td>
+            <td style="font-weight:600;">${escHtml(u.name)}</td>
+            <td><span style="color:var(--accent);font-weight:700;">@${u.username}</span></td>
+            <td style="font-size:12px;">${u.email}</td>
+            <td style="font-size:12px;">${u.phone||'—'}</td>
+            <td>${pass}</td>
+            <td><code class="upi-code" onclick="copyText('${u.upiId||''}')" title="Click to copy">${u.upiId||'—'}</code></td>
+            <td style="font-weight:700;color:var(--green);">₹${(u.wallet||0).toFixed(2)}</td>
+            <td>${u.totalBets||0}</td>
+            <td>${u.totalWins||0}</td>
+            <td><span class="badge ${u.loginMethod==='google'?'accent':'muted'}">${u.loginMethod}</span></td>
+            <td style="font-size:11px;color:var(--muted);">${new Date(u.createdAt).toLocaleDateString('en-IN')}</td>
+            <td><button class="rej-btn" onclick="deleteUser('${u._id}','${escHtml(u.name)}')">Delete</button></td>
+          </tr>`;
+        }).join('')
+      :'<tr><td colspan="13" style="text-align:center;color:var(--muted);padding:30px;">No users yet</td></tr>';
+  }catch{}
+}
+
+function togglePw(id,pass){
+  const el=document.getElementById('pw_'+id);
+  el.textContent=el.textContent.includes('•')?atob(btoa(pass)):('•').repeat(8);
+  // Simple toggle — show actual password
+  el.textContent=el.textContent==='•'.repeat(8)?pass:'•'.repeat(8);
+}
+
+async function deleteUser(id, name){
+  if(!confirm(`Delete user ${name}? This cannot be undone.`))return;
+  try{
+    const r=await fetch(API+'/api/admin/users/'+id,{method:'DELETE',headers:{Authorization:'Bearer '+adminToken}});
+    if(r.ok){flash('User deleted: '+name);loadUsers();}
+  }catch{}
+}
+
+// ── Withdrawals ──
+async function loadWithdrawals(){
+  try{
+    const r=await fetch(API+'/api/admin/withdrawals',{headers:{Authorization:'Bearer '+adminToken}});
+    if(!r.ok)return;
+    const d=await r.json();
+    const all=d.withdrawals||[];
+    const pend=all.filter(w=>w.status==='pending');
+    const done=all.filter(w=>w.status!=='pending');
+
+    const pc=document.getElementById('pCount');
+    if(pend.length){pc.textContent=pend.length;pc.style.display='inline';}
+    else pc.style.display='none';
+
+    document.getElementById('pendLabel').textContent=`${pend.length} pending · ${done.length} completed`;
+
+    document.getElementById('pendBody').innerHTML=pend.length
+      ?pend.map(w=>`<tr>
+          <td style="font-size:11px;color:var(--muted);">${w._id.slice(-6)}</td>
+          <td><div style="font-weight:700;">@${w.userId?.username||'—'}</div><div style="font-size:11px;color:var(--muted);">${w.userId?.name||''}</div></td>
+          <td style="font-weight:800;color:var(--yellow);font-size:15px;">₹${w.amount.toFixed(2)}</td>
+          <td><code class="upi-code" onclick="copyText('${w.upiId}')" title="Click to copy">${w.upiId}</code></td>
+          <td><span class="badge orange">Pending</span></td>
+          <td style="font-size:11px;color:var(--muted);">${new Date(w.createdAt).toLocaleDateString('en-IN')}</td>
+          <td>
+            <button class="app-btn" onclick="approveW('${w._id}',${w.amount},'${w.upiId}')">✓ Approve</button>
+            <button class="rej-btn"  onclick="rejectW('${w._id}',${w.amount})">✕ Reject</button>
+          </td>
+        </tr>`).join('')
+      :'<tr><td colspan="7" style="text-align:center;color:var(--muted);padding:24px;">No pending requests</td></tr>';
+
+    document.getElementById('doneBody').innerHTML=done.length
+      ?done.map(w=>`<tr>
+          <td style="font-size:11px;color:var(--muted);">${w._id.slice(-6)}</td>
+          <td><span style="font-weight:700;">@${w.userId?.username||'—'}</span></td>
+          <td style="font-weight:700;">₹${w.amount.toFixed(2)}</td>
+          <td><code style="font-size:12px;">${w.upiId}</code></td>
+          <td><span class="badge ${w.status==='approved'?'green':'red'}">${w.status}</span></td>
+          <td style="font-size:12px;color:var(--muted);">${w.adminNote||'—'}</td>
+          <td style="font-size:11px;color:var(--muted);">${new Date(w.createdAt).toLocaleDateString('en-IN')}</td>
+        </tr>`).join('')
+      :'<tr><td colspan="7" style="text-align:center;color:var(--muted);padding:24px;">No completed requests</td></tr>';
+  }catch{}
+}
+
+async function approveW(id, amt, upi){
+  if(!confirm(`Approve ₹${amt} withdrawal?\n\nUPI: ${upi}\n\nMake sure you transfer manually after clicking OK.`))return;
+  try{
+    const r=await fetch(API+'/api/admin/withdrawals/'+id,{method:'PUT',headers:{'Authorization':'Bearer '+adminToken,'Content-Type':'application/json'},body:JSON.stringify({status:'approved',adminNote:'Approved by admin'})});
+    if(r.ok){flash(`✅ Approved — transfer ₹${amt} to ${upi}`);loadWithdrawals();}
+  }catch{}
+}
+async function rejectW(id, amt){
+  const note=prompt(`Reason for rejecting ₹${amt} withdrawal?`)||'Rejected by admin';
+  try{
+    const r=await fetch(API+'/api/admin/withdrawals/'+id,{method:'PUT',headers:{'Authorization':'Bearer '+adminToken,'Content-Type':'application/json'},body:JSON.stringify({status:'rejected',adminNote:note})});
+    if(r.ok){flash(`❌ Rejected — ₹${amt} refunded to player`);loadWithdrawals();}
+  }catch{}
+}
+
+// ── Manual Deposits ──
+async function loadManualDeposits(){
+  try{
+    const r=await fetch(API+'/api/admin/deposits/manual',{headers:{Authorization:'Bearer '+adminToken}});
+    if(!r.ok)return;
+    const d=await r.json();
+    const all=d.deposits||[];
+    const pend=all.filter(x=>x.status==='pending');
+    const done=all.filter(x=>x.status!=='pending');
+
+    const dc=document.getElementById('dCount');
+    if(pend.length){dc.textContent=pend.length;dc.style.display='inline';}
+    else dc.style.display='none';
+
+    document.getElementById('depPendLabel').textContent=`${pend.length} pending`;
+    document.getElementById('depDoneLabel').textContent=`${done.length} processed`;
+
+    document.getElementById('depPendBody').innerHTML=pend.length
+      ?pend.map(dep=>`<tr>
+          <td style="font-size:11px;color:var(--muted);">${dep._id.slice(-6)}</td>
+          <td><div style="font-weight:700;">@${dep.userId?.username||'—'}</div><div style="font-size:11px;color:var(--muted);">${dep.userId?.name||''}</div></td>
+          <td style="font-weight:800;color:var(--yellow);font-size:15px;">₹${(+dep.amount).toFixed(2)}</td>
+          <td><code style="font-family:monospace;font-size:13px;background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:2px 8px;">${dep.utrNumber}</code></td>
+          <td style="font-size:12px;color:var(--muted);">${dep.senderUpi||'—'}</td>
+          <td><span class="badge orange">Pending</span></td>
+          <td style="font-size:11px;color:var(--muted);">${new Date(dep.createdAt).toLocaleString('en-IN',{dateStyle:'short',timeStyle:'short'})}</td>
+          <td>
+            <button class="app-btn" onclick="approveDeposit('${dep._id}',${dep.amount},'${dep.utrNumber}')">✓ Approve</button>
+            <button class="rej-btn"  onclick="rejectDeposit('${dep._id}',${dep.amount})">✕ Reject</button>
+          </td>
+        </tr>`).join('')
+      :'<tr><td colspan="8" style="text-align:center;color:var(--muted);padding:24px;">No pending requests</td></tr>';
+
+    document.getElementById('depDoneBody').innerHTML=done.length
+      ?done.map(dep=>`<tr>
+          <td style="font-size:11px;color:var(--muted);">${dep._id.slice(-6)}</td>
+          <td><span style="font-weight:700;">@${dep.userId?.username||'—'}</span></td>
+          <td style="font-weight:700;">₹${(+dep.amount).toFixed(2)}</td>
+          <td style="font-size:12px;font-family:monospace;">${dep.utrNumber}</td>
+          <td><span class="badge ${dep.status==='approved'?'green':'red'}">${dep.status}</span></td>
+          <td style="font-size:12px;color:var(--muted);">${dep.adminNote||'—'}</td>
+          <td style="font-size:11px;color:var(--muted);">${new Date(dep.createdAt).toLocaleString('en-IN',{dateStyle:'short',timeStyle:'short'})}</td>
+        </tr>`).join('')
+      :'<tr><td colspan="7" style="text-align:center;color:var(--muted);padding:24px;">No processed requests</td></tr>';
+  }catch{}
+}
+
+async function approveDeposit(id, amt, utr){
+  if(!confirm(`Approve deposit of ₹${amt}?\nUTR: ${utr}\n\nMake sure you verified this payment before approving.`))return;
+  try{
+    const r=await fetch(API+'/api/admin/deposits/manual/'+id,{method:'PUT',headers:{'Authorization':'Bearer '+adminToken,'Content-Type':'application/json'},body:JSON.stringify({status:'approved',adminNote:'Verified and approved'})});
+    if(r.ok){flash(`✅ Deposit ₹${amt} approved — wallet credited!`);loadManualDeposits();}
+  }catch{}
+}
+
+async function rejectDeposit(id, amt){
+  const note=prompt(`Reason for rejecting ₹${amt} deposit?`)||'UTR not verified';
+  try{
+    const r=await fetch(API+'/api/admin/deposits/manual/'+id,{method:'PUT',headers:{'Authorization':'Bearer '+adminToken,'Content-Type':'application/json'},body:JSON.stringify({status:'rejected',adminNote:note})});
+    if(r.ok){flash(`❌ Deposit ₹${amt} rejected`);loadManualDeposits();}
+  }catch{}
+}
+
+// ── Round History ──
+async function loadRoundHistory(){
+  try{
+    const r=await fetch(API+'/api/admin/rounds',{headers:{Authorization:'Bearer '+adminToken}});
+    if(!r.ok)return;
+    const d=await r.json();
+    const rounds=d.rounds||[];
+    document.getElementById('histCount').textContent=rounds.length+' rounds';
+    document.getElementById('histBody').innerHTML=rounds.length
+      ?rounds.map(r=>`<tr>
+          <td>#${String(r.number).padStart(4,'0')}</td>
+          <td><span class="badge ${r.result}">${r.result}</span></td>
+          <td>${r.totalBets}</td>
+          <td>₹${(r.totalAmount||0).toFixed(2)}</td>
+          <td>₹${(r.totalPayout||0).toFixed(2)}</td>
+          <td style="font-weight:700;color:${(r.totalAmount-r.totalPayout)>=0?'var(--green)':'var(--red)'};">${((r.totalAmount||0)-(r.totalPayout||0))>=0?'+':''}₹${((r.totalAmount||0)-(r.totalPayout||0)).toFixed(2)}</td>
+          <td>${r.forcedBy?'<span class="badge orange">Admin</span>':'<span class="badge muted">Auto</span>'}</td>
+          <td style="font-size:11px;color:var(--muted);">${new Date(r.createdAt).toLocaleTimeString('en-IN')}</td>
+        </tr>`).join('')
+      :'<tr><td colspan="8" style="text-align:center;color:var(--muted);padding:30px;">No rounds yet</td></tr>';
+  }catch{}
+}
+
+// ── Game control ──
+async function forceColor(color){
+  try{
+    const r=await fetch(API+'/api/admin/force',{method:'POST',headers:{'Authorization':'Bearer '+adminToken,'Content-Type':'application/json'},body:JSON.stringify({color})});
+    if(!r.ok)return;
+    ['red','green','violet','auto'].forEach(c=>document.getElementById('f-'+c).classList.remove('active'));
+    document.getElementById('f-'+(color||'auto')).classList.add('active');
+    const al=document.getElementById('forceAlert');
+    if(color){al.textContent=`✅ Next result forced to: ${color.toUpperCase()}`;al.className='alert success show';}
+    else{al.textContent='No color forced — next result will be random.';al.className='alert info show';}
+  }catch{}
+}
+
+async function skipRound(){
+  if(!confirm('Skip to result now?'))return;
+  try{await fetch(API+'/api/admin/skip',{method:'POST',headers:{Authorization:'Bearer '+adminToken}});}catch{}
+}
+
+async function addBalance(preset){
+  const userId=document.getElementById('balUser').value;
+  const amt=preset||parseFloat(document.getElementById('balAmt').value);
+  if(!userId){flash('Select a user first');return;}
+  if(!amt||amt<=0){flash('Enter valid amount');return;}
+  try{
+    const r=await fetch(API+'/api/admin/balance',{method:'POST',headers:{'Authorization':'Bearer '+adminToken,'Content-Type':'application/json'},body:JSON.stringify({userId,amount:amt})});
+    const d=await r.json();
+    if(!r.ok){flash(d.error||'Failed');return;}
+    const el=document.getElementById('balAlert');
+    el.textContent=`✅ Added ₹${amt}. New balance: ₹${d.newBalance.toFixed(2)}`;
+    el.className='alert success show';
+    setTimeout(()=>el.classList.remove('show'),4000);
+    loadUsers();
+  }catch{}
+}
+
+// ── Helpers ──
+function copyText(t){
+  if(!t||t==='undefined')return;
+  navigator.clipboard.writeText(t).catch(()=>{});
+  flash('Copied: '+t);
+}
+function escHtml(s){return(s||'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+function flash(msg){
+  const el=document.createElement('div');
+  el.className='notif';
+  el.textContent=msg;
+  document.body.appendChild(el);
+  setTimeout(()=>el.remove(),4000);
+}
+</script>
+</body>
+</html>

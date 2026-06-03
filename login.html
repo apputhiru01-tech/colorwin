@@ -1,0 +1,708 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>ColorWin — Login / Signup</title>
+<style>
+  :root {
+    --bg: #0d0f1a;
+    --surface: #161926;
+    --card: #1e2235;
+    --border: #2a2f4a;
+    --text: #e8eaf0;
+    --muted: #7880a0;
+    --red: #ff4d6a;
+    --green: #00d68f;
+    --violet: #9b59ff;
+    --yellow: #ffd84d;
+    --accent: #5b8fff;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Segoe UI', system-ui, sans-serif;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+  }
+
+  /* ── Screens ── */
+  .screen { display: none; flex-direction: column; align-items: center; width: 100%; max-width: 420px; gap: 0; }
+  .screen.active { display: flex; animation: fadeUp .4s ease; }
+  @keyframes fadeUp { from { opacity:0; transform:translateY(20px); } to { opacity:1; transform:translateY(0); } }
+
+  /* ── Logo ── */
+  .logo {
+    font-size: 32px;
+    font-weight: 900;
+    letter-spacing: -1px;
+    margin-bottom: 6px;
+  }
+  .logo span { color: var(--yellow); }
+  .tagline { font-size: 14px; color: var(--muted); margin-bottom: 32px; }
+
+  /* ── Card ── */
+  .auth-card {
+    width: 100%;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 24px;
+    padding: 32px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .card-title { font-size: 20px; font-weight: 800; margin-bottom: 4px; }
+  .card-sub   { font-size: 13px; color: var(--muted); margin-bottom: 8px; }
+
+  /* ── Google button ── */
+  .google-btn {
+    width: 100%;
+    background: #fff;
+    border: none;
+    border-radius: 14px;
+    color: #222;
+    font-size: 15px;
+    font-weight: 700;
+    padding: 14px 20px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    transition: box-shadow .2s, transform .15s;
+  }
+  .google-btn:hover { box-shadow: 0 4px 20px rgba(255,255,255,.15); transform: translateY(-1px); }
+  .google-btn:active { transform: scale(0.98); }
+
+  .google-icon {
+    width: 22px; height: 22px;
+    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 48 48'%3E%3Cpath fill='%23EA4335' d='M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z'/%3E%3Cpath fill='%234285F4' d='M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z'/%3E%3Cpath fill='%23FBBC05' d='M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z'/%3E%3Cpath fill='%2334A853' d='M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z'/%3E%3C/svg%3E") center/contain no-repeat;
+  }
+
+  /* ── Divider ── */
+  .divider {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    color: var(--muted);
+    font-size: 13px;
+    font-weight: 600;
+  }
+  .divider::before, .divider::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+
+  /* ── Inputs ── */
+  .input-group { display: flex; flex-direction: column; gap: 6px; }
+  .input-label { font-size: 12px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; }
+
+  .inp {
+    width: 100%;
+    background: var(--surface);
+    border: 1.5px solid var(--border);
+    border-radius: 13px;
+    color: var(--text);
+    font-size: 15px;
+    font-weight: 600;
+    padding: 13px 16px;
+    outline: none;
+    transition: border-color .2s;
+    font-family: inherit;
+  }
+  .inp:focus { border-color: var(--accent); }
+  .inp.error { border-color: var(--red); }
+  .inp::placeholder { color: var(--muted); font-weight: 400; }
+
+  .inp-row { display: flex; gap: 10px; }
+  .inp-row .inp { flex: 1; }
+
+  /* ── Primary button ── */
+  .btn-primary {
+    width: 100%;
+    background: linear-gradient(135deg, #5b8fff, #3b5fff);
+    border: none;
+    border-radius: 14px;
+    color: #fff;
+    font-size: 15px;
+    font-weight: 800;
+    padding: 15px;
+    cursor: pointer;
+    transition: opacity .15s, transform .15s;
+    font-family: inherit;
+  }
+  .btn-primary:hover { opacity: .9; }
+  .btn-primary:active { transform: scale(0.98); }
+  .btn-primary:disabled { opacity: .4; cursor: not-allowed; }
+
+  .btn-secondary {
+    width: 100%;
+    background: transparent;
+    border: 1.5px solid var(--border);
+    border-radius: 14px;
+    color: var(--text);
+    font-size: 14px;
+    font-weight: 700;
+    padding: 13px;
+    cursor: pointer;
+    transition: border-color .2s, color .2s;
+    font-family: inherit;
+  }
+  .btn-secondary:hover { border-color: var(--accent); color: var(--accent); }
+
+  /* ── OTP boxes ── */
+  .otp-row {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+  }
+  .otp-box {
+    width: 52px; height: 60px;
+    background: var(--surface);
+    border: 2px solid var(--border);
+    border-radius: 14px;
+    color: var(--text);
+    font-size: 24px;
+    font-weight: 900;
+    text-align: center;
+    outline: none;
+    transition: border-color .2s;
+    font-family: inherit;
+  }
+  .otp-box:focus { border-color: var(--accent); }
+  .otp-box.filled { border-color: var(--green); }
+
+  /* ── Switch link ── */
+  .switch-text {
+    text-align: center;
+    font-size: 13px;
+    color: var(--muted);
+    margin-top: 4px;
+  }
+  .switch-text a { color: var(--accent); cursor: pointer; font-weight: 700; text-decoration: none; }
+  .switch-text a:hover { text-decoration: underline; }
+
+  /* ── Error message ── */
+  .err-msg {
+    font-size: 12px;
+    color: var(--red);
+    min-height: 16px;
+    padding: 0 4px;
+  }
+
+  /* ── Success screen ── */
+  .success-icon {
+    font-size: 64px;
+    margin-bottom: 16px;
+    animation: pop .5s cubic-bezier(.34,1.56,.64,1);
+  }
+  @keyframes pop { from { transform: scale(0); } to { transform: scale(1); } }
+
+  .success-title { font-size: 24px; font-weight: 900; margin-bottom: 8px; }
+  .success-sub   { font-size: 14px; color: var(--muted); text-align: center; max-width: 280px; }
+
+  /* ── OTP resend ── */
+  .resend-row { text-align: center; font-size: 13px; color: var(--muted); }
+  .resend-row a { color: var(--accent); cursor: pointer; font-weight: 700; }
+
+  /* ── Demo OTP toast ── */
+  #otpDemo {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background: var(--card);
+    border: 1px solid var(--green);
+    border-radius: 16px;
+    padding: 14px 20px;
+    font-size: 13px;
+    z-index: 999;
+    display: none;
+    animation: slideIn .4s ease;
+    max-width: 260px;
+  }
+  @keyframes slideIn { from { opacity:0; transform:translateX(40px); } to { opacity:1; transform:translateX(0); } }
+  #otpDemo.show { display: block; }
+  #otpDemo .otp-num { font-size: 28px; font-weight: 900; color: var(--green); letter-spacing: 4px; margin: 6px 0; }
+
+  /* ── Step indicator ── */
+  .steps {
+    display: flex;
+    gap: 6px;
+    margin-bottom: 24px;
+  }
+  .step-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: var(--border);
+    transition: all .3s;
+  }
+  .step-dot.active { background: var(--accent); width: 24px; border-radius: 4px; }
+  .step-dot.done   { background: var(--green); }
+
+  /* ── UPI info box ── */
+  .upi-note {
+    background: rgba(0,214,143,.08);
+    border: 1px solid rgba(0,214,143,.2);
+    border-radius: 12px;
+    padding: 12px 16px;
+    font-size: 12px;
+    color: var(--green);
+    line-height: 1.5;
+  }
+
+  .back-btn {
+    background: none;
+    border: none;
+    color: var(--muted);
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 8px;
+    font-family: inherit;
+  }
+  .back-btn:hover { color: var(--text); }
+</style>
+</head>
+<body>
+
+<!-- Demo OTP notification -->
+<div id="otpDemo">
+  <div style="color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:1px;">📱 OTP Received</div>
+  <div class="otp-num" id="demoOtpNum">000000</div>
+  <div style="color:var(--muted);font-size:11px;">ColorWin verification code</div>
+</div>
+
+<!-- ── SCREEN 1: Main (Login) ── -->
+<div class="screen active" id="screen-main">
+  <div class="logo">Color<span>Win</span></div>
+  <div class="tagline">Play. Predict. Win Real Cash.</div>
+
+  <div class="auth-card">
+    <div class="card-title">Welcome Back</div>
+    <div class="card-sub">Login to continue playing</div>
+
+    <button class="google-btn" onclick="startGoogle()">
+      <div class="google-icon"></div>
+      Continue with Google
+    </button>
+
+    <div class="divider">or login with email</div>
+
+    <div class="input-group">
+      <div class="input-label">Email</div>
+      <input class="inp" id="loginEmail" type="email" placeholder="you@gmail.com" />
+    </div>
+    <div class="input-group">
+      <div class="input-label">Password</div>
+      <input class="inp" id="loginPassword" type="password" placeholder="••••••••" />
+    </div>
+    <div class="err-msg" id="loginErr"></div>
+    <button class="btn-primary" onclick="doEmailLogin()">Login →</button>
+  </div>
+
+  <div class="switch-text">
+    Don't have an account? <a onclick="goTo('screen-signup')">Create Account</a>
+  </div>
+</div>
+
+<!-- ── SCREEN 2: Google — enter Gmail ── -->
+<div class="screen" id="screen-google">
+  <div class="logo">Color<span>Win</span></div>
+  <div class="tagline" style="margin-bottom:32px;">Sign in with Google</div>
+
+  <div class="auth-card">
+    <button class="back-btn" onclick="goTo('screen-main')">← Back</button>
+    <div style="text-align:center;margin-bottom:8px;">
+      <div style="width:56px;height:56px;margin:0 auto 12px;" class="google-icon"></div>
+      <div class="card-title">Sign in with Google</div>
+      <div class="card-sub">Enter your Gmail address to receive OTP</div>
+    </div>
+
+    <div class="input-group">
+      <div class="input-label">Gmail Address</div>
+      <input class="inp" id="googleEmail" type="email" placeholder="you@gmail.com" />
+    </div>
+    <div class="err-msg" id="googleErr"></div>
+    <button class="btn-primary" onclick="sendGoogleOtp()">Send OTP →</button>
+  </div>
+
+  <div class="switch-text">
+    <a onclick="goTo('screen-main')">← Back to login</a>
+  </div>
+</div>
+
+<!-- ── SCREEN 3: OTP Verification ── -->
+<div class="screen" id="screen-otp">
+  <div class="logo">Color<span>Win</span></div>
+
+  <div class="auth-card">
+    <button class="back-btn" id="otpBackBtn" onclick="goTo('screen-main')">← Back</button>
+    <div style="text-align:center;">
+      <div style="font-size:48px;margin-bottom:12px;">📱</div>
+      <div class="card-title">Enter OTP</div>
+      <div class="card-sub" id="otpSubText">OTP sent to your email</div>
+    </div>
+
+    <div class="otp-row">
+      <input class="otp-box" id="otp0" maxlength="1" type="text" inputmode="numeric" oninput="otpInput(0)" onkeydown="otpKey(event,0)" />
+      <input class="otp-box" id="otp1" maxlength="1" type="text" inputmode="numeric" oninput="otpInput(1)" onkeydown="otpKey(event,1)" />
+      <input class="otp-box" id="otp2" maxlength="1" type="text" inputmode="numeric" oninput="otpInput(2)" onkeydown="otpKey(event,2)" />
+      <input class="otp-box" id="otp3" maxlength="1" type="text" inputmode="numeric" oninput="otpInput(3)" onkeydown="otpKey(event,3)" />
+      <input class="otp-box" id="otp4" maxlength="1" type="text" inputmode="numeric" oninput="otpInput(4)" onkeydown="otpKey(event,4)" />
+      <input class="otp-box" id="otp5" maxlength="1" type="text" inputmode="numeric" oninput="otpInput(5)" onkeydown="otpKey(event,5)" />
+    </div>
+
+    <div class="err-msg" id="otpErr" style="text-align:center;"></div>
+    <button class="btn-primary" onclick="verifyOtp()">Verify OTP →</button>
+    <div class="resend-row">Didn't get it? <a onclick="resendOtp()">Resend OTP</a></div>
+  </div>
+</div>
+
+<!-- ── SCREEN 4: Signup ── -->
+<div class="screen" id="screen-signup">
+  <div class="logo">Color<span>Win</span></div>
+
+  <div class="auth-card">
+    <button class="back-btn" onclick="goTo('screen-main')">← Back</button>
+    <div class="card-title">Create Account</div>
+    <div class="card-sub">Join ColorWin and start winning</div>
+
+    <div class="inp-row">
+      <div class="input-group" style="flex:1;">
+        <div class="input-label">First Name</div>
+        <input class="inp" id="regFirst" type="text" placeholder="Rahul" />
+      </div>
+      <div class="input-group" style="flex:1;">
+        <div class="input-label">Last Name</div>
+        <input class="inp" id="regLast" type="text" placeholder="Sharma" />
+      </div>
+    </div>
+
+    <div class="input-group">
+      <div class="input-label">Username</div>
+      <input class="inp" id="regUsername" type="text" placeholder="rahul123" oninput="this.value=this.value.replace(/[^a-z0-9_]/gi,'').toLowerCase()" />
+    </div>
+
+    <div class="input-group">
+      <div class="input-label">Email</div>
+      <input class="inp" id="regEmail" type="email" placeholder="you@gmail.com" />
+    </div>
+
+    <div class="input-group">
+      <div class="input-label">Phone Number</div>
+      <input class="inp" id="regPhone" type="tel" placeholder="9876543210" maxlength="10" />
+    </div>
+
+    <div class="input-group">
+      <div class="input-label">UPI ID (for withdrawals)</div>
+      <input class="inp" id="regUpi" type="text" placeholder="rahul@upi or 9876543210@ybl" />
+    </div>
+    <div class="upi-note">
+      💳 Your UPI ID is used to transfer winnings directly to your bank account. You can also update it later.
+    </div>
+
+    <div class="input-group">
+      <div class="input-label">Password</div>
+      <input class="inp" id="regPass" type="password" placeholder="Min 8 characters" />
+    </div>
+
+    <div class="input-group">
+      <div class="input-label">Confirm Password</div>
+      <input class="inp" id="regPass2" type="password" placeholder="Re-enter password" />
+    </div>
+
+    <div class="err-msg" id="signupErr"></div>
+    <button class="btn-primary" onclick="doSignup()">Create Account & Get OTP →</button>
+  </div>
+
+  <div class="switch-text">
+    Already have an account? <a onclick="goTo('screen-main')">Login</a>
+  </div>
+</div>
+
+<!-- ── SCREEN 5: Profile setup after Google login ── -->
+<div class="screen" id="screen-profile">
+  <div class="logo">Color<span>Win</span></div>
+
+  <div class="auth-card">
+    <div class="card-title">Complete Profile</div>
+    <div class="card-sub">Just a few more details to get started</div>
+
+    <div class="input-group">
+      <div class="input-label">Username</div>
+      <input class="inp" id="profileUsername" type="text" placeholder="coolplayer99" oninput="this.value=this.value.replace(/[^a-z0-9_]/gi,'').toLowerCase()" />
+    </div>
+
+    <div class="input-group">
+      <div class="input-label">Phone Number</div>
+      <input class="inp" id="profilePhone" type="tel" placeholder="9876543210" maxlength="10" />
+    </div>
+
+    <div class="input-group">
+      <div class="input-label">UPI ID (for withdrawals)</div>
+      <input class="inp" id="profileUpi" type="text" placeholder="name@upi or 9876543210@ybl" />
+    </div>
+    <div class="upi-note">
+      💳 Winnings will be sent directly to this UPI ID. You can update it anytime in settings.
+    </div>
+
+    <div class="err-msg" id="profileErr"></div>
+    <button class="btn-primary" onclick="completeProfile()">Start Playing →</button>
+  </div>
+</div>
+
+<!-- ── SCREEN 6: Success ── -->
+<div class="screen" id="screen-success">
+  <div class="success-icon">🎉</div>
+  <div class="success-title">You're all set!</div>
+  <div class="success-sub" id="successMsg">Account created successfully. Redirecting to game…</div>
+</div>
+
+<script>
+// ── Storage helpers ──
+function getUsers()       { return JSON.parse(localStorage.getItem('cw_users') || '[]'); }
+function saveUsers(u)     { localStorage.setItem('cw_users', JSON.stringify(u)); }
+function getCurrentUser() { return JSON.parse(localStorage.getItem('cw_current') || 'null'); }
+function setCurrentUser(u){ localStorage.setItem('cw_current', JSON.stringify(u)); }
+
+// If already logged in, skip to game
+if (getCurrentUser()) { location.href = 'index.html'; }
+
+// ── Navigation ──
+function goTo(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+// ── OTP state ──
+let pendingOtp   = '';
+let pendingEmail = '';
+let pendingFlow  = ''; // 'google' | 'signup'
+let pendingUser  = null;
+
+function generateOtp() {
+  return String(Math.floor(100000 + Math.random() * 900000));
+}
+
+function showDemoOtp(otp) {
+  document.getElementById('demoOtpNum').textContent = otp;
+  const el = document.getElementById('otpDemo');
+  el.classList.add('show');
+  setTimeout(() => el.classList.remove('show'), 8000);
+}
+
+// ── OTP input handlers ──
+function otpInput(i) {
+  const el = document.getElementById('otp' + i);
+  const val = el.value.replace(/\D/g, '');
+  el.value = val ? val[0] : '';
+  if (val && i < 5) document.getElementById('otp' + (i+1)).focus();
+  el.classList.toggle('filled', !!val);
+}
+
+function otpKey(e, i) {
+  if (e.key === 'Backspace' && !document.getElementById('otp'+i).value && i > 0) {
+    document.getElementById('otp'+(i-1)).focus();
+  }
+}
+
+function getOtpValue() {
+  return [0,1,2,3,4,5].map(i => document.getElementById('otp'+i).value).join('');
+}
+
+function clearOtpBoxes() {
+  [0,1,2,3,4,5].forEach(i => {
+    const el = document.getElementById('otp'+i);
+    el.value = '';
+    el.classList.remove('filled');
+  });
+}
+
+// ── Google flow ──
+function startGoogle() { goTo('screen-google'); }
+
+function sendGoogleOtp() {
+  const email = document.getElementById('googleEmail').value.trim();
+  if (!email || !email.includes('@')) {
+    document.getElementById('googleErr').textContent = 'Please enter a valid Gmail address';
+    return;
+  }
+  document.getElementById('googleErr').textContent = '';
+  pendingEmail = email;
+  pendingFlow  = 'google';
+  pendingOtp   = generateOtp();
+  showDemoOtp(pendingOtp);
+
+  document.getElementById('otpSubText').textContent = `OTP sent to ${email}`;
+  document.getElementById('otpBackBtn').setAttribute('onclick', "goTo('screen-google')");
+  clearOtpBoxes();
+  goTo('screen-otp');
+  setTimeout(() => document.getElementById('otp0').focus(), 300);
+}
+
+// ── Verify OTP ──
+function verifyOtp() {
+  const entered = getOtpValue();
+  if (entered.length < 6) {
+    document.getElementById('otpErr').textContent = 'Please enter all 6 digits';
+    return;
+  }
+  if (entered !== pendingOtp) {
+    document.getElementById('otpErr').textContent = '❌ Incorrect OTP. Try again.';
+    return;
+  }
+  document.getElementById('otpErr').textContent = '';
+
+  if (pendingFlow === 'google') {
+    // Check if existing user
+    const users = getUsers();
+    const existing = users.find(u => u.email === pendingEmail);
+    if (existing) {
+      setCurrentUser({ userId: existing.id });
+      showSuccess(`Welcome back, ${existing.name}!`);
+    } else {
+      // New Google user — need profile setup
+      pendingUser = { email: pendingEmail, loginMethod: 'google' };
+      goTo('screen-profile');
+    }
+  } else if (pendingFlow === 'signup') {
+    // Complete signup
+    const users = getUsers();
+    const u = { ...pendingUser, id: 'uid_' + Date.now(), verified: true, wallet: 500, createdAt: Date.now() };
+    users.push(u);
+    saveUsers(users);
+    setCurrentUser({ userId: u.id });
+    showSuccess(`Welcome, ${u.name}! ₹500 bonus added to your wallet!`);
+  }
+}
+
+function resendOtp() {
+  pendingOtp = generateOtp();
+  showDemoOtp(pendingOtp);
+  clearOtpBoxes();
+  document.getElementById('otpErr').textContent = '';
+  document.getElementById('otp0').focus();
+}
+
+// ── Email login ──
+function doEmailLogin() {
+  const email = document.getElementById('loginEmail').value.trim();
+  const pass  = document.getElementById('loginPassword').value;
+  document.getElementById('loginErr').textContent = '';
+
+  if (!email || !pass) {
+    document.getElementById('loginErr').textContent = 'Please fill in all fields';
+    return;
+  }
+
+  const users = getUsers();
+  const user  = users.find(u => u.email === email && u.password === pass);
+  if (!user) {
+    document.getElementById('loginErr').textContent = '❌ Invalid email or password';
+    return;
+  }
+
+  setCurrentUser({ userId: user.id });
+  showSuccess(`Welcome back, ${user.name}!`);
+}
+
+// ── Signup ──
+function doSignup() {
+  const first    = document.getElementById('regFirst').value.trim();
+  const last     = document.getElementById('regLast').value.trim();
+  const username = document.getElementById('regUsername').value.trim();
+  const email    = document.getElementById('regEmail').value.trim();
+  const phone    = document.getElementById('regPhone').value.trim();
+  const upiId    = document.getElementById('regUpi').value.trim();
+  const pass     = document.getElementById('regPass').value;
+  const pass2    = document.getElementById('regPass2').value;
+  const errEl    = document.getElementById('signupErr');
+
+  errEl.textContent = '';
+
+  if (!first || !last || !username || !email || !phone || !pass) {
+    errEl.textContent = 'Please fill in all required fields'; return;
+  }
+  if (username.length < 3) { errEl.textContent = 'Username must be at least 3 characters'; return; }
+  if (!email.includes('@')) { errEl.textContent = 'Invalid email address'; return; }
+  if (phone.length !== 10) { errEl.textContent = 'Enter a valid 10-digit phone number'; return; }
+  if (pass.length < 8)     { errEl.textContent = 'Password must be at least 8 characters'; return; }
+  if (pass !== pass2)      { errEl.textContent = 'Passwords do not match'; return; }
+
+  const users = getUsers();
+  if (users.find(u => u.email === email))    { errEl.textContent = 'Email already registered'; return; }
+  if (users.find(u => u.username === username)) { errEl.textContent = 'Username already taken'; return; }
+
+  pendingUser  = { name: first + ' ' + last, username, email, password: pass, phone, upiId, loginMethod: 'email' };
+  pendingEmail = email;
+  pendingFlow  = 'signup';
+  pendingOtp   = generateOtp();
+  showDemoOtp(pendingOtp);
+
+  document.getElementById('otpSubText').textContent = `OTP sent to ${email}`;
+  document.getElementById('otpBackBtn').setAttribute('onclick', "goTo('screen-signup')");
+  clearOtpBoxes();
+  goTo('screen-otp');
+  setTimeout(() => document.getElementById('otp0').focus(), 300);
+}
+
+// ── Profile setup (after Google login) ──
+function completeProfile() {
+  const username = document.getElementById('profileUsername').value.trim();
+  const phone    = document.getElementById('profilePhone').value.trim();
+  const upiId    = document.getElementById('profileUpi').value.trim();
+  const errEl    = document.getElementById('profileErr');
+  errEl.textContent = '';
+
+  if (!username || !phone) { errEl.textContent = 'Username and phone are required'; return; }
+  if (username.length < 3) { errEl.textContent = 'Username must be at least 3 chars'; return; }
+  if (phone.length !== 10) { errEl.textContent = 'Enter valid 10-digit phone'; return; }
+
+  const users = getUsers();
+  if (users.find(u => u.username === username)) { errEl.textContent = 'Username already taken'; return; }
+
+  const emailParts = pendingUser.email.split('@');
+  const name = emailParts[0].replace(/[._]/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+
+  const u = {
+    id: 'uid_' + Date.now(),
+    name,
+    username,
+    email: pendingUser.email,
+    password: '',
+    phone,
+    upiId,
+    loginMethod: 'google',
+    verified: true,
+    wallet: 500,
+    createdAt: Date.now()
+  };
+  users.push(u);
+  saveUsers(users);
+  setCurrentUser({ userId: u.id });
+  showSuccess(`Welcome, ${name}! ₹500 bonus added!`);
+}
+
+// ── Success ──
+function showSuccess(msg) {
+  document.getElementById('successMsg').textContent = msg + ' Redirecting…';
+  goTo('screen-success');
+  setTimeout(() => { location.href = 'index.html'; }, 2200);
+}
+</script>
+</body>
+</html>
