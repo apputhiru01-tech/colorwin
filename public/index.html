@@ -358,11 +358,11 @@ main{width:100%;max-width:480px;padding:0 16px 100px;display:flex;flex-direction
 
       <div class="m-err" id="dErr"></div>
       <div class="success-msg" id="dOk">
-        <div style="font-size:22px;font-weight:900;">🎉 Wallet Update Ho Gaya!</div>
-        <div style="margin-top:4px;">Aapka paisa wallet mein add ho gaya hai.</div>
-        <div style="margin-top:8px;"><a onclick="closeModal('dModal')" style="color:var(--accent);cursor:pointer;font-weight:700;">Game khelne jao →</a></div>
+        <div style="font-size:20px;font-weight:900;">✅ Request Submit Ho Gayi!</div>
+        <div style="margin-top:6px;font-size:13px;">Admin aapka payment verify karega aur <strong>15-30 minute</strong> mein wallet mein add ho jayega.</div>
+        <div style="margin-top:10px;"><a onclick="switchDepTab(3)" style="color:var(--accent);cursor:pointer;font-weight:700;">Status track karo →</a></div>
       </div>
-      <button class="btn-deposit" id="dSubmitBtn" onclick="submitManualDeposit()" style="font-size:16px;padding:16px;">Confirm &amp; Add to Wallet →</button>
+      <button class="btn-deposit" id="dSubmitBtn" onclick="submitManualDeposit()" style="font-size:16px;padding:16px;">Submit UTR →</button>
 
       <div style="margin-top:14px;text-align:center;">
         <span style="font-size:12px;color:var(--muted);cursor:pointer;" onclick="switchDepTab(1)">← Back to Pay</span>
@@ -820,11 +820,10 @@ async function submitManualDeposit(){
     });
     const d=await r.json();
     if(!r.ok){el.textContent=d.error||'Submission failed';return;}
-    if(d.newBalance!=null) updateWallet(d.newBalance);
     document.getElementById('dOk').classList.add('show');
     document.getElementById('dUtr').value='';
     document.getElementById('dSenderUpi').value='';
-    showToast('🎉 ₹'+amt+' wallet mein add ho gaya!');
+    showToast('Request submit ho gayi — admin verify karega');
   }catch{el.textContent='Network error';}
 }
 
