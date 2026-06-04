@@ -97,36 +97,41 @@ main{width:100%;max-width:480px;padding:0 16px 100px;display:flex;flex-direction
 .m-close{position:absolute;top:20px;right:20px;background:none;border:none;color:var(--muted);font-size:22px;cursor:pointer;}
 .btn-withdraw{width:100%;background:linear-gradient(135deg,#00d68f,#00a86b);border:none;border-radius:14px;color:#fff;font-size:15px;font-weight:800;padding:15px;cursor:pointer;margin-top:4px;font-family:inherit;}
 .btn-deposit{width:100%;background:linear-gradient(135deg,#5b8fff,#3b5fff);border:none;border-radius:14px;color:#fff;font-size:15px;font-weight:800;padding:15px;cursor:pointer;margin-top:4px;font-family:inherit;}
-.quick-deps{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:4px;}
-.qdep{background:var(--surface);border:1px solid var(--border);border-radius:10px;color:var(--text);font-size:13px;font-weight:700;padding:8px 16px;cursor:pointer;}
-.qdep:hover{border-color:var(--accent);color:var(--accent);}
 .success-msg{background:rgba(0,214,143,.1);border:1px solid rgba(0,214,143,.3);border-radius:12px;padding:14px 16px;color:var(--green);font-size:13px;font-weight:600;display:none;}
 .success-msg.show{display:block;}
-/* Deposit modal extras */
+/* Deposit modal */
 .dep-tabs{display:flex;gap:6px;margin-bottom:20px;}
 .dep-tab{flex:1;background:var(--surface);border:1px solid var(--border);border-radius:10px;color:var(--muted);font-size:13px;font-weight:700;padding:9px 4px;cursor:pointer;transition:all .15s;font-family:inherit;}
 .dep-tab.active{background:rgba(91,143,255,.12);border-color:var(--accent);color:var(--accent);}
-.upi-info-box{background:linear-gradient(135deg,rgba(91,143,255,.08),rgba(155,89,255,.06));border:1.5px solid var(--accent);border-radius:16px;padding:20px;text-align:center;margin-bottom:16px;}
-.upi-biz-name{font-size:17px;font-weight:900;margin-bottom:6px;}
-.upi-id-row{display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:10px;}
-.upi-id-val{font-size:16px;font-weight:900;color:var(--accent);font-family:monospace;letter-spacing:.5px;}
-.copy-upi-btn{background:rgba(91,143,255,.15);border:1px solid var(--accent);border-radius:8px;color:var(--accent);font-size:12px;font-weight:700;padding:5px 12px;cursor:pointer;font-family:inherit;}
-.copy-upi-btn:active{transform:scale(.95);}
-.upi-hint{font-size:12px;color:var(--muted);}
-.upi-qr-wrap{display:flex;justify-content:center;margin:12px 0 8px;}
-.upi-qr-wrap canvas,.upi-qr-wrap img{width:160px;height:160px;border-radius:12px;background:#fff;padding:8px;}
-.upi-app-btns{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:14px 0;}
-.upi-app-btn{background:var(--surface);border:1px solid var(--border);border-radius:12px;color:var(--text);font-size:13px;font-weight:700;padding:11px 8px;cursor:pointer;font-family:inherit;transition:border-color .15s;display:flex;align-items:center;justify-content:center;gap:6px;}
-.upi-app-btn:hover{border-color:var(--accent);}
-.dep-steps{display:flex;flex-direction:column;gap:6px;margin:14px 0 18px;}
-.dep-step{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:9px 14px;font-size:12px;color:var(--muted);display:flex;align-items:center;gap:10px;}
-.dep-step-num{background:var(--accent);color:#fff;width:20px;height:20px;border-radius:50%;font-size:11px;font-weight:900;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+/* Amount chips */
+.dep-amt-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px;}
+.dep-amt-chip{background:var(--surface);border:1.5px solid var(--border);border-radius:12px;color:var(--text);font-size:14px;font-weight:700;padding:13px 6px;cursor:pointer;font-family:inherit;transition:all .15s;text-align:center;}
+.dep-amt-chip:hover{border-color:var(--accent);color:var(--accent);}
+.dep-amt-chip.sel{background:rgba(91,143,255,.18);border-color:var(--accent);color:var(--accent);}
+/* Pay-to card */
+.dep-payto-card{background:linear-gradient(135deg,rgba(91,143,255,.1),rgba(155,89,255,.07));border:1.5px solid var(--accent);border-radius:16px;padding:16px 18px;margin-bottom:16px;display:flex;align-items:center;justify-content:space-between;gap:12px;}
+.dep-payto-left{flex:1;min-width:0;}
+.dep-payto-right{text-align:right;flex-shrink:0;}
+/* UPI app buttons */
+.upi-app-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px;}
+.upi-btn{background:var(--surface);border:1.5px solid var(--border);border-radius:14px;color:var(--text);font-size:12px;font-weight:700;padding:14px 8px 12px;cursor:pointer;font-family:inherit;transition:all .15s;display:flex;flex-direction:column;align-items:center;gap:6px;width:100%;}
+.upi-btn:active{transform:scale(.96);}
+.upi-btn.gpay:hover{background:rgba(66,133,244,.08);border-color:#4285F4;}
+.upi-btn.phonepe:hover{background:rgba(95,37,159,.1);border-color:#5F259F;}
+.upi-btn.paytm:hover{background:rgba(0,186,242,.08);border-color:#00BAF2;}
+.upi-btn.bhim:hover{background:rgba(255,153,0,.08);border-color:#FF9900;}
+.upi-btn-icon{font-size:26px;line-height:1;min-height:30px;display:flex;align-items:center;justify-content:center;}
+/* Confirm tab */
+.dep-confirm-banner{background:rgba(0,214,143,.08);border:1px solid rgba(0,214,143,.2);border-radius:14px;padding:16px;margin-bottom:20px;display:flex;align-items:center;gap:14px;}
+/* History */
 .dep-hist-item{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:12px 14px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center;}
 .dhi-left{display:flex;flex-direction:column;gap:3px;}
 .dhi-amt{font-size:16px;font-weight:800;}
 .dhi-utr{font-size:11px;color:var(--muted);font-family:monospace;}
 .dhi-date{font-size:11px;color:var(--muted);}
 .dep-empty{text-align:center;color:var(--muted);padding:30px;font-size:13px;}
+.copy-upi-btn{background:rgba(91,143,255,.15);border:1px solid var(--accent);border-radius:8px;color:var(--accent);font-size:11px;font-weight:700;padding:5px 10px;cursor:pointer;font-family:inherit;}
+.copy-upi-btn:active{transform:scale(.95);}
 /* Toast */
 #toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(80px);background:var(--card);border:1px solid var(--border);border-radius:14px;padding:12px 24px;font-size:14px;font-weight:600;z-index:999;transition:transform .35s cubic-bezier(.34,1.56,.64,1);pointer-events:none;white-space:nowrap;}
 #toast.show{transform:translateX(-50%) translateY(0);}
@@ -235,118 +240,135 @@ main{width:100%;max-width:480px;padding:0 16px 100px;display:flex;flex-direction
   <div class="modal-sheet" style="max-height:92vh;overflow-y:auto;padding-bottom:48px;">
     <button class="m-close" onclick="closeModal('dModal')">✕</button>
     <div class="dep-tabs">
-      <button class="dep-tab active" id="depTab1" onclick="switchDepTab(1)">💰 Pay</button>
+      <button class="dep-tab active" id="depTab1" onclick="switchDepTab(1)">💰 Add Money</button>
       <button class="dep-tab"        id="depTab2" onclick="switchDepTab(2)">✅ Confirm</button>
       <button class="dep-tab"        id="depTab3" onclick="switchDepTab(3)">📋 History</button>
     </div>
 
     <!-- TAB 1 — Pay -->
     <div id="depStep1">
-      <div class="modal-title">Add Money</div>
-      <div class="modal-sub">Select amount → tap your UPI app → pay done!</div>
-
-      <div class="m-grp" style="margin-bottom:16px;">
-        <div class="m-lbl">How much to add?</div>
-        <div class="quick-deps" style="margin-bottom:8px;">
-          <button class="qdep" onclick="setPayAmt(100)">₹100</button>
-          <button class="qdep" onclick="setPayAmt(200)">₹200</button>
-          <button class="qdep" onclick="setPayAmt(500)">₹500</button>
-          <button class="qdep" onclick="setPayAmt(1000)">₹1K</button>
-          <button class="qdep" onclick="setPayAmt(2000)">₹2K</button>
-          <button class="qdep" onclick="setPayAmt(5000)">₹5K</button>
+      <!-- Header row -->
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:20px;">
+        <div>
+          <div style="font-size:20px;font-weight:900;">Add Money</div>
+          <div style="font-size:12px;color:var(--muted);margin-top:2px;">Credited after admin verification</div>
         </div>
-        <input class="m-inp" id="payAmt" type="number" min="50" value="500" placeholder="Or enter custom amount" oninput="refreshUpiLinks();const _d=document.getElementById('payAmtDisplay');if(_d&&this.value)_d.textContent='₹'+this.value;"/>
+        <div style="text-align:right;background:rgba(0,214,143,.08);border:1px solid rgba(0,214,143,.2);border-radius:12px;padding:8px 14px;">
+          <div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;">Wallet</div>
+          <div style="font-size:18px;font-weight:900;color:var(--green);">₹<span id="depWalBal">0.00</span></div>
+        </div>
       </div>
 
-      <!-- Pay amount preview -->
-      <div id="payPreview" style="background:linear-gradient(135deg,rgba(91,143,255,.12),rgba(155,89,255,.08));border:1.5px solid var(--accent);border-radius:14px;padding:14px 18px;margin-bottom:16px;display:flex;align-items:center;justify-content:space-between;">
-        <div>
-          <div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;">Paying to</div>
-          <div style="font-size:15px;font-weight:800;" id="depAdminName">ColorWin</div>
-          <div style="font-size:12px;color:var(--accent);font-family:monospace;" id="depAdminUpi">loading…</div>
+      <!-- Amount chips -->
+      <div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px;">Select Amount</div>
+      <div class="dep-amt-grid">
+        <button class="dep-amt-chip" data-amt="100" onclick="setPayAmt(100)">₹100</button>
+        <button class="dep-amt-chip" data-amt="200" onclick="setPayAmt(200)">₹200</button>
+        <button class="dep-amt-chip sel" data-amt="500" onclick="setPayAmt(500)">₹500</button>
+        <button class="dep-amt-chip" data-amt="1000" onclick="setPayAmt(1000)">₹1,000</button>
+        <button class="dep-amt-chip" data-amt="2000" onclick="setPayAmt(2000)">₹2,000</button>
+        <button class="dep-amt-chip" data-amt="5000" onclick="setPayAmt(5000)">₹5,000</button>
+      </div>
+
+      <!-- Custom input -->
+      <div style="position:relative;margin-bottom:18px;">
+        <span style="position:absolute;left:14px;top:50%;transform:translateY(-50%);font-size:16px;font-weight:800;color:var(--muted);pointer-events:none;">₹</span>
+        <input class="m-inp" id="payAmt" type="number" min="50" value="500" placeholder="Custom amount" style="padding-left:30px;font-size:16px;font-weight:700;" oninput="onPayAmtInput(this.value)"/>
+      </div>
+
+      <!-- Pay-to card -->
+      <div class="dep-payto-card">
+        <div class="dep-payto-left">
+          <div style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;">Paying To</div>
+          <div style="font-size:16px;font-weight:900;margin-top:3px;" id="depAdminName">ColorWin</div>
+          <div style="font-size:12px;color:var(--accent);font-family:monospace;margin-top:2px;word-break:break-all;" id="depAdminUpi">loading…</div>
+          <button class="copy-upi-btn" onclick="copyDepUpi()" style="margin-top:8px;">📋 Copy UPI ID</button>
         </div>
-        <div style="text-align:right;">
-          <div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;">Amount</div>
-          <div style="font-size:28px;font-weight:900;color:var(--green);" id="payAmtDisplay">₹500</div>
-          <button class="copy-upi-btn" onclick="copyDepUpi()" style="margin-top:4px;">📋 Copy UPI</button>
+        <div class="dep-payto-right">
+          <div style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;">Amount</div>
+          <div style="font-size:34px;font-weight:900;color:var(--green);line-height:1.1;margin-top:3px;" id="payAmtDisplay">₹500</div>
         </div>
       </div>
 
       <!-- UPI App Buttons -->
-      <div class="m-lbl" style="margin-bottom:8px;">Tap to pay instantly</div>
-      <div class="upi-app-btns">
-        <button class="upi-app-btn gpay-btn" onclick="openUpiApp('gpay')">
-          <span style="font-size:22px;">G</span>
+      <div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px;">Tap to Open UPI App</div>
+      <div class="upi-app-grid">
+        <button class="upi-btn gpay" onclick="openUpiApp('gpay')">
+          <div class="upi-btn-icon">
+            <span style="font-size:22px;font-weight:900;background:linear-gradient(135deg,#4285F4,#34A853,#FBBC04,#EA4335);-webkit-background-clip:text;-webkit-text-fill-color:transparent;">G</span>
+          </div>
           <span>Google Pay</span>
         </button>
-        <button class="upi-app-btn phonepe-btn" onclick="openUpiApp('phonepe')">
-          <span style="font-size:22px;">P</span>
+        <button class="upi-btn phonepe" onclick="openUpiApp('phonepe')">
+          <div class="upi-btn-icon" style="color:#5F259F;font-size:24px;font-weight:900;">Pe</div>
           <span>PhonePe</span>
         </button>
-        <button class="upi-app-btn paytm-btn" onclick="openUpiApp('paytm')">
-          <span style="font-size:22px;">₹</span>
+        <button class="upi-btn paytm" onclick="openUpiApp('paytm')">
+          <div class="upi-btn-icon" style="color:#00BAF2;font-size:20px;font-weight:900;">PAY</div>
           <span>Paytm</span>
         </button>
-        <button class="upi-app-btn" onclick="openUpiApp('bhim')">
-          <span style="font-size:22px;">🏦</span>
+        <button class="upi-btn bhim" onclick="openUpiApp('bhim')">
+          <div class="upi-btn-icon">🏦</div>
           <span>BHIM / Other</span>
         </button>
       </div>
 
-      <!-- QR for scan -->
-      <div style="text-align:center;margin:14px 0 10px;">
-        <div style="font-size:11px;color:var(--muted);margin-bottom:8px;">or scan QR code</div>
-        <div class="upi-qr-wrap" style="justify-content:center;display:flex;"><img id="depQr" src="" alt="QR" style="width:140px;height:140px;border-radius:12px;background:#fff;padding:6px;"/></div>
+      <!-- QR Code -->
+      <div style="text-align:center;margin:4px 0 16px;">
+        <div style="font-size:11px;color:var(--muted);margin-bottom:10px;">or scan QR with any UPI app</div>
+        <div style="display:inline-block;background:#fff;border-radius:16px;padding:10px;box-shadow:0 4px 20px rgba(0,0,0,.3);">
+          <img id="depQr" src="" alt="QR" style="width:150px;height:150px;display:block;border-radius:8px;"/>
+        </div>
       </div>
 
-      <div style="font-size:12px;color:var(--muted);text-align:center;margin-bottom:16px;">After paying, tap the button below ↓</div>
-      <button class="btn-deposit" onclick="afterPayment()">✅ I've Paid — Enter UTR →</button>
+      <div style="text-align:center;font-size:12px;color:var(--muted);margin-bottom:14px;">After paying in UPI app, tap below ↓</div>
+      <button class="btn-deposit" style="font-size:16px;padding:16px;" onclick="afterPayment()">✅ I've Paid — Enter UTR Number →</button>
     </div>
 
     <!-- TAB 2 — Confirm UTR -->
     <div id="depStep2" style="display:none;">
-      <div style="background:rgba(0,214,143,.08);border:1px solid rgba(0,214,143,.25);border-radius:14px;padding:14px 16px;margin-bottom:16px;display:flex;align-items:center;gap:12px;">
-        <div style="font-size:28px;">✅</div>
+      <div class="dep-confirm-banner">
+        <div style="font-size:36px;line-height:1;">✅</div>
         <div>
-          <div style="font-size:13px;font-weight:700;color:var(--green);">Payment done?</div>
-          <div style="font-size:12px;color:var(--muted);">Enter the UTR from your UPI app receipt to confirm</div>
+          <div style="font-size:14px;font-weight:800;color:var(--green);">Payment Sent?</div>
+          <div style="font-size:12px;color:var(--muted);margin-top:2px;">Enter the UTR / transaction ID from your UPI app</div>
         </div>
       </div>
 
       <div class="m-grp">
         <div class="m-lbl">Amount Paid (₹)</div>
-        <input class="m-inp" id="dAmt" type="number" min="50" placeholder="₹ amount" style="font-size:22px;font-weight:800;color:var(--green);"/>
-        <div style="font-size:11px;color:var(--muted);margin-top:3px;">This should match what you paid in your UPI app</div>
+        <input class="m-inp" id="dAmt" type="number" min="50" placeholder="Enter amount you paid" style="font-size:24px;font-weight:900;color:var(--green);"/>
+        <div style="font-size:11px;color:var(--muted);">Must match the exact amount you paid in UPI app</div>
       </div>
 
       <div class="m-grp">
         <div class="m-lbl">UTR / Transaction ID</div>
-        <input class="m-inp" id="dUtr" type="text" maxlength="30" placeholder="e.g. 407123456789" style="font-family:monospace;letter-spacing:1px;"/>
-        <div style="font-size:11px;color:var(--muted);margin-top:4px;">Find it in: UPI app → Transactions → Payment receipt → UTR</div>
+        <input class="m-inp" id="dUtr" type="text" maxlength="30" placeholder="e.g. 407123456789" style="font-family:monospace;letter-spacing:1.5px;font-size:16px;"/>
+        <div style="font-size:11px;color:var(--muted);">UPI app → Transactions → tap payment → UTR number</div>
       </div>
 
       <div class="m-grp">
-        <div class="m-lbl">Your UPI ID <span style="font-weight:400;color:var(--muted);">(optional)</span></div>
+        <div class="m-lbl">Your UPI ID <span style="font-weight:400;">(optional — helps faster verification)</span></div>
         <input class="m-inp" id="dSenderUpi" type="text" placeholder="yourname@upi"/>
       </div>
 
       <div class="m-err" id="dErr"></div>
       <div class="success-msg" id="dOk">
-        <div style="font-size:18px;font-weight:900;">🎉 Submitted!</div>
-        <div style="margin-top:4px;">Admin will verify & credit your wallet within 30 minutes.</div>
-        <div style="margin-top:8px;"><a onclick="switchDepTab(3)" style="color:var(--accent);cursor:pointer;font-weight:700;">View deposit status →</a></div>
+        <div style="font-size:18px;font-weight:900;">🎉 Request Submitted!</div>
+        <div style="margin-top:4px;">Admin will verify &amp; credit your wallet within 30 minutes.</div>
+        <div style="margin-top:8px;"><a onclick="switchDepTab(3)" style="color:var(--accent);cursor:pointer;font-weight:700;">Track status →</a></div>
       </div>
-      <button class="btn-deposit" id="dSubmitBtn" onclick="submitManualDeposit()">Confirm Payment →</button>
+      <button class="btn-deposit" id="dSubmitBtn" onclick="submitManualDeposit()" style="font-size:16px;padding:16px;">Submit &amp; Request Credit →</button>
 
-      <div style="margin-top:12px;text-align:center;">
-        <span style="font-size:12px;color:var(--muted);cursor:pointer;" onclick="switchDepTab(1)">← Back to payment</span>
+      <div style="margin-top:14px;text-align:center;">
+        <span style="font-size:12px;color:var(--muted);cursor:pointer;" onclick="switchDepTab(1)">← Back to Pay</span>
       </div>
     </div>
 
     <!-- TAB 3 — History -->
     <div id="depStep3" style="display:none;">
-      <div class="modal-title">My Deposits</div>
-      <div class="modal-sub">Track your deposit requests</div>
+      <div style="font-size:20px;font-weight:900;margin-bottom:4px;">My Deposits</div>
+      <div style="font-size:13px;color:var(--muted);margin-bottom:20px;">Track your deposit requests</div>
       <div id="depHistList"><div class="dep-empty">Loading…</div></div>
     </div>
   </div>
@@ -605,7 +627,11 @@ function openDeposit(){
   switchDepTab(1);
   document.getElementById('dErr').textContent='';
   document.getElementById('dOk').classList.remove('show');
+  const wb=document.getElementById('depWalBal');
+  if(wb) wb.textContent=wallet.toFixed(2);
   document.getElementById('dModal').classList.add('show');
+  refreshUpiLinks();
+  setPayAmt(getPayAmt());
 }
 function switchDepTab(n){
   [1,2,3].forEach(i=>{
@@ -618,7 +644,16 @@ function getPayAmt(){return parseFloat(document.getElementById('payAmt').value)|
 function setPayAmt(v){
   document.getElementById('payAmt').value=v;
   const disp=document.getElementById('payAmtDisplay');
-  if(disp) disp.textContent='₹'+v;
+  if(disp) disp.textContent='₹'+Number(v).toLocaleString('en-IN');
+  document.querySelectorAll('.dep-amt-chip').forEach(el=>{
+    el.classList.toggle('sel', parseFloat(el.dataset.amt)===parseFloat(v));
+  });
+  refreshUpiLinks();
+}
+function onPayAmtInput(v){
+  const disp=document.getElementById('payAmtDisplay');
+  if(disp) disp.textContent=v?'₹'+Number(v).toLocaleString('en-IN'):'₹—';
+  document.querySelectorAll('.dep-amt-chip').forEach(el=>el.classList.remove('sel'));
   refreshUpiLinks();
 }
 
@@ -656,9 +691,16 @@ document.addEventListener('visibilitychange',()=>{
       if(disp) disp.textContent='₹'+pendingAmt;
       const modal=document.getElementById('dModal');
       if(modal&&modal.classList.contains('show')){
-        switchDepTab(2);
         const dAmt=document.getElementById('dAmt');
         if(dAmt) dAmt.value=pendingAmt;
+        switchDepTab(2);
+        setTimeout(()=>{const u=document.getElementById('dUtr');if(u)u.focus();},300);
+        showToast('Payment done? Enter UTR to confirm ✅');
+      } else {
+        document.getElementById('dModal').classList.add('show');
+        const dAmt=document.getElementById('dAmt');
+        if(dAmt) dAmt.value=pendingAmt;
+        switchDepTab(2);
         setTimeout(()=>{const u=document.getElementById('dUtr');if(u)u.focus();},300);
         showToast('Payment done? Enter UTR to confirm ✅');
       }
