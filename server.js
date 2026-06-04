@@ -217,8 +217,25 @@ app.post('/api/deposit/manual', authMiddleware, async (req, res) => {
       amount,
       utrNumber: utrNumber.trim(),
       senderUpi: senderUpi || '',
+      status:    'approved',
+      adminNote: 'Auto-approved on submission',
     });
-    res.json({ success: true, requestId: dep._id });
+
+    // Auto-credit wallet immediately
+    const user = await User.findByIdAndUpdate(
+      req.user.userId,
+      { $inc: { wallet: amount } },
+      { new: true }
+    );
+
+    // Notify player via socket
+    const sid = userSockets.get(req.user.userId.toString());
+    if (sid) io.to(sid).emit('wallet:update', {
+      wallet: user.wallet,
+      message: `+₹${amount} deposited successfully!`
+    });
+
+    res.json({ success: true, requestId: dep._id, newBalance: user.wallet });
   } catch (e) { console.error(e); res.status(500).json({ error: 'Submission failed' }); }
 });
 
