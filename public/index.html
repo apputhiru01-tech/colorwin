@@ -297,30 +297,36 @@ main{width:100%;max-width:480px;padding:0 16px 100px;display:flex;flex-direction
         </div>
       </div>
 
-      <!-- Single Pay Button -->
-      <button class="upi-pay-card" onclick="openUpiApp('any')" style="border-color:var(--accent);background:rgba(91,143,255,.08);margin-bottom:14px;">
-        <div class="upi-pay-icon" style="background:linear-gradient(135deg,#5b8fff,#3b5fff);color:#fff;font-size:22px;">₹</div>
-        <div class="upi-pay-info">
-          <div class="upi-pay-name" style="color:var(--accent);">Pay ₹<span class="upi-amt-inline">500</span> via UPI</div>
-          <div class="upi-pay-sub">Opens GPay / PhonePe / Paytm — choose your app</div>
-        </div>
-        <div class="upi-pay-arrow" style="color:var(--accent);">›</div>
+      <!-- Instant Pay via Razorpay -->
+      <button id="rzpPayBtn" class="btn-deposit" style="font-size:17px;padding:18px;background:linear-gradient(135deg,#00c853,#00a846);border-radius:16px;display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:6px;" onclick="startRazorpayPayment()">
+        <span style="font-size:20px;">⚡</span>
+        <span>Pay ₹<span class="upi-amt-inline">500</span> Instantly</span>
       </button>
+      <div style="font-size:11px;color:var(--muted);text-align:center;margin-bottom:18px;">Wallet turant credit hoga — koi wait nahi</div>
 
-      <!-- QR Code -->
-      <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">
+      <!-- Divider -->
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;">
         <div style="flex:1;height:1px;background:var(--border);"></div>
-        <div style="font-size:11px;color:var(--muted);white-space:nowrap;">ya QR scan karo</div>
+        <div style="font-size:11px;color:var(--muted);white-space:nowrap;">ya manually pay karo</div>
         <div style="flex:1;height:1px;background:var(--border);"></div>
       </div>
-      <div style="text-align:center;margin-bottom:18px;">
+
+      <!-- QR Code Manual -->
+      <div style="text-align:center;margin-bottom:14px;">
         <div style="display:inline-block;background:#fff;border-radius:16px;padding:10px;box-shadow:0 4px 24px rgba(0,0,0,.35);">
-          <img id="depQr" src="" alt="QR" style="width:160px;height:160px;display:block;border-radius:8px;"/>
+          <img id="depQr" src="" alt="QR" style="width:150px;height:150px;display:block;border-radius:8px;"/>
         </div>
         <div style="font-size:11px;color:var(--muted);margin-top:8px;">GPay, PhonePe, Paytm — kisi bhi app se scan karo</div>
       </div>
-
-      <button class="btn-deposit" style="font-size:16px;padding:16px;" onclick="afterPayment()">✅ Pay Ho Gaya — UTR Enter Karo →</button>
+      <button class="upi-pay-card" onclick="openUpiApp('any')" style="margin-bottom:10px;">
+        <div class="upi-pay-icon" style="background:linear-gradient(135deg,#5b8fff,#3b5fff);color:#fff;font-size:20px;">₹</div>
+        <div class="upi-pay-info">
+          <div class="upi-pay-name">UPI App se Pay karo</div>
+          <div class="upi-pay-sub">₹<span class="upi-amt-inline">500</span> — GPay / PhonePe / Paytm</div>
+        </div>
+        <div class="upi-pay-arrow">›</div>
+      </button>
+      <button class="btn-deposit" style="background:var(--surface);border:1.5px solid var(--border);color:var(--muted);font-size:14px;padding:13px;" onclick="afterPayment()">Pay ho gaya? UTR enter karo →</button>
     </div>
 
     <!-- TAB 2 — Confirm UTR -->
@@ -375,6 +381,7 @@ main{width:100%;max-width:480px;padding:0 16px 100px;display:flex;flex-direction
 <div id="toast"></div>
 
 <script src="/socket.io/socket.io.js"></script>
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
 <script>
 const API   = '';
 const token = localStorage.getItem('cw_token');
@@ -619,6 +626,56 @@ function openWithdraw(){
   document.getElementById('wErr').textContent='';
   document.getElementById('wOk').classList.remove('show');
   document.getElementById('wModal').classList.add('show');
+}
+async function startRazorpayPayment(){
+  const amt=getPayAmt();
+  if(!amt||amt<minDeposit){showToast('Minimum ₹'+minDeposit);return;}
+  const btn=document.getElementById('rzpPayBtn');
+  btn.disabled=true;
+  btn.innerHTML='<span style="font-size:20px;">⏳</span> Opening payment…';
+  try{
+    const r=await fetch(API+'/api/payment/deposit',{
+      method:'POST',
+      headers:{'Authorization':'Bearer '+token,'Content-Type':'application/json'},
+      body:JSON.stringify({amount:amt})
+    });
+    const d=await r.json();
+    if(!r.ok){showToast(d.error||'Payment setup failed');btn.disabled=false;btn.innerHTML='<span style="font-size:20px;">⚡</span> Pay ₹'+amt+' Instantly';return;}
+    const options={
+      key:d.key,
+      amount:amt*100,
+      currency:'INR',
+      name:'ColorWin',
+      description:'Wallet Deposit',
+      order_id:d.orderId,
+      handler:async function(resp){
+        try{
+          const v=await fetch(API+'/api/payment/verify',{
+            method:'POST',
+            headers:{'Authorization':'Bearer '+token,'Content-Type':'application/json'},
+            body:JSON.stringify({orderId:resp.razorpay_order_id,paymentId:resp.razorpay_payment_id,signature:resp.razorpay_signature})
+          });
+          const vd=await v.json();
+          if(vd.success){
+            updateWallet(vd.newBalance);
+            closeModal('dModal');
+            showToast('🎉 ₹'+amt+' wallet mein add ho gaya!');
+          }else{
+            showToast('Verification failed — contact support');
+          }
+        }catch{showToast('Network error during verification');}
+      },
+      modal:{ondismiss:function(){btn.disabled=false;btn.innerHTML='<span style="font-size:20px;">⚡</span> <span>Pay ₹<span class="upi-amt-inline">'+amt+'</span> Instantly</span>';}},
+      prefill:{name:document.getElementById('userLabel')?.textContent||''},
+      theme:{color:'#5b8fff'}
+    };
+    const rzp=new Razorpay(options);
+    rzp.open();
+  }catch(e){
+    showToast('Payment failed — try manual UTR');
+    btn.disabled=false;
+    btn.innerHTML='<span style="font-size:20px;">⚡</span> <span>Pay ₹<span class="upi-amt-inline">'+amt+'</span> Instantly</span>';
+  }
 }
 function openDeposit(){
   closeDrop();
