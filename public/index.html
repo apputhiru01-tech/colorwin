@@ -689,15 +689,11 @@ function updateAmtDisplays(v){
 }
 
 function buildUpiUrl(app){
-  const upi=adminUpiId;
+  const upi=encodeURIComponent(adminUpiId);
   const amt=getPayAmt();
   const name=encodeURIComponent(adminUpiName||'ColorWin');
-  const note=encodeURIComponent('ColorWin Deposit');
-  const base=`upi://pay?pa=${encodeURIComponent(upi)}&pn=${name}&am=${amt}&cu=INR&tn=${note}`;
-  if(app==='gpay')   return `tez://upi/pay?pa=${encodeURIComponent(upi)}&pn=${name}&am=${amt}&cu=INR&tn=${note}`;
-  if(app==='phonepe') return `phonepe://pay?pa=${encodeURIComponent(upi)}&pn=${name}&am=${amt}&cu=INR&tn=${note}`;
-  if(app==='paytm')  return `paytmmp://pay?pa=${encodeURIComponent(upi)}&pn=${name}&am=${amt}&cu=INR&tn=${note}`;
-  return base;
+  const note=encodeURIComponent('ColorWin+Deposit');
+  return `upi://pay?pa=${upi}&pn=${name}&am=${amt}&cu=INR&tn=${note}`;
 }
 function openUpiApp(app){
   if(!adminUpiId){showToast('UPI ID not loaded yet');return;}
