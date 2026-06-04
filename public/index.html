@@ -112,15 +112,22 @@ main{width:100%;max-width:480px;padding:0 16px 100px;display:flex;flex-direction
 .dep-payto-card{background:linear-gradient(135deg,rgba(91,143,255,.1),rgba(155,89,255,.07));border:1.5px solid var(--accent);border-radius:16px;padding:16px 18px;margin-bottom:16px;display:flex;align-items:center;justify-content:space-between;gap:12px;}
 .dep-payto-left{flex:1;min-width:0;}
 .dep-payto-right{text-align:right;flex-shrink:0;}
-/* UPI app buttons */
-.upi-app-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px;}
-.upi-btn{background:var(--surface);border:1.5px solid var(--border);border-radius:14px;color:var(--text);font-size:12px;font-weight:700;padding:14px 8px 12px;cursor:pointer;font-family:inherit;transition:all .15s;display:flex;flex-direction:column;align-items:center;gap:6px;width:100%;}
-.upi-btn:active{transform:scale(.96);}
-.upi-btn.gpay:hover{background:rgba(66,133,244,.08);border-color:#4285F4;}
-.upi-btn.phonepe:hover{background:rgba(95,37,159,.1);border-color:#5F259F;}
-.upi-btn.paytm:hover{background:rgba(0,186,242,.08);border-color:#00BAF2;}
-.upi-btn.bhim:hover{background:rgba(255,153,0,.08);border-color:#FF9900;}
-.upi-btn-icon{font-size:26px;line-height:1;min-height:30px;display:flex;align-items:center;justify-content:center;}
+/* UPI payment cards */
+.upi-pay-card{display:flex;align-items:center;gap:14px;background:var(--surface);border:1.5px solid var(--border);border-radius:14px;padding:14px 16px;cursor:pointer;font-family:inherit;width:100%;transition:all .15s;text-align:left;margin-bottom:10px;}
+.upi-pay-card:active{transform:scale(.98);}
+.upi-pay-card.gpay:hover{border-color:#4285F4;background:rgba(66,133,244,.06);}
+.upi-pay-card.phonepe:hover{border-color:#5F259F;background:rgba(95,37,159,.06);}
+.upi-pay-card.paytm:hover{border-color:#00BAF2;background:rgba(0,186,242,.05);}
+.upi-pay-card.bhim:hover{border-color:var(--accent);background:rgba(91,143,255,.05);}
+.upi-pay-icon{width:44px;height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:18px;font-weight:900;}
+.upi-pay-icon.gpay-ic{background:linear-gradient(135deg,#e8f0fe,#c5d5fb);color:#1a73e8;}
+.upi-pay-icon.phonepe-ic{background:linear-gradient(135deg,#5F259F,#7B2FBE);color:#fff;}
+.upi-pay-icon.paytm-ic{background:linear-gradient(135deg,#00BAF2,#0097c8);color:#fff;}
+.upi-pay-icon.bhim-ic{background:linear-gradient(135deg,#1a237e,#283593);color:#fff;}
+.upi-pay-info{flex:1;min-width:0;}
+.upi-pay-name{font-size:15px;font-weight:800;color:var(--text);}
+.upi-pay-sub{font-size:11px;color:var(--muted);margin-top:1px;}
+.upi-pay-arrow{color:var(--muted);font-size:20px;flex-shrink:0;}
 /* Confirm tab */
 .dep-confirm-banner{background:rgba(0,214,143,.08);border:1px solid rgba(0,214,143,.2);border-radius:14px;padding:16px;margin-bottom:20px;display:flex;align-items:center;gap:14px;}
 /* History */
@@ -290,38 +297,58 @@ main{width:100%;max-width:480px;padding:0 16px 100px;display:flex;flex-direction
         </div>
       </div>
 
-      <!-- UPI App Buttons -->
-      <div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px;">Tap to Open UPI App</div>
-      <div class="upi-app-grid">
-        <button class="upi-btn gpay" onclick="openUpiApp('gpay')">
-          <div class="upi-btn-icon">
-            <span style="font-size:22px;font-weight:900;background:linear-gradient(135deg,#4285F4,#34A853,#FBBC04,#EA4335);-webkit-background-clip:text;-webkit-text-fill-color:transparent;">G</span>
-          </div>
-          <span>Google Pay</span>
-        </button>
-        <button class="upi-btn phonepe" onclick="openUpiApp('phonepe')">
-          <div class="upi-btn-icon" style="color:#5F259F;font-size:24px;font-weight:900;">Pe</div>
-          <span>PhonePe</span>
-        </button>
-        <button class="upi-btn paytm" onclick="openUpiApp('paytm')">
-          <div class="upi-btn-icon" style="color:#00BAF2;font-size:20px;font-weight:900;">PAY</div>
-          <span>Paytm</span>
-        </button>
-        <button class="upi-btn bhim" onclick="openUpiApp('bhim')">
-          <div class="upi-btn-icon">🏦</div>
-          <span>BHIM / Other</span>
-        </button>
-      </div>
+      <!-- UPI App Cards -->
+      <div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:12px;">Choose UPI App to Pay</div>
 
-      <!-- QR Code -->
-      <div style="text-align:center;margin:4px 0 16px;">
-        <div style="font-size:11px;color:var(--muted);margin-bottom:10px;">or scan QR with any UPI app</div>
-        <div style="display:inline-block;background:#fff;border-radius:16px;padding:10px;box-shadow:0 4px 20px rgba(0,0,0,.3);">
+      <button class="upi-pay-card gpay" onclick="openUpiApp('gpay')">
+        <div class="upi-pay-icon gpay-ic" style="font-size:22px;font-weight:900;letter-spacing:-1px;color:#1a73e8;">G</div>
+        <div class="upi-pay-info">
+          <div class="upi-pay-name">Google Pay</div>
+          <div class="upi-pay-sub">Pay ₹<span class="upi-amt-inline">500</span> via GPay</div>
+        </div>
+        <div class="upi-pay-arrow">›</div>
+      </button>
+
+      <button class="upi-pay-card phonepe" onclick="openUpiApp('phonepe')">
+        <div class="upi-pay-icon phonepe-ic">Pe</div>
+        <div class="upi-pay-info">
+          <div class="upi-pay-name">PhonePe</div>
+          <div class="upi-pay-sub">Pay ₹<span class="upi-amt-inline">500</span> via PhonePe</div>
+        </div>
+        <div class="upi-pay-arrow">›</div>
+      </button>
+
+      <button class="upi-pay-card paytm" onclick="openUpiApp('paytm')">
+        <div class="upi-pay-icon paytm-ic" style="font-size:13px;font-weight:900;">PAY</div>
+        <div class="upi-pay-info">
+          <div class="upi-pay-name">Paytm</div>
+          <div class="upi-pay-sub">Pay ₹<span class="upi-amt-inline">500</span> via Paytm</div>
+        </div>
+        <div class="upi-pay-arrow">›</div>
+      </button>
+
+      <button class="upi-pay-card bhim" onclick="openUpiApp('bhim')">
+        <div class="upi-pay-icon bhim-ic">🏦</div>
+        <div class="upi-pay-info">
+          <div class="upi-pay-name">BHIM / Any UPI App</div>
+          <div class="upi-pay-sub">Pay ₹<span class="upi-amt-inline">500</span> — opens default UPI</div>
+        </div>
+        <div class="upi-pay-arrow">›</div>
+      </button>
+
+      <!-- Divider + QR -->
+      <div style="display:flex;align-items:center;gap:10px;margin:6px 0 14px;">
+        <div style="flex:1;height:1px;background:var(--border);"></div>
+        <div style="font-size:11px;color:var(--muted);white-space:nowrap;">or scan QR code</div>
+        <div style="flex:1;height:1px;background:var(--border);"></div>
+      </div>
+      <div style="text-align:center;margin-bottom:18px;">
+        <div style="display:inline-block;background:#fff;border-radius:16px;padding:10px;box-shadow:0 4px 24px rgba(0,0,0,.35);">
           <img id="depQr" src="" alt="QR" style="width:150px;height:150px;display:block;border-radius:8px;"/>
         </div>
+        <div style="font-size:11px;color:var(--muted);margin-top:8px;">Scan with GPay, PhonePe, Paytm or any UPI app</div>
       </div>
 
-      <div style="text-align:center;font-size:12px;color:var(--muted);margin-bottom:14px;">After paying in UPI app, tap below ↓</div>
       <button class="btn-deposit" style="font-size:16px;padding:16px;" onclick="afterPayment()">✅ I've Paid — Enter UTR Number →</button>
     </div>
 
@@ -630,8 +657,8 @@ function openDeposit(){
   const wb=document.getElementById('depWalBal');
   if(wb) wb.textContent=wallet.toFixed(2);
   document.getElementById('dModal').classList.add('show');
-  refreshUpiLinks();
   setPayAmt(getPayAmt());
+  refreshUpiLinks();
 }
 function switchDepTab(n){
   [1,2,3].forEach(i=>{
@@ -643,18 +670,22 @@ function switchDepTab(n){
 function getPayAmt(){return parseFloat(document.getElementById('payAmt').value)||500;}
 function setPayAmt(v){
   document.getElementById('payAmt').value=v;
-  const disp=document.getElementById('payAmtDisplay');
-  if(disp) disp.textContent='₹'+Number(v).toLocaleString('en-IN');
+  updateAmtDisplays(v);
   document.querySelectorAll('.dep-amt-chip').forEach(el=>{
     el.classList.toggle('sel', parseFloat(el.dataset.amt)===parseFloat(v));
   });
   refreshUpiLinks();
 }
 function onPayAmtInput(v){
-  const disp=document.getElementById('payAmtDisplay');
-  if(disp) disp.textContent=v?'₹'+Number(v).toLocaleString('en-IN'):'₹—';
+  updateAmtDisplays(v||0);
   document.querySelectorAll('.dep-amt-chip').forEach(el=>el.classList.remove('sel'));
   refreshUpiLinks();
+}
+function updateAmtDisplays(v){
+  const fmt=v?Number(v).toLocaleString('en-IN'):'—';
+  const disp=document.getElementById('payAmtDisplay');
+  if(disp) disp.textContent='₹'+fmt;
+  document.querySelectorAll('.upi-amt-inline').forEach(el=>el.textContent=fmt);
 }
 
 function buildUpiUrl(app){
