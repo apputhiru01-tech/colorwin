@@ -331,11 +331,11 @@ app.post('/api/auth/signup', async (req, res) => {
 // Login
 app.post('/api/auth/login', async (req, res) => {
   try {
-    const { email, password } = req.body;
-    if (!email || !password) return res.status(400).json({ error: 'Email and password required' });
-    const user = await User.findOne({ email: email.toLowerCase() });
+    const { username, password } = req.body;
+    if (!username || !password) return res.status(400).json({ error: 'Username and password required' });
+    const user = await User.findOne({ username: username.toLowerCase() });
     if (!user || !await bcrypt.compare(password, user.password || ''))
-      return res.status(400).json({ error: 'Invalid email or password' });
+      return res.status(400).json({ error: 'Invalid username or password' });
     const token = jwt.sign({ userId: user._id, username: user.username }, JWT_SECRET, { expiresIn: '30d' });
     res.json({ success: true, token, user: safeUser(user) });
   } catch (e) { res.status(500).json({ error: 'Login failed' }); }

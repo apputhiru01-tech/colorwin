@@ -81,7 +81,7 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,san
     <div class="card-sub">Sign in to continue</div>
     <button class="google-btn" id="googleBtn" onclick="startGoogle()"><div class="g-icon"></div>Continue with Google</button>
     <div class="divider">or login with email</div>
-    <div class="inp-group"><div class="inp-label">Email</div><input class="inp" id="lEmail" type="email" placeholder="you@gmail.com"/></div>
+    <div class="inp-group"><div class="inp-label">Username</div><input class="inp" id="lUser" type="text" placeholder="yourname99" oninput="this.value=this.value.replace(/[^a-z0-9_]/gi,'').toLowerCase()"/></div>
     <div class="inp-group"><div class="inp-label">Password</div><input class="inp" id="lPass" type="password" placeholder="••••••••" onkeydown="if(event.key==='Enter')doLogin()"/></div>
     <div class="err-msg" id="lErr"></div>
     <button class="btn-primary" id="lBtn" onclick="doLogin()">Login →</button>
@@ -255,15 +255,15 @@ async function completeProfile(){
 
 // ── Email Login ──
 async function doLogin(){
-  const email=document.getElementById('lEmail').value.trim();
+  const username=document.getElementById('lUser').value.trim();
   const pass=document.getElementById('lPass').value;
   const el=document.getElementById('lErr');
   const btn=document.getElementById('lBtn');
   el.textContent='';
-  if(!email||!pass){el.textContent='Fill in all fields';return;}
+  if(!username||!pass){el.textContent='Fill in all fields';return;}
   btn.disabled=true;btn.textContent='Logging in…';
   try{
-    const r=await fetch(API+'/api/auth/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email,password:pass})});
+    const r=await fetch(API+'/api/auth/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({username,password:pass})});
     const d=await r.json();
     if(!r.ok){el.textContent=d.error||'Login failed';return;}
     finish(d.token,`Welcome back, ${d.user.name}!`);
