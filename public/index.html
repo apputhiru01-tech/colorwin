@@ -235,98 +235,118 @@ main{width:100%;max-width:480px;padding:0 16px 100px;display:flex;flex-direction
   <div class="modal-sheet" style="max-height:92vh;overflow-y:auto;padding-bottom:48px;">
     <button class="m-close" onclick="closeModal('dModal')">✕</button>
     <div class="dep-tabs">
-      <button class="dep-tab active" id="depTab1" onclick="switchDepTab(1)">1. Pay</button>
-      <button class="dep-tab"        id="depTab2" onclick="switchDepTab(2)">2. Submit</button>
-      <button class="dep-tab"        id="depTab3" onclick="switchDepTab(3)">History</button>
+      <button class="dep-tab active" id="depTab1" onclick="switchDepTab(1)">💰 Pay</button>
+      <button class="dep-tab"        id="depTab2" onclick="switchDepTab(2)">✅ Confirm</button>
+      <button class="dep-tab"        id="depTab3" onclick="switchDepTab(3)">📋 History</button>
     </div>
 
     <!-- TAB 1 — Pay -->
     <div id="depStep1">
-      <div class="modal-title">💰 Add Money</div>
-      <div class="modal-sub">Choose an amount and pay via any UPI app</div>
+      <div class="modal-title">Add Money</div>
+      <div class="modal-sub">Select amount → tap your UPI app → pay done!</div>
 
-      <!-- Amount picker -->
-      <div class="m-grp" style="margin-bottom:14px;">
-        <div class="m-lbl">Select Amount</div>
-        <div class="quick-deps">
+      <div class="m-grp" style="margin-bottom:16px;">
+        <div class="m-lbl">How much to add?</div>
+        <div class="quick-deps" style="margin-bottom:8px;">
           <button class="qdep" onclick="setPayAmt(100)">₹100</button>
           <button class="qdep" onclick="setPayAmt(200)">₹200</button>
           <button class="qdep" onclick="setPayAmt(500)">₹500</button>
           <button class="qdep" onclick="setPayAmt(1000)">₹1K</button>
           <button class="qdep" onclick="setPayAmt(2000)">₹2K</button>
+          <button class="qdep" onclick="setPayAmt(5000)">₹5K</button>
         </div>
-        <input class="m-inp" id="payAmt" type="number" min="50" value="500" placeholder="Or enter amount" oninput="refreshUpiLinks()"/>
+        <input class="m-inp" id="payAmt" type="number" min="50" value="500" placeholder="Or enter custom amount" oninput="refreshUpiLinks();const _d=document.getElementById('payAmtDisplay');if(_d&&this.value)_d.textContent='₹'+this.value;"/>
       </div>
 
-      <div class="upi-info-box">
-        <div class="upi-biz-name" id="depAdminName">ColorWin</div>
-        <!-- QR Code -->
-        <div class="upi-qr-wrap"><img id="depQr" src="" alt="QR"/></div>
-        <div class="upi-id-row">
-          <span class="upi-id-val" id="depAdminUpi">loading…</span>
-          <button class="copy-upi-btn" onclick="copyDepUpi()">📋 Copy</button>
+      <!-- Pay amount preview -->
+      <div id="payPreview" style="background:linear-gradient(135deg,rgba(91,143,255,.12),rgba(155,89,255,.08));border:1.5px solid var(--accent);border-radius:14px;padding:14px 18px;margin-bottom:16px;display:flex;align-items:center;justify-content:space-between;">
+        <div>
+          <div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;">Paying to</div>
+          <div style="font-size:15px;font-weight:800;" id="depAdminName">ColorWin</div>
+          <div style="font-size:12px;color:var(--accent);font-family:monospace;" id="depAdminUpi">loading…</div>
         </div>
-        <div class="upi-hint">Scan QR or tap an app button below</div>
+        <div style="text-align:right;">
+          <div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;">Amount</div>
+          <div style="font-size:28px;font-weight:900;color:var(--green);" id="payAmtDisplay">₹500</div>
+          <button class="copy-upi-btn" onclick="copyDepUpi()" style="margin-top:4px;">📋 Copy UPI</button>
+        </div>
       </div>
 
-      <!-- UPI App deep-link buttons -->
+      <!-- UPI App Buttons -->
+      <div class="m-lbl" style="margin-bottom:8px;">Tap to pay instantly</div>
       <div class="upi-app-btns">
-        <button class="upi-app-btn" id="btnGpay" onclick="openUpiApp('gpay')">
-          <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/c/c7/Google_Pay_Logo_%282020%29.svg/24px-Google_Pay_Logo_%282020%29.svg.png" style="height:22px;" onerror="this.textContent='💳';this.remove()"> Google Pay
+        <button class="upi-app-btn gpay-btn" onclick="openUpiApp('gpay')">
+          <span style="font-size:22px;">G</span>
+          <span>Google Pay</span>
         </button>
-        <button class="upi-app-btn" id="btnPhonepe" onclick="openUpiApp('phonepe')">
-          <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/5/5f/PhonePe_logo.png/24px-PhonePe_logo.png" style="height:22px;" onerror="this.remove()"> PhonePe
+        <button class="upi-app-btn phonepe-btn" onclick="openUpiApp('phonepe')">
+          <span style="font-size:22px;">P</span>
+          <span>PhonePe</span>
         </button>
-        <button class="upi-app-btn" id="btnPaytm" onclick="openUpiApp('paytm')">
-          💳 Paytm
+        <button class="upi-app-btn paytm-btn" onclick="openUpiApp('paytm')">
+          <span style="font-size:22px;">₹</span>
+          <span>Paytm</span>
         </button>
-        <button class="upi-app-btn" id="btnBhim" onclick="openUpiApp('bhim')">
-          🏦 BHIM / Other
+        <button class="upi-app-btn" onclick="openUpiApp('bhim')">
+          <span style="font-size:22px;">🏦</span>
+          <span>BHIM / Other</span>
         </button>
       </div>
 
-      <div class="dep-steps">
-        <div class="dep-step"><span class="dep-step-num">1</span>Enter the amount you want to add above</div>
-        <div class="dep-step"><span class="dep-step-num">2</span>Tap your UPI app or scan the QR code to pay</div>
-        <div class="dep-step"><span class="dep-step-num">3</span>After payment, note the UTR / Transaction ID</div>
-        <div class="dep-step"><span class="dep-step-num">4</span>Come back and tap "Submit" to confirm your payment</div>
+      <!-- QR for scan -->
+      <div style="text-align:center;margin:14px 0 10px;">
+        <div style="font-size:11px;color:var(--muted);margin-bottom:8px;">or scan QR code</div>
+        <div class="upi-qr-wrap" style="justify-content:center;display:flex;"><img id="depQr" src="" alt="QR" style="width:140px;height:140px;border-radius:12px;background:#fff;padding:6px;"/></div>
       </div>
-      <button class="btn-deposit" onclick="switchDepTab(2);prefillDepAmt();">I've paid — Submit UTR →</button>
+
+      <div style="font-size:12px;color:var(--muted);text-align:center;margin-bottom:16px;">After paying, tap the button below ↓</div>
+      <button class="btn-deposit" onclick="afterPayment()">✅ I've Paid — Enter UTR →</button>
     </div>
 
-    <!-- TAB 2 — Submit UTR -->
+    <!-- TAB 2 — Confirm UTR -->
     <div id="depStep2" style="display:none;">
-      <div class="modal-title">📝 Submit Payment</div>
-      <div class="modal-sub">Tell us how much you paid and your UTR number</div>
-      <div class="m-grp">
-        <div class="m-lbl">Amount paid (₹)</div>
-        <div class="quick-deps">
-          <button class="qdep" onclick="setDep(100)">₹100</button>
-          <button class="qdep" onclick="setDep(200)">₹200</button>
-          <button class="qdep" onclick="setDep(500)">₹500</button>
-          <button class="qdep" onclick="setDep(1000)">₹1K</button>
-          <button class="qdep" onclick="setDep(2000)">₹2K</button>
+      <div style="background:rgba(0,214,143,.08);border:1px solid rgba(0,214,143,.25);border-radius:14px;padding:14px 16px;margin-bottom:16px;display:flex;align-items:center;gap:12px;">
+        <div style="font-size:28px;">✅</div>
+        <div>
+          <div style="font-size:13px;font-weight:700;color:var(--green);">Payment done?</div>
+          <div style="font-size:12px;color:var(--muted);">Enter the UTR from your UPI app receipt to confirm</div>
         </div>
-        <input class="m-inp" id="dAmt" type="number" min="50" value="500" placeholder="₹ amount"/>
       </div>
+
+      <div class="m-grp">
+        <div class="m-lbl">Amount Paid (₹)</div>
+        <input class="m-inp" id="dAmt" type="number" min="50" placeholder="₹ amount" style="font-size:22px;font-weight:800;color:var(--green);"/>
+        <div style="font-size:11px;color:var(--muted);margin-top:3px;">This should match what you paid in your UPI app</div>
+      </div>
+
       <div class="m-grp">
         <div class="m-lbl">UTR / Transaction ID</div>
-        <input class="m-inp" id="dUtr" type="text" maxlength="30" placeholder="e.g. 407123456789"/>
-        <div style="font-size:11px;color:var(--muted);margin-top:4px;">Open UPI app → Payment receipt → UTR Number</div>
+        <input class="m-inp" id="dUtr" type="text" maxlength="30" placeholder="e.g. 407123456789" style="font-family:monospace;letter-spacing:1px;"/>
+        <div style="font-size:11px;color:var(--muted);margin-top:4px;">Find it in: UPI app → Transactions → Payment receipt → UTR</div>
       </div>
+
       <div class="m-grp">
-        <div class="m-lbl">Your UPI ID <span style="font-weight:400;">(optional)</span></div>
+        <div class="m-lbl">Your UPI ID <span style="font-weight:400;color:var(--muted);">(optional)</span></div>
         <input class="m-inp" id="dSenderUpi" type="text" placeholder="yourname@upi"/>
       </div>
+
       <div class="m-err" id="dErr"></div>
-      <div class="success-msg" id="dOk">✅ Deposit submitted! Admin will approve within 30 min. Check History tab.</div>
-      <button class="btn-deposit" onclick="submitManualDeposit()">Submit Deposit Request →</button>
+      <div class="success-msg" id="dOk">
+        <div style="font-size:18px;font-weight:900;">🎉 Submitted!</div>
+        <div style="margin-top:4px;">Admin will verify & credit your wallet within 30 minutes.</div>
+        <div style="margin-top:8px;"><a onclick="switchDepTab(3)" style="color:var(--accent);cursor:pointer;font-weight:700;">View deposit status →</a></div>
+      </div>
+      <button class="btn-deposit" id="dSubmitBtn" onclick="submitManualDeposit()">Confirm Payment →</button>
+
+      <div style="margin-top:12px;text-align:center;">
+        <span style="font-size:12px;color:var(--muted);cursor:pointer;" onclick="switchDepTab(1)">← Back to payment</span>
+      </div>
     </div>
 
     <!-- TAB 3 — History -->
     <div id="depStep3" style="display:none;">
-      <div class="modal-title">📋 My Deposits</div>
-      <div class="modal-sub">Status of your recent deposit requests</div>
+      <div class="modal-title">My Deposits</div>
+      <div class="modal-sub">Track your deposit requests</div>
       <div id="depHistList"><div class="dep-empty">Loading…</div></div>
     </div>
   </div>
@@ -595,7 +615,12 @@ function switchDepTab(n){
   if(n===3) loadDepositHistory();
 }
 function getPayAmt(){return parseFloat(document.getElementById('payAmt').value)||500;}
-function setPayAmt(v){document.getElementById('payAmt').value=v;refreshUpiLinks();}
+function setPayAmt(v){
+  document.getElementById('payAmt').value=v;
+  const disp=document.getElementById('payAmtDisplay');
+  if(disp) disp.textContent='₹'+v;
+  refreshUpiLinks();
+}
 
 function buildUpiUrl(app){
   const upi=adminUpiId;
@@ -610,8 +635,36 @@ function buildUpiUrl(app){
 }
 function openUpiApp(app){
   if(!adminUpiId){showToast('UPI ID not loaded yet');return;}
+  const amt=getPayAmt();
+  if(!amt||amt<minDeposit){showToast('Minimum ₹'+minDeposit);return;}
+  sessionStorage.setItem('pendingDepAmt',amt);
   window.location.href=buildUpiUrl(app);
 }
+function afterPayment(){
+  prefillDepAmt();
+  switchDepTab(2);
+  setTimeout(()=>{const u=document.getElementById('dUtr');if(u)u.focus();},300);
+}
+document.addEventListener('visibilitychange',()=>{
+  if(document.visibilityState==='visible'){
+    const pendingAmt=sessionStorage.getItem('pendingDepAmt');
+    if(pendingAmt){
+      sessionStorage.removeItem('pendingDepAmt');
+      const payAmt=document.getElementById('payAmt');
+      if(payAmt) payAmt.value=pendingAmt;
+      const disp=document.getElementById('payAmtDisplay');
+      if(disp) disp.textContent='₹'+pendingAmt;
+      const modal=document.getElementById('dModal');
+      if(modal&&modal.classList.contains('show')){
+        switchDepTab(2);
+        const dAmt=document.getElementById('dAmt');
+        if(dAmt) dAmt.value=pendingAmt;
+        setTimeout(()=>{const u=document.getElementById('dUtr');if(u)u.focus();},300);
+        showToast('Payment done? Enter UTR to confirm ✅');
+      }
+    }
+  }
+});
 function refreshUpiLinks(){
   if(!adminUpiId) return;
   const upi=adminUpiId;
