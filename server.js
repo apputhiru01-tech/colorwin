@@ -1,4 +1,6 @@
 require('dotenv').config();
+const dns = require('dns');
+dns.setServers(['8.8.8.8', '8.8.4.4', '1.1.1.1']);
 const express    = require('express');
 const http       = require('http');
 const { Server } = require('socket.io');
@@ -134,20 +136,25 @@ if (process.env.EMAIL_USER && process.env.EMAIL_PASS) {
 async function sendOtpEmail(email, otp) {
   if (!mailer) {
     console.log(`\n📧  OTP for ${email}  →  ${otp}\n`);
-    return;
+    return { devOtp: otp };
   }
-  await mailer.sendMail({
-    from: `ColorWin <${process.env.EMAIL_USER}>`,
-    to: email,
-    subject: `${otp} is your ColorWin OTP`,
-    html: `
-      <div style="background:#0d0f1a;padding:32px;border-radius:16px;font-family:sans-serif;max-width:420px;margin:auto;">
-        <h2 style="color:#ffd84d;margin:0 0 6px;">ColorWin</h2>
-        <p style="color:#7880a0;margin:0 0 20px;">Your verification code:</p>
-        <div style="font-size:48px;font-weight:900;letter-spacing:8px;color:#5b8fff;">${otp}</div>
-        <p style="color:#7880a0;margin-top:20px;font-size:13px;">Valid for 10 minutes. Never share this code.</p>
-      </div>`,
-  });
+  try {
+    await mailer.sendMail({
+      from: `ColorWin <${process.env.EMAIL_USER}>`,
+      to: email,
+      subject: `${otp} is your ColorWin OTP`,
+      html: `
+        <div style="background:#0d0f1a;padding:32px;border-radius:16px;font-family:sans-serif;max-width:420px;margin:auto;">
+          <h2 style="color:#ffd84d;margin:0 0 6px;">ColorWin</h2>
+          <p style="color:#7880a0;margin:0 0 20px;">Your verification code:</p>
+          <div style="font-size:48px;font-weight:900;letter-spacing:8px;color:#5b8fff;">${otp}</div>
+          <p style="color:#7880a0;margin-top:20px;font-size:13px;">Valid for 10 minutes. Never share this code.</p>
+        </div>`,
+    });
+  } catch(emailErr) {
+    console.log(`\n📧  Email failed, OTP for ${email}  →  ${otp}\n`);
+    return { devOtp: otp };
+  }
 }
 
 // ════════════════════════════════════════
@@ -271,8 +278,8 @@ app.post('/api/auth/send-otp', async (req, res) => {
     const otp = String(Math.floor(100000 + Math.random() * 900000));
     await Otp.deleteMany({ email: email.toLowerCase() });
     await Otp.create({ email: email.toLowerCase(), otp, expiresAt: new Date(Date.now() + 10 * 60000) });
-    await sendOtpEmail(email, otp);
-    res.json({ success: true, message: `OTP sent to ${email}` });
+    const result = await sendOtpEmail(email, otp);
+    res.json({ success: true, message: `OTP sent to ${email}`, devOtp: result?.devOtp || null });
   } catch (e) { console.error(e); res.status(500).json({ error: 'Failed to send OTP' }); }
 });
 

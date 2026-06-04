@@ -269,7 +269,12 @@ async function doSignup(){
   const el=document.getElementById('rErr');
   const btn=document.getElementById('rBtn');
   el.textContent='';
-  if(!first||!last||!username||!email||!phone||!pass){el.textContent='All fields are required';return;}
+  if(!first)          {el.textContent='Enter your first name';return;}
+  if(!last)           {el.textContent='Enter your last name';return;}
+  if(!username)       {el.textContent='Enter a username';return;}
+  if(!email)          {el.textContent='Enter your email';return;}
+  if(!phone)          {el.textContent='Enter your phone number';return;}
+  if(!pass)           {el.textContent='Enter a password';return;}
   if(username.length<3){el.textContent='Username must be 3+ characters';return;}
   if(phone.replace(/\D/g,'').length<10){el.textContent='Enter valid 10-digit phone number';return;}
   if(pass.length<8){el.textContent='Password must be at least 8 characters';return;}
@@ -284,10 +289,15 @@ async function doSignup(){
     const r=await fetch(API+'/api/auth/send-otp',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email})});
     const d=await r.json();
     if(!r.ok){el.textContent=d.error||'Failed to send OTP';return;}
-    showOtpToast();
-    document.getElementById('otpSub').textContent=`OTP sent to ${email}`;
-    document.getElementById('otpBack').setAttribute('onclick',"goTo('s-signup')");
     clearOtp();
+    document.getElementById('otpBack').setAttribute('onclick',"goTo('s-signup')");
+    if(d.devOtp){
+      document.getElementById('otpSub').innerHTML=`<span style="color:#ffd84d;font-size:22px;font-weight:900;letter-spacing:4px;">${d.devOtp}</span><br/><span style="font-size:12px;color:#7880a0;">(Email not set — OTP shown here)</span>`;
+      d.devOtp.split('').forEach((ch,i)=>{const b=document.getElementById('o'+i);if(b)b.value=ch;});
+    } else {
+      showOtpToast();
+      document.getElementById('otpSub').textContent=`OTP sent to ${email}`;
+    }
     goTo('s-otp');
     setTimeout(()=>document.getElementById('o0').focus(),300);
   }catch{el.textContent='Network error';}
