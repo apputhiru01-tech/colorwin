@@ -107,12 +107,17 @@ main{width:100%;max-width:480px;padding:0 16px 100px;display:flex;flex-direction
 .dep-tab{flex:1;background:var(--surface);border:1px solid var(--border);border-radius:10px;color:var(--muted);font-size:13px;font-weight:700;padding:9px 4px;cursor:pointer;transition:all .15s;font-family:inherit;}
 .dep-tab.active{background:rgba(91,143,255,.12);border-color:var(--accent);color:var(--accent);}
 .upi-info-box{background:linear-gradient(135deg,rgba(91,143,255,.08),rgba(155,89,255,.06));border:1.5px solid var(--accent);border-radius:16px;padding:20px;text-align:center;margin-bottom:16px;}
-.upi-biz-name{font-size:17px;font-weight:900;margin-bottom:10px;}
+.upi-biz-name{font-size:17px;font-weight:900;margin-bottom:6px;}
 .upi-id-row{display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:10px;}
-.upi-id-val{font-size:18px;font-weight:900;color:var(--accent);font-family:monospace;letter-spacing:.5px;}
+.upi-id-val{font-size:16px;font-weight:900;color:var(--accent);font-family:monospace;letter-spacing:.5px;}
 .copy-upi-btn{background:rgba(91,143,255,.15);border:1px solid var(--accent);border-radius:8px;color:var(--accent);font-size:12px;font-weight:700;padding:5px 12px;cursor:pointer;font-family:inherit;}
 .copy-upi-btn:active{transform:scale(.95);}
 .upi-hint{font-size:12px;color:var(--muted);}
+.upi-qr-wrap{display:flex;justify-content:center;margin:12px 0 8px;}
+.upi-qr-wrap canvas,.upi-qr-wrap img{width:160px;height:160px;border-radius:12px;background:#fff;padding:8px;}
+.upi-app-btns{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:14px 0;}
+.upi-app-btn{background:var(--surface);border:1px solid var(--border);border-radius:12px;color:var(--text);font-size:13px;font-weight:700;padding:11px 8px;cursor:pointer;font-family:inherit;transition:border-color .15s;display:flex;align-items:center;justify-content:center;gap:6px;}
+.upi-app-btn:hover{border-color:var(--accent);}
 .dep-steps{display:flex;flex-direction:column;gap:6px;margin:14px 0 18px;}
 .dep-step{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:9px 14px;font-size:12px;color:var(--muted);display:flex;align-items:center;gap:10px;}
 .dep-step-num{background:var(--accent);color:#fff;width:20px;height:20px;border-radius:50%;font-size:11px;font-weight:900;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
@@ -238,22 +243,55 @@ main{width:100%;max-width:480px;padding:0 16px 100px;display:flex;flex-direction
     <!-- TAB 1 — Pay -->
     <div id="depStep1">
       <div class="modal-title">💰 Add Money</div>
-      <div class="modal-sub">Send money via UPI to the account below</div>
+      <div class="modal-sub">Choose an amount and pay via any UPI app</div>
+
+      <!-- Amount picker -->
+      <div class="m-grp" style="margin-bottom:14px;">
+        <div class="m-lbl">Select Amount</div>
+        <div class="quick-deps">
+          <button class="qdep" onclick="setPayAmt(100)">₹100</button>
+          <button class="qdep" onclick="setPayAmt(200)">₹200</button>
+          <button class="qdep" onclick="setPayAmt(500)">₹500</button>
+          <button class="qdep" onclick="setPayAmt(1000)">₹1K</button>
+          <button class="qdep" onclick="setPayAmt(2000)">₹2K</button>
+        </div>
+        <input class="m-inp" id="payAmt" type="number" min="50" value="500" placeholder="Or enter amount" oninput="refreshUpiLinks()"/>
+      </div>
+
       <div class="upi-info-box">
         <div class="upi-biz-name" id="depAdminName">ColorWin</div>
+        <!-- QR Code -->
+        <div class="upi-qr-wrap"><img id="depQr" src="" alt="QR"/></div>
         <div class="upi-id-row">
           <span class="upi-id-val" id="depAdminUpi">loading…</span>
           <button class="copy-upi-btn" onclick="copyDepUpi()">📋 Copy</button>
         </div>
-        <div class="upi-hint">Pay via PhonePe · GPay · Paytm · BHIM</div>
+        <div class="upi-hint">Scan QR or tap an app button below</div>
       </div>
+
+      <!-- UPI App deep-link buttons -->
+      <div class="upi-app-btns">
+        <button class="upi-app-btn" id="btnGpay" onclick="openUpiApp('gpay')">
+          <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/c/c7/Google_Pay_Logo_%282020%29.svg/24px-Google_Pay_Logo_%282020%29.svg.png" style="height:22px;" onerror="this.textContent='💳';this.remove()"> Google Pay
+        </button>
+        <button class="upi-app-btn" id="btnPhonepe" onclick="openUpiApp('phonepe')">
+          <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/5/5f/PhonePe_logo.png/24px-PhonePe_logo.png" style="height:22px;" onerror="this.remove()"> PhonePe
+        </button>
+        <button class="upi-app-btn" id="btnPaytm" onclick="openUpiApp('paytm')">
+          💳 Paytm
+        </button>
+        <button class="upi-app-btn" id="btnBhim" onclick="openUpiApp('bhim')">
+          🏦 BHIM / Other
+        </button>
+      </div>
+
       <div class="dep-steps">
-        <div class="dep-step"><span class="dep-step-num">1</span>Open any UPI app (PhonePe / GPay / Paytm)</div>
-        <div class="dep-step"><span class="dep-step-num">2</span>Send money to the UPI ID shown above</div>
-        <div class="dep-step"><span class="dep-step-num">3</span>Note the UTR / Transaction ID from receipt</div>
-        <div class="dep-step"><span class="dep-step-num">4</span>Tap "Submit" tab below and fill the form</div>
+        <div class="dep-step"><span class="dep-step-num">1</span>Enter the amount you want to add above</div>
+        <div class="dep-step"><span class="dep-step-num">2</span>Tap your UPI app or scan the QR code to pay</div>
+        <div class="dep-step"><span class="dep-step-num">3</span>After payment, note the UTR / Transaction ID</div>
+        <div class="dep-step"><span class="dep-step-num">4</span>Come back and tap "Submit" to confirm your payment</div>
       </div>
-      <button class="btn-deposit" onclick="switchDepTab(2)">I've paid — Submit UTR →</button>
+      <button class="btn-deposit" onclick="switchDepTab(2);prefillDepAmt();">I've paid — Submit UTR →</button>
     </div>
 
     <!-- TAB 2 — Submit UTR -->
@@ -414,6 +452,8 @@ async function loadConfig(){
     document.getElementById('depAdminName').textContent = adminUpiName;
     document.getElementById('depAdminUpi').textContent  = adminUpiId || 'Contact admin for UPI ID';
     document.getElementById('dAmt').min = minDeposit;
+    document.getElementById('payAmt').min = minDeposit;
+    refreshUpiLinks();
   }catch{}
 }
 
@@ -554,10 +594,41 @@ function switchDepTab(n){
   });
   if(n===3) loadDepositHistory();
 }
+function getPayAmt(){return parseFloat(document.getElementById('payAmt').value)||500;}
+function setPayAmt(v){document.getElementById('payAmt').value=v;refreshUpiLinks();}
+
+function buildUpiUrl(app){
+  const upi=adminUpiId;
+  const amt=getPayAmt();
+  const name=encodeURIComponent(adminUpiName||'ColorWin');
+  const note=encodeURIComponent('ColorWin Deposit');
+  const base=`upi://pay?pa=${encodeURIComponent(upi)}&pn=${name}&am=${amt}&cu=INR&tn=${note}`;
+  if(app==='gpay')   return `tez://upi/pay?pa=${encodeURIComponent(upi)}&pn=${name}&am=${amt}&cu=INR&tn=${note}`;
+  if(app==='phonepe') return `phonepe://pay?pa=${encodeURIComponent(upi)}&pn=${name}&am=${amt}&cu=INR&tn=${note}`;
+  if(app==='paytm')  return `paytmmp://pay?pa=${encodeURIComponent(upi)}&pn=${name}&am=${amt}&cu=INR&tn=${note}`;
+  return base;
+}
+function openUpiApp(app){
+  if(!adminUpiId){showToast('UPI ID not loaded yet');return;}
+  window.location.href=buildUpiUrl(app);
+}
+function refreshUpiLinks(){
+  if(!adminUpiId) return;
+  const upi=adminUpiId;
+  const amt=getPayAmt();
+  const name=encodeURIComponent(adminUpiName||'ColorWin');
+  const qrData=`upi://pay?pa=${encodeURIComponent(upi)}&pn=${name}&am=${amt}&cu=INR&tn=ColorWin%20Deposit`;
+  const qrUrl=`https://api.qrserver.com/v1/create-qr-code/?size=160x160&data=${encodeURIComponent(qrData)}&bgcolor=ffffff&color=1a1a2e&qzone=1`;
+  document.getElementById('depQr').src=qrUrl;
+}
 function copyDepUpi(){
   if(!adminUpiId){showToast('No UPI ID configured');return;}
   navigator.clipboard.writeText(adminUpiId).catch(()=>{});
   showToast('UPI ID copied!');
+}
+function prefillDepAmt(){
+  const v=getPayAmt();
+  if(v) document.getElementById('dAmt').value=v;
 }
 function closeModal(id){document.getElementById(id).classList.remove('show');}
 function closeIfOut(e,id){if(e.target===document.getElementById(id))closeModal(id);}
