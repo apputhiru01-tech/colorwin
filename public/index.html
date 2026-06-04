@@ -297,59 +297,30 @@ main{width:100%;max-width:480px;padding:0 16px 100px;display:flex;flex-direction
         </div>
       </div>
 
-      <!-- UPI App Cards -->
-      <div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:12px;">Choose UPI App to Pay</div>
-
-      <button class="upi-pay-card gpay" onclick="openUpiApp('gpay')">
-        <div class="upi-pay-icon gpay-ic" style="font-size:22px;font-weight:900;letter-spacing:-1px;color:#1a73e8;">G</div>
+      <!-- Single Pay Button -->
+      <button class="upi-pay-card" onclick="openUpiApp('any')" style="border-color:var(--accent);background:rgba(91,143,255,.08);margin-bottom:14px;">
+        <div class="upi-pay-icon" style="background:linear-gradient(135deg,#5b8fff,#3b5fff);color:#fff;font-size:22px;">₹</div>
         <div class="upi-pay-info">
-          <div class="upi-pay-name">Google Pay</div>
-          <div class="upi-pay-sub">Pay ₹<span class="upi-amt-inline">500</span> via GPay</div>
+          <div class="upi-pay-name" style="color:var(--accent);">Pay ₹<span class="upi-amt-inline">500</span> via UPI</div>
+          <div class="upi-pay-sub">Opens GPay / PhonePe / Paytm — choose your app</div>
         </div>
-        <div class="upi-pay-arrow">›</div>
+        <div class="upi-pay-arrow" style="color:var(--accent);">›</div>
       </button>
 
-      <button class="upi-pay-card phonepe" onclick="openUpiApp('phonepe')">
-        <div class="upi-pay-icon phonepe-ic">Pe</div>
-        <div class="upi-pay-info">
-          <div class="upi-pay-name">PhonePe</div>
-          <div class="upi-pay-sub">Pay ₹<span class="upi-amt-inline">500</span> via PhonePe</div>
-        </div>
-        <div class="upi-pay-arrow">›</div>
-      </button>
-
-      <button class="upi-pay-card paytm" onclick="openUpiApp('paytm')">
-        <div class="upi-pay-icon paytm-ic" style="font-size:13px;font-weight:900;">PAY</div>
-        <div class="upi-pay-info">
-          <div class="upi-pay-name">Paytm</div>
-          <div class="upi-pay-sub">Pay ₹<span class="upi-amt-inline">500</span> via Paytm</div>
-        </div>
-        <div class="upi-pay-arrow">›</div>
-      </button>
-
-      <button class="upi-pay-card bhim" onclick="openUpiApp('bhim')">
-        <div class="upi-pay-icon bhim-ic">🏦</div>
-        <div class="upi-pay-info">
-          <div class="upi-pay-name">BHIM / Any UPI App</div>
-          <div class="upi-pay-sub">Pay ₹<span class="upi-amt-inline">500</span> — opens default UPI</div>
-        </div>
-        <div class="upi-pay-arrow">›</div>
-      </button>
-
-      <!-- Divider + QR -->
-      <div style="display:flex;align-items:center;gap:10px;margin:6px 0 14px;">
+      <!-- QR Code -->
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">
         <div style="flex:1;height:1px;background:var(--border);"></div>
-        <div style="font-size:11px;color:var(--muted);white-space:nowrap;">or scan QR code</div>
+        <div style="font-size:11px;color:var(--muted);white-space:nowrap;">ya QR scan karo</div>
         <div style="flex:1;height:1px;background:var(--border);"></div>
       </div>
       <div style="text-align:center;margin-bottom:18px;">
         <div style="display:inline-block;background:#fff;border-radius:16px;padding:10px;box-shadow:0 4px 24px rgba(0,0,0,.35);">
-          <img id="depQr" src="" alt="QR" style="width:150px;height:150px;display:block;border-radius:8px;"/>
+          <img id="depQr" src="" alt="QR" style="width:160px;height:160px;display:block;border-radius:8px;"/>
         </div>
-        <div style="font-size:11px;color:var(--muted);margin-top:8px;">Scan with GPay, PhonePe, Paytm or any UPI app</div>
+        <div style="font-size:11px;color:var(--muted);margin-top:8px;">GPay, PhonePe, Paytm — kisi bhi app se scan karo</div>
       </div>
 
-      <button class="btn-deposit" style="font-size:16px;padding:16px;" onclick="afterPayment()">✅ I've Paid — Enter UTR Number →</button>
+      <button class="btn-deposit" style="font-size:16px;padding:16px;" onclick="afterPayment()">✅ Pay Ho Gaya — UTR Enter Karo →</button>
     </div>
 
     <!-- TAB 2 — Confirm UTR -->
