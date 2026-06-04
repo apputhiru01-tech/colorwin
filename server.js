@@ -675,7 +675,7 @@ function buildAdminState() {
 //  GAME ENGINE
 // ════════════════════════════════════════
 const WEIGHTS     = [...Array(45).fill('red'), ...Array(45).fill('green'), ...Array(10).fill('violet')];
-const MULTIPLIERS = { red: 2, green: 2, violet: 4.5 };
+const MULTIPLIERS = { red: 1, green: 2, violet: 3 };
 const ROUND_SEC   = 30;
 const CLOSE_AT    = 5;
 
