@@ -317,7 +317,7 @@ app.post('/api/auth/signup', async (req, res) => {
     const user   = await User.create({
       name, username: username.toLowerCase(), email: email.toLowerCase(),
       phone, upiId: upiId || '', password: hashed, loginMethod: 'email',
-      isVerified: true, wallet: 500,
+      isVerified: true, wallet: 10,
     });
 
     const token = jwt.sign({ userId: user._id, username: user.username }, JWT_SECRET, { expiresIn: '30d' });
