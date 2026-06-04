@@ -101,6 +101,38 @@ tr:hover td{background:rgba(255,255,255,.02);}
 .l-err{font-size:12px;color:var(--red);min-height:16px;text-align:center;}
 /* Notifications */
 .notif{position:fixed;bottom:24px;right:24px;background:var(--card);border:1px solid var(--border);border-radius:12px;padding:12px 20px;font-size:13px;font-weight:600;z-index:999;animation:fi .3s ease;max-width:320px;}
+/* Mobile bottom nav */
+.mob-nav{display:none;position:fixed;bottom:0;left:0;right:0;background:var(--surface);border-top:1px solid var(--border);z-index:100;padding:6px 0 env(safe-area-inset-bottom,6px);}
+.mob-nav-inner{display:flex;justify-content:space-around;}
+.mnav{display:flex;flex-direction:column;align-items:center;gap:3px;padding:8px 12px;color:var(--muted);font-size:10px;font-weight:700;cursor:pointer;border-radius:12px;min-width:56px;position:relative;}
+.mnav.active{color:var(--accent);}
+.mnav-icon{font-size:22px;line-height:1;}
+.mnav .nbadge{position:absolute;top:4px;right:8px;font-size:9px;padding:1px 5px;}
+/* Mobile responsive */
+@media(max-width:768px){
+  .sidebar{display:none;}
+  .mob-nav{display:block;}
+  .layout{display:block;}
+  .content{padding:14px 12px 80px;}
+  .stats-row{grid-template-columns:1fr 1fr;gap:10px;}
+  .round-panel{grid-template-columns:1fr;}
+  .force-grid{grid-template-columns:1fr 1fr;}
+  .arow{gap:8px;}
+  .abtn{flex:1;justify-content:center;font-size:12px;padding:10px 8px;}
+  .bal-row{flex-direction:column;align-items:stretch;}
+  .bal-inp{width:100%;}
+  .card-body{padding:14px;}
+  .ptitle{font-size:18px;}
+  .tnum{font-size:44px;}
+  .sval{font-size:20px;}
+  table{font-size:12px;}
+  th,td{padding:8px 10px;}
+  .table-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;}
+  .notif{bottom:80px;right:12px;left:12px;max-width:100%;}
+  .stats-row .scard{padding:12px 14px;}
+  .fbtn{padding:12px 6px;font-size:12px;}
+  .login-box{width:calc(100% - 32px);margin:16px;}
+}
 </style>
 </head>
 <body>
@@ -128,6 +160,29 @@ tr:hover td{background:rgba(255,255,255,.02);}
     <div class="nav" id="nav-history"          onclick="showPage('history',this)">📋 History</div>
     <div class="sfooter"><span class="sdot" id="sDot"></span><span class="stxt" id="sTxt">Connecting…</span></div>
   </aside>
+
+  <!-- Mobile Bottom Nav -->
+  <nav class="mob-nav">
+    <div class="mob-nav-inner">
+      <div class="mnav active" id="mnav-dashboard" onclick="showPage('dashboard',this,'m')">
+        <div class="mnav-icon">📊</div><span>Home</span>
+      </div>
+      <div class="mnav" id="mnav-control" onclick="showPage('control',this,'m')">
+        <div class="mnav-icon">🎮</div><span>Game</span>
+      </div>
+      <div class="mnav" id="mnav-deposits" onclick="showPage('deposits',this,'m')">
+        <div class="mnav-icon">💰</div><span>Deposits</span>
+        <span class="nbadge" id="mdCount" style="display:none"></span>
+      </div>
+      <div class="mnav" id="mnav-withdrawals" onclick="showPage('withdrawals',this,'m')">
+        <div class="mnav-icon">💸</div><span>Withdraw</span>
+        <span class="nbadge" id="mpCount" style="display:none"></span>
+      </div>
+      <div class="mnav" id="mnav-users" onclick="showPage('users',this,'m')">
+        <div class="mnav-icon">👤</div><span>Users</span>
+      </div>
+    </div>
+  </nav>
 
   <main class="content">
 
@@ -410,15 +465,21 @@ async function loadStats(){
 }
 
 // ── Navigation ──
-function showPage(name, el){
+function showPage(name, el, src){
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
-  document.querySelectorAll('.nav').forEach(n=>n.classList.remove('active'));
+  document.querySelectorAll('.nav,.mnav').forEach(n=>n.classList.remove('active'));
   document.getElementById('page-'+name).classList.add('active');
   el.classList.add('active');
+  // Sync both sidebar and mobile nav
+  const sideEl=document.getElementById('nav-'+name);
+  const mobEl =document.getElementById('mnav-'+name);
+  if(sideEl) sideEl.classList.add('active');
+  if(mobEl)  mobEl.classList.add('active');
   if(name==='users')       loadUsers();
   if(name==='withdrawals') loadWithdrawals();
   if(name==='deposits')    loadManualDeposits();
   if(name==='history')     loadRoundHistory();
+  window.scrollTo(0,0);
 }
 
 // ── Users ──
@@ -486,8 +547,9 @@ async function loadWithdrawals(){
     const done=all.filter(w=>w.status!=='pending');
 
     const pc=document.getElementById('pCount');
-    if(pend.length){pc.textContent=pend.length;pc.style.display='inline';}
-    else pc.style.display='none';
+    const mpc=document.getElementById('mpCount');
+    if(pend.length){pc.textContent=pend.length;pc.style.display='inline';if(mpc){mpc.textContent=pend.length;mpc.style.display='inline';}}
+    else{pc.style.display='none';if(mpc)mpc.style.display='none';}
 
     document.getElementById('pendLabel').textContent=`${pend.length} pending · ${done.length} completed`;
 
@@ -546,8 +608,9 @@ async function loadManualDeposits(){
     const done=all.filter(x=>x.status!=='pending');
 
     const dc=document.getElementById('dCount');
-    if(pend.length){dc.textContent=pend.length;dc.style.display='inline';}
-    else dc.style.display='none';
+    const mdc=document.getElementById('mdCount');
+    if(pend.length){dc.textContent=pend.length;dc.style.display='inline';if(mdc){mdc.textContent=pend.length;mdc.style.display='inline';}}
+    else{dc.style.display='none';if(mdc)mdc.style.display='none';}
 
     document.getElementById('depPendLabel').textContent=`${pend.length} pending`;
     document.getElementById('depDoneLabel').textContent=`${done.length} processed`;
