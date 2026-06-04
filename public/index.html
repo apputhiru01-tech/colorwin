@@ -168,7 +168,7 @@ main{width:100%;max-width:480px;padding:0 16px 100px;display:flex;flex-direction
   <div class="section-lbl">Choose a color</div>
   <div class="color-grid">
     <button class="cbtn red"    id="btn-red"    onclick="selectColor('red')">🔴 Red<span class="mult">1.5×</span></button>
-    <button class="cbtn violet" id="btn-violet" onclick="selectColor('violet')">🟣 Violet<span class="mult">4×</span></button>
+    <button class="cbtn violet" id="btn-violet" onclick="selectColor('violet')">🟣 Violet<span class="mult">3×</span></button>
     <button class="cbtn green"  id="btn-green"  onclick="selectColor('green')">🟢 Green<span class="mult">2.5×</span></button>
   </div>
 
@@ -452,7 +452,7 @@ document.getElementById('betAmt').addEventListener('input',()=>{
   updateBetSummary();
 });
 
-const MULT={red:1.5,green:2.5,violet:4};
+const MULT={red:1.5,green:2.5,violet:3};
 function updateBetSummary(){
   const amt=parseFloat(document.getElementById('betAmt').value);
   const el=document.getElementById('betSum');
