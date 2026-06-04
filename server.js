@@ -25,6 +25,9 @@ app.use(cors());
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
+let maintenanceMode = false;
+app.get('/api/maintenance', (req, res) => res.json({ maintenance: maintenanceMode }));
+
 // ════════════════════════════════════════
 //  MONGODB
 // ════════════════════════════════════════
@@ -547,6 +550,12 @@ app.post('/api/admin/force', adminMiddleware, (req, res) => {
 app.post('/api/admin/skip', adminMiddleware, (req, res) => {
   gameState.timeLeft = 0;
   res.json({ success: true });
+});
+
+app.post('/api/admin/maintenance', adminMiddleware, (req, res) => {
+  maintenanceMode = !maintenanceMode;
+  io.emit('maintenance', { maintenance: maintenanceMode });
+  res.json({ success: true, maintenance: maintenanceMode });
 });
 
 app.get('/api/admin/rounds', adminMiddleware, async (req, res) => {

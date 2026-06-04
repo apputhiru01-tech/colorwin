@@ -134,6 +134,11 @@ main{width:100%;max-width:480px;padding:0 16px 100px;display:flex;flex-direction
 <body>
 
 <div id="connecting"><div class="spinner"></div>Connecting…</div>
+<div id="maintOverlay" style="display:none;position:fixed;inset:0;background:#0d0f1a;z-index:999;flex-direction:column;align-items:center;justify-content:center;gap:16px;">
+  <div style="font-size:60px;">🔧</div>
+  <div style="font-size:24px;font-weight:900;color:#ffd84d;">Server Under Maintenance</div>
+  <div style="font-size:14px;color:#7880a0;text-align:center;max-width:320px;">We're making some improvements. Please check back in a few minutes.</div>
+</div>
 
 <header>
   <div class="logo">Color<span>Win</span></div>
@@ -367,6 +372,10 @@ socket.on('bet:result', (s) => {
 });
 
 socket.on('wallet:sync', (s) => { updateWallet(s.wallet); });
+socket.on('maintenance', (s) => {
+  const el = document.getElementById('maintOverlay');
+  el.style.display = s.maintenance ? 'flex' : 'none';
+});
 socket.on('wallet:update', (s) => {
   if(s.wallet != null) updateWallet(s.wallet);
   if(s.message) showToast(s.message);
@@ -643,6 +652,15 @@ async function loadResults(){
 }
 
 // ── Boot ──
+async function checkMaintenance(){
+  try{
+    const d = await fetch(API+'/api/maintenance').then(r=>r.json());
+    if(d.maintenance){
+      document.getElementById('maintOverlay').style.display='flex';
+    }
+  }catch{}
+}
+checkMaintenance();
 loadUser();
 loadHistory();
 loadConfig();

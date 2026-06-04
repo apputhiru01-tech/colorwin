@@ -178,6 +178,7 @@ tr:hover td{background:rgba(255,255,255,.02);}
         <div class="card-body">
           <div class="arow">
             <button class="abtn danger" onclick="skipRound()">⏩ Skip to Result Now</button>
+            <button class="abtn" id="maintBtn" onclick="toggleMaintenance()">🔧 Enable Maintenance Mode</button>
           </div>
         </div>
       </div>
@@ -323,7 +324,21 @@ function bootAdmin(){
   loadWithdrawals();
   loadManualDeposits();
   loadRoundHistory();
+  syncMaintenanceBtn();
   setInterval(()=>{loadStats();loadWithdrawals();loadManualDeposits();}, 15000);
+}
+
+async function syncMaintenanceBtn(){
+  try{
+    const r=await fetch(API+'/api/maintenance');
+    const d=await r.json();
+    const btn=document.getElementById('maintBtn');
+    if(d.maintenance){
+      btn.textContent='✅ Disable Maintenance Mode';
+      btn.style.borderColor='var(--red)';
+      btn.style.color='var(--red)';
+    }
+  }catch{}
 }
 
 // ── Socket ──
@@ -622,6 +637,25 @@ async function forceColor(color){
 async function skipRound(){
   if(!confirm('Skip to result now?'))return;
   try{await fetch(API+'/api/admin/skip',{method:'POST',headers:{Authorization:'Bearer '+adminToken}});}catch{}
+}
+
+async function toggleMaintenance(){
+  try{
+    const r=await fetch(API+'/api/admin/maintenance',{method:'POST',headers:{Authorization:'Bearer '+adminToken}});
+    const d=await r.json();
+    const btn=document.getElementById('maintBtn');
+    if(d.maintenance){
+      btn.textContent='✅ Disable Maintenance Mode';
+      btn.style.borderColor='var(--red)';
+      btn.style.color='var(--red)';
+      flash('🔧 Site is now under maintenance');
+    } else {
+      btn.textContent='🔧 Enable Maintenance Mode';
+      btn.style.borderColor='';
+      btn.style.color='';
+      flash('✅ Site is back online');
+    }
+  }catch{flash('Failed to toggle maintenance');}
 }
 
 async function addBalance(preset){
