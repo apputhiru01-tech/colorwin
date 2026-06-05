@@ -825,8 +825,9 @@ const avi = {
 
 function aviCrashPoint() {
   const r = Math.random();
-  if (r < 0.02) return 1.00;
-  return Math.min(parseFloat((0.97 / (1 - r)).toFixed(2)), 500);
+  if (r < 0.05) return 1.00; // 5% instant crash (house edge)
+  const raw = 0.99 / (1 - r);
+  return Math.min(parseFloat(raw.toFixed(2)), 200);
 }
 
 function aviMult() {
