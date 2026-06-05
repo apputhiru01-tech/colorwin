@@ -5,164 +5,196 @@
 <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
 <title>Chicken Road — ColorWin</title>
 <style>
-:root{--bg:#080b14;--surface:#0f1320;--card:#141826;--border:#222740;--text:#e8eaf0;--muted:#6b729a;--red:#ff4d6a;--green:#00d68f;--accent:#5b8fff;--yellow:#ffd84d;--orange:#ff8c42;}
+:root{--bg:#0a0c12;--surface:#111520;--card:#171d2e;--border:#232a40;--text:#e8eaf0;--muted:#6b729a;--red:#ff4040;--green:#00d68f;--accent:#5b8fff;--yellow:#ffd84d;--orange:#ff8c42;}
 *{box-sizing:border-box;margin:0;padding:0;}
-body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,sans-serif;min-height:100vh;display:flex;flex-direction:column;max-width:480px;margin:0 auto;}
+body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,sans-serif;height:100vh;display:flex;flex-direction:column;max-width:480px;margin:0 auto;overflow:hidden;}
 
-header{background:var(--surface);border-bottom:1px solid var(--border);padding:12px 16px;display:flex;align-items:center;justify-content:space-between;}
+/* Header */
+header{background:var(--surface);border-bottom:1px solid var(--border);padding:10px 14px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;}
 .back-btn{background:rgba(255,255,255,.06);border:1px solid var(--border);color:var(--muted);border-radius:8px;padding:5px 10px;font-size:12px;cursor:pointer;font-family:inherit;}
 .wallet-pill{background:rgba(0,214,143,.1);border:1px solid rgba(0,214,143,.2);border-radius:20px;padding:5px 12px;font-size:13px;font-weight:800;color:var(--green);}
 
-/* Stats bar */
-.stats-bar{background:var(--surface);border-bottom:1px solid var(--border);padding:12px 18px;display:flex;justify-content:space-between;align-items:center;}
-.stat{text-align:center;}
-.stat-lbl{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;font-weight:700;}
-.stat-val{font-size:22px;font-weight:900;margin-top:2px;}
-.stat-val.green{color:var(--green);}
-.stat-val.yellow{color:var(--yellow);}
-.stat-val.orange{color:var(--orange);}
+/* Top stats */
+.top-stats{background:linear-gradient(135deg,#111520,#0e1420);border-bottom:1px solid var(--border);padding:10px 16px;display:flex;justify-content:space-between;align-items:center;flex-shrink:0;}
+.ts-item{text-align:center;}
+.ts-lbl{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;font-weight:700;}
+.ts-val{font-size:20px;font-weight:900;margin-top:1px;}
 
-/* Road area */
-.road-area{padding:20px 12px 10px;background:linear-gradient(180deg,#0a0e1a 0%,#0d1428 100%);}
+/* Road container */
+.road-wrap{flex:1;position:relative;overflow:hidden;background:#111;}
 
-/* Multiplier row */
-.mult-row{display:flex;gap:6px;overflow-x:auto;padding-bottom:8px;margin-bottom:14px;}
-.mult-row::-webkit-scrollbar{display:none;}
-.mstep{flex-shrink:0;width:50px;display:flex;flex-direction:column;align-items:center;gap:4px;}
-.mstep-num{font-size:10px;color:var(--muted);font-weight:700;}
-.mstep-val{font-size:11px;font-weight:800;padding:3px 6px;border-radius:6px;background:rgba(255,255,255,.05);border:1px solid var(--border);color:var(--muted);}
-.mstep-val.done{background:rgba(0,214,143,.15);border-color:rgba(0,214,143,.3);color:var(--green);}
-.mstep-val.current{background:rgba(255,216,77,.15);border-color:rgba(255,216,77,.4);color:var(--yellow);animation:stepPulse 1s infinite;}
-@keyframes stepPulse{0%,100%{transform:scale(1)}50%{transform:scale(1.08)}}
-.mstep-val.burned{background:rgba(255,77,106,.12);border-color:rgba(255,77,106,.3);color:var(--red);}
+/* Sky / destination zone */
+.dest-zone{height:42px;background:linear-gradient(180deg,#0a2a1a,#0d3020);display:flex;align-items:center;justify-content:center;gap:10px;border-bottom:3px solid #00d68f;flex-shrink:0;position:relative;z-index:5;}
+.dest-flag{font-size:22px;}
+.dest-txt{font-size:13px;font-weight:800;color:var(--green);}
 
-/* Road track */
-.road-track{position:relative;background:linear-gradient(180deg,rgba(255,140,66,.04),rgba(255,140,66,.02));border:1px solid rgba(255,140,66,.15);border-radius:20px;padding:16px 12px;overflow:hidden;}
-.road-bg{position:absolute;inset:0;background:repeating-linear-gradient(90deg,transparent,transparent 48px,rgba(255,255,255,.03) 48px,rgba(255,255,255,.03) 50px);border-radius:20px;}
+/* Road section */
+.road{flex:1;position:relative;overflow:hidden;}
 
-/* Ovens row */
-.ovens-row{display:flex;gap:8px;align-items:flex-end;position:relative;z-index:2;overflow-x:auto;padding-bottom:4px;}
-.ovens-row::-webkit-scrollbar{display:none;}
+/* Asphalt */
+.asphalt{position:absolute;inset:0;background:repeating-linear-gradient(180deg,#1a1a1a 0px,#1a1a1a 50px,#1c1c1c 50px,#1c1c1c 52px);}
 
-.oven-slot{flex-shrink:0;width:52px;display:flex;flex-direction:column;align-items:center;gap:4px;}
-.oven{width:48px;height:52px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:28px;border:2px solid transparent;position:relative;transition:all .2s;}
-.oven.idle{background:rgba(255,140,66,.08);border-color:rgba(255,140,66,.2);}
-.oven.active{background:rgba(255,216,77,.12);border-color:var(--yellow);animation:ovenGlow .8s infinite;}
-@keyframes ovenGlow{0%,100%{box-shadow:0 0 0 0 rgba(255,216,77,.3)}50%{box-shadow:0 0 12px 4px rgba(255,216,77,.2)}}
-.oven.safe{background:rgba(0,214,143,.1);border-color:rgba(0,214,143,.3);}
-.oven.burning{background:rgba(255,77,106,.15);border-color:var(--red);animation:burnAnim .3s ease;}
-@keyframes burnAnim{0%{transform:scale(1)}50%{transform:scale(1.2)}100%{transform:scale(1)}}
-.oven.passed{background:rgba(0,214,143,.06);border-color:rgba(0,214,143,.15);opacity:.6;}
-.oven-label{font-size:10px;color:var(--muted);font-weight:700;text-align:center;}
+/* Lane separators - animated dashes */
+.lane-dash{position:absolute;left:0;right:0;height:2px;background:repeating-linear-gradient(90deg,transparent,transparent 20px,rgba(255,255,200,.18) 20px,rgba(255,255,200,.18) 36px);animation:dashMove 0.6s linear infinite;}
+@keyframes dashMove{from{background-position:0 0}to{background-position:56px 0}}
+
+/* Individual lane */
+.lane{position:absolute;left:0;right:0;height:52px;display:flex;align-items:center;overflow:hidden;transition:all .2s;}
+.lane.passed{background:rgba(0,214,143,.04);}
+.lane.active{background:rgba(255,216,77,.07);box-shadow:0 0 0 2px rgba(255,216,77,.2) inset;}
+.lane.safe-lane{background:rgba(0,214,143,.06);}
+
+/* Cars */
+.car{position:absolute;font-size:26px;will-change:transform;}
+.car.go-left{animation:goLeft linear infinite;}
+.car.go-right{animation:goRight linear infinite;}
+@keyframes goLeft{from{left:105%}to{left:-15%}}
+@keyframes goRight{from{right:105%}to{right:-15%}}
 
 /* Chicken */
-.chicken-track{position:relative;height:50px;margin-top:8px;}
-.chicken{position:absolute;font-size:34px;transition:left .4s cubic-bezier(.34,1.56,.64,1);bottom:0;transform-origin:center bottom;}
-.chicken.jump{animation:chickenJump .4s ease;}
-@keyframes chickenJump{0%{transform:translateY(0) scaleX(1)}40%{transform:translateY(-18px) scaleX(1.1)}100%{transform:translateY(0) scaleX(1)}}
-.chicken.burned{animation:chickenBurn .5s ease forwards;}
-@keyframes chickenBurn{0%{transform:rotate(0) scale(1);opacity:1}50%{transform:rotate(20deg) scale(1.2);opacity:1}100%{transform:rotate(-90deg) scale(.2);opacity:0}}
+.chicken-wrap{position:absolute;left:50%;transform:translateX(-50%);z-index:10;transition:bottom .45s cubic-bezier(.34,1.56,.64,1);text-align:center;}
+.chicken-sprite{font-size:32px;display:block;animation:chickenBob 0.8s ease-in-out infinite;}
+@keyframes chickenBob{0%,100%{transform:translateY(0) scaleX(1)}50%{transform:translateY(-4px) scaleX(1.05)}}
+.chicken-wrap.jump .chicken-sprite{animation:chickenJump .45s ease;}
+@keyframes chickenJump{0%{transform:translateY(0) scaleX(1)}35%{transform:translateY(-20px) scaleX(1.15)}100%{transform:translateY(0) scaleX(1)}}
+.chicken-wrap.dead .chicken-sprite{animation:chickenDead .5s ease forwards;}
+@keyframes chickenDead{0%{transform:rotate(0) scale(1);filter:none}50%{transform:rotate(30deg) scale(1.3);filter:hue-rotate(90deg)}100%{transform:rotate(-80deg) scale(.15);opacity:0;filter:hue-rotate(180deg)}}
+
+/* Multiplier labels on right side */
+.mult-labels{position:absolute;right:8px;top:0;bottom:0;z-index:6;display:flex;flex-direction:column-reverse;pointer-events:none;}
+.ml-item{height:52px;display:flex;align-items:center;}
+.ml-badge{background:rgba(0,0,0,.6);border:1px solid rgba(255,255,255,.12);border-radius:6px;padding:2px 7px;font-size:11px;font-weight:800;color:var(--muted);}
+.ml-badge.done{color:var(--green);border-color:rgba(0,214,143,.3);}
+.ml-badge.current{color:var(--yellow);border-color:rgba(255,216,77,.4);background:rgba(255,216,77,.1);}
+.ml-badge.next{color:#fff;border-color:rgba(255,255,255,.25);}
+
+/* Explosion */
+.explosion{position:absolute;left:50%;transform:translateX(-50%);font-size:48px;z-index:20;display:none;animation:explode .5s ease forwards;}
+@keyframes explode{0%{transform:translateX(-50%) scale(.5);opacity:1}100%{transform:translateX(-50%) scale(2.5);opacity:0}}
+
+/* Start zone */
+.start-zone{height:46px;background:linear-gradient(180deg,#1a1008,#201500);display:flex;align-items:center;justify-content:center;border-top:3px solid var(--orange);flex-shrink:0;font-size:12px;color:var(--muted);font-weight:700;letter-spacing:1px;position:relative;z-index:5;}
+
+/* Result overlay */
+.result-overlay{position:absolute;inset:0;display:none;flex-direction:column;align-items:center;justify-content:center;gap:8px;z-index:30;backdrop-filter:blur(4px);}
+.result-overlay.show{display:flex;animation:rIn .3s ease;}
+@keyframes rIn{from{opacity:0;transform:scale(.9)}to{opacity:1;transform:scale(1)}}
+.res-card{background:var(--card);border:2px solid;border-radius:20px;padding:24px 32px;text-align:center;}
+.res-card.win{border-color:var(--green);}
+.res-card.lose{border-color:var(--red);}
+.res-icon{font-size:48px;margin-bottom:8px;}
+.res-title{font-size:22px;font-weight:900;}
+.res-amount{font-size:32px;font-weight:900;margin-top:4px;}
 
 /* Bottom panel */
-.bottom{padding:14px;background:var(--surface);border-top:1px solid var(--border);display:flex;flex-direction:column;gap:10px;flex:1;}
+.bottom{background:var(--surface);border-top:1px solid var(--border);padding:12px 14px;flex-shrink:0;}
+.setup{display:flex;gap:8px;align-items:center;margin-bottom:10px;}
+.bet-inp{background:var(--card);border:1.5px solid var(--border);border-radius:11px;color:var(--text);font-size:17px;font-weight:800;padding:10px 14px;outline:none;flex:1;font-family:inherit;}
+.bet-inp:focus{border-color:var(--accent);}
+.qchips{display:flex;gap:6px;margin-bottom:10px;}
+.qc{background:var(--card);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:12px;font-weight:700;padding:6px 0;cursor:pointer;font-family:inherit;flex:1;text-align:center;}
+.qc.sel{background:rgba(255,140,66,.15);border-color:var(--orange);color:var(--orange);}
+.btn-row{display:flex;gap:8px;}
+.mbtn{flex:1;border:none;border-radius:12px;color:#fff;font-size:15px;font-weight:900;padding:14px;cursor:pointer;font-family:inherit;transition:all .15s;}
+.mbtn:disabled{opacity:.4;cursor:not-allowed;}
+.mbtn.start{background:linear-gradient(135deg,#ff8c42,#e67322);}
+.mbtn.jump{background:linear-gradient(135deg,#ffd84d,#e6a800);color:#111;display:none;animation:jGlow .7s infinite;}
+@keyframes jGlow{0%,100%{box-shadow:0 0 0 0 rgba(255,216,77,.4)}50%{box-shadow:0 0 12px 4px rgba(255,216,77,.1)}}
+.mbtn.cashout{background:linear-gradient(135deg,#00d68f,#00a86b);display:none;animation:cGlow 1s infinite;}
+@keyframes cGlow{0%,100%{box-shadow:0 0 0 0 rgba(0,214,143,.4)}50%{box-shadow:0 0 10px 3px rgba(0,214,143,0)}}
+.mbtn.newgame{background:var(--card);border:1.5px solid var(--border);color:var(--text);display:none;}
 
-.setup{display:flex;flex-direction:column;gap:10px;}
-.inp-row{display:flex;gap:8px;align-items:center;}
-.inp-label{font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px;}
-.inp{background:var(--card);border:1.5px solid var(--border);border-radius:12px;color:var(--text);font-size:17px;font-weight:800;padding:11px 14px;outline:none;flex:1;font-family:inherit;}
-.inp:focus{border-color:var(--accent);}
-.quick-row{display:flex;gap:6px;}
-.qchip{background:var(--card);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:13px;font-weight:700;padding:7px 14px;cursor:pointer;font-family:inherit;}
-.qchip.sel{background:rgba(255,140,66,.15);border-color:var(--orange);color:var(--orange);}
-
-.action-row{display:flex;gap:8px;}
-.start-btn{flex:1;background:linear-gradient(135deg,#ff8c42,#e67322);border:none;border-radius:13px;color:#fff;font-size:15px;font-weight:900;padding:14px;cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:8px;}
-.start-btn:disabled{opacity:.4;cursor:not-allowed;}
-.jump-btn{flex:1;background:linear-gradient(135deg,#ffd84d,#e6a800);border:none;border-radius:13px;color:#111;font-size:15px;font-weight:900;padding:14px;cursor:pointer;font-family:inherit;display:none;animation:jumpGlow .8s infinite;}
-@keyframes jumpGlow{0%,100%{box-shadow:0 0 0 0 rgba(255,216,77,.4)}50%{box-shadow:0 0 12px 4px rgba(255,216,77,.1)}}
-.cashout-btn{flex:1;background:linear-gradient(135deg,#00d68f,#00a86b);border:none;border-radius:13px;color:#fff;font-size:14px;font-weight:900;padding:14px;cursor:pointer;font-family:inherit;display:none;animation:glowG 1s infinite;}
-@keyframes glowG{0%,100%{box-shadow:0 0 0 0 rgba(0,214,143,.35)}50%{box-shadow:0 0 10px 3px rgba(0,214,143,0)}}
-.newgame-btn{width:100%;background:var(--card);border:1.5px solid var(--border);border-radius:13px;color:var(--text);font-size:14px;font-weight:800;padding:13px;cursor:pointer;font-family:inherit;display:none;}
-
-.result-banner{display:none;padding:12px 16px;border-radius:12px;font-size:14px;font-weight:800;text-align:center;}
-.result-banner.win{background:rgba(0,214,143,.1);border:1px solid rgba(0,214,143,.25);color:var(--green);display:block;}
-.result-banner.lose{background:rgba(255,77,106,.08);border:1px solid rgba(255,77,106,.2);color:var(--red);display:block;}
-
-#toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%) translateY(60px);background:var(--card);border:1px solid var(--border);border-radius:14px;padding:10px 20px;font-size:14px;font-weight:700;z-index:999;transition:transform .3s;white-space:nowrap;pointer-events:none;}
-#toast.show{transform:translateX(-50%) translateY(0);}
+#toast{position:fixed;bottom:90px;left:50%;transform:translateX(-50%) translateY(30px);background:var(--card);border:1px solid var(--border);border-radius:12px;padding:10px 20px;font-size:13px;font-weight:700;z-index:99;transition:transform .3s;white-space:nowrap;pointer-events:none;opacity:0;}
+#toast.show{transform:translateX(-50%) translateY(0);opacity:1;}
 </style>
 </head>
 <body>
 
 <header>
   <button class="back-btn" onclick="location.href='home.html'">← Home</button>
-  <div style="font-size:16px;font-weight:900;">🐔 Chicken Road</div>
+  <div style="font-size:15px;font-weight:900;">🐔 Chicken Road</div>
   <div class="wallet-pill">₹<span id="walletAmt">0.00</span></div>
 </header>
 
-<!-- Stats -->
-<div class="stats-bar">
-  <div class="stat">
-    <div class="stat-lbl">Multiplier</div>
-    <div class="stat-val green" id="multVal">1.00x</div>
+<div class="top-stats">
+  <div class="ts-item">
+    <div class="ts-lbl">Multiplier</div>
+    <div class="ts-val" id="multVal" style="color:var(--green);">1.00×</div>
   </div>
-  <div class="stat">
-    <div class="stat-lbl">Step</div>
-    <div class="stat-val yellow" id="stepVal">0 / 10</div>
+  <div class="ts-item">
+    <div class="ts-lbl">Step</div>
+    <div class="ts-val" id="stepVal" style="color:var(--yellow);">0 / 10</div>
   </div>
-  <div class="stat">
-    <div class="stat-lbl">Potential Win</div>
-    <div class="stat-val orange">₹<span id="potWin">0</span></div>
+  <div class="ts-item">
+    <div class="ts-lbl">Win If Cash</div>
+    <div class="ts-val" id="winVal" style="color:var(--orange);">₹0</div>
   </div>
 </div>
 
-<!-- Road Area -->
-<div class="road-area">
-  <!-- Multiplier steps -->
-  <div class="mult-row" id="multRow"></div>
+<!-- Road wrapper -->
+<div class="road-wrap" id="roadWrap">
 
-  <!-- Road Track -->
-  <div class="road-track">
-    <div class="road-bg"></div>
-    <!-- Ovens -->
-    <div class="ovens-row" id="ovensRow"></div>
+  <!-- Destination -->
+  <div class="dest-zone">
+    <span class="dest-flag">🏁</span>
+    <span class="dest-txt">FINISH — 55x</span>
+    <span class="dest-flag">🏁</span>
+  </div>
+
+  <!-- Road with lanes + cars -->
+  <div class="road" id="road" style="height:calc(100% - 88px);position:relative;">
+    <div class="asphalt"></div>
+
+    <!-- Lanes populated by JS -->
+    <div id="lanesContainer"></div>
+
+    <!-- Lane dashes -->
+    <div id="dashesContainer"></div>
+
+    <!-- Mult labels -->
+    <div class="mult-labels" id="multLabels"></div>
+
     <!-- Chicken -->
-    <div class="chicken-track">
-      <div class="chicken" id="chicken" style="left:0px;">🐔</div>
+    <div class="chicken-wrap" id="chickenWrap" style="bottom:8px;">
+      <span class="chicken-sprite" id="chickenSprite">🐔</span>
     </div>
-  </div>
-</div>
 
-<!-- Result -->
-<div style="padding:8px 14px 0;">
-  <div class="result-banner" id="resultBanner"></div>
-</div>
+    <!-- Explosion -->
+    <div class="explosion" id="explosion">💥</div>
 
-<!-- Bottom Panel -->
-<div class="bottom">
-  <div class="setup" id="setupPanel">
-    <div>
-      <div class="inp-label">Bet Amount</div>
-      <div class="inp-row">
-        <input class="inp" id="betAmt" type="number" min="10" value="100" oninput="updatePot()"/>
+    <!-- Result overlay -->
+    <div class="result-overlay" id="resultOverlay">
+      <div class="res-card" id="resCard">
+        <div class="res-icon" id="resIcon"></div>
+        <div class="res-title" id="resTitle"></div>
+        <div class="res-amount" id="resAmt"></div>
       </div>
     </div>
-    <div class="quick-row">
-      <button class="qchip" onclick="setAmt(50)">₹50</button>
-      <button class="qchip sel" onclick="setAmt(100)">₹100</button>
-      <button class="qchip" onclick="setAmt(200)">₹200</button>
-      <button class="qchip" onclick="setAmt(500)">₹500</button>
+  </div>
+
+  <!-- Start zone -->
+  <div class="start-zone">🏠 START ZONE</div>
+
+</div>
+
+<!-- Bottom -->
+<div class="bottom">
+  <div class="setup" id="setupRow">
+    <input class="bet-inp" id="betAmt" type="number" min="10" value="100" placeholder="Bet ₹"/>
+    <div class="qchips" style="flex:1;margin-bottom:0;">
+      <button class="qc" onclick="sa(50)">₹50</button>
+      <button class="qc sel" onclick="sa(100)">₹100</button>
+      <button class="qc" onclick="sa(200)">₹200</button>
+      <button class="qc" onclick="sa(500)">₹500</button>
     </div>
   </div>
 
-  <div class="result-banner" id="resultBanner2" style="display:none;"></div>
-
-  <div class="action-row">
-    <button class="start-btn" id="startBtn" onclick="startGame()">🐔 Start Game</button>
-    <button class="jump-btn"   id="jumpBtn"  onclick="doJump()">→ Jump!</button>
-    <button class="cashout-btn" id="cashoutBtn" onclick="doCashout()">💰 Cashout<br><small id="cashoutAmt" style="font-size:11px;opacity:.8;"></small></button>
+  <div class="btn-row">
+    <button class="mbtn start" id="startBtn" onclick="startGame()">🐔 Start</button>
+    <button class="mbtn jump"  id="jumpBtn"  onclick="doJump()">⬆ Jump!</button>
+    <button class="mbtn cashout" id="cashoutBtn" onclick="doCashout()">💰 ₹<span id="coAmt">0</span></button>
+    <button class="mbtn newgame" id="newgameBtn" onclick="resetGame()">↩ New</button>
   </div>
-  <button class="newgame-btn" id="newgameBtn" onclick="resetGame()">↩ New Game</button>
 </div>
 
 <div id="toast"></div>
@@ -173,88 +205,121 @@ if(!token) location.href='login.html';
 
 const MULTS=[1.00,1.50,2.20,3.20,4.70,7.00,10.50,16.00,24.00,36.00,55.00];
 const TOTAL=10;
+const CARS=['🚗','🚕','🚙','🚌','🏎','🚓','🚑','🚐'];
+const COLORS=['#ff4444','#44aaff','#ffaa00','#44ff88','#ff44aa','#aa44ff'];
+
 let wallet=0, gameActive=false, currentStep=0, betAmount=100;
+let laneHeight=52, roadHeight=520;
 
-// Build multiplier step labels
-const multRow=document.getElementById('multRow');
-MULTS.forEach((m,i)=>{
-  if(i===0) return;
-  const d=document.createElement('div');
-  d.className='mstep'; d.id='ms'+i;
-  d.innerHTML=`<div class="mstep-num">${i}</div><div class="mstep-val" id="msv${i}">${m}x</div>`;
-  multRow.appendChild(d);
-});
+// Build road UI
+function buildRoad(){
+  const road=document.getElementById('road');
+  const lanesC=document.getElementById('lanesContainer');
+  const dashesC=document.getElementById('dashesContainer');
+  const multLabels=document.getElementById('multLabels');
+  roadHeight=road.offsetHeight||400;
+  laneHeight=Math.min(52,Math.floor((roadHeight-10)/TOTAL));
 
-// Build ovens + chicken track
-const ovensRow=document.getElementById('ovensRow');
-// Start position (safe zone)
-const startSlot=document.createElement('div');
-startSlot.className='oven-slot';
-startSlot.innerHTML=`<div class="oven safe" id="oven-start">🏠</div><div class="oven-label">Start</div>`;
-ovensRow.appendChild(startSlot);
+  lanesC.innerHTML=''; dashesC.innerHTML=''; multLabels.innerHTML='';
 
-for(let i=1;i<=TOTAL;i++){
-  const slot=document.createElement('div');
-  slot.className='oven-slot';
-  slot.innerHTML=`<div class="oven idle" id="oven${i}">🍳</div><div class="oven-label">${MULTS[i]}x</div>`;
-  ovensRow.appendChild(slot);
+  for(let i=1;i<=TOTAL;i++){
+    const bottom=(i-1)*laneHeight;
+
+    // Lane div
+    const lane=document.createElement('div');
+    lane.className='lane';
+    lane.id='lane'+i;
+    lane.style.cssText=`bottom:${bottom}px;height:${laneHeight}px;`;
+
+    // Add animated cars to lane
+    const numCars=i<4?1:i<7?2:2;
+    const goLeft=i%2===0;
+    const speed=2.5+Math.random()*2.5;
+
+    for(let c=0;c<numCars;c++){
+      const car=document.createElement('span');
+      car.className='car '+(goLeft?'go-left':'go-right');
+      car.textContent=CARS[Math.floor(Math.random()*CARS.length)];
+      const dur=(speed + c*1.5).toFixed(1);
+      const delay=(-Math.random()*parseFloat(dur)).toFixed(1);
+      car.style.cssText=`font-size:${22+Math.floor(Math.random()*6)}px;top:50%;transform:translateY(-50%) scaleX(${goLeft?-1:1});animation-duration:${dur}s;animation-delay:${delay}s;`;
+      lane.appendChild(car);
+    }
+    lanesC.appendChild(lane);
+
+    // Dash line
+    const dash=document.createElement('div');
+    dash.className='lane-dash';
+    dash.style.bottom=bottom+'px';
+    dashesC.appendChild(dash);
+
+    // Multiplier label
+    const ml=document.createElement('div');
+    ml.className='ml-item';
+    const badge=document.createElement('div');
+    badge.className='ml-badge';
+    badge.id='mlb'+i;
+    badge.textContent=MULTS[i]+'x';
+    ml.appendChild(badge);
+    multLabels.appendChild(ml);
+  }
 }
 
-function getOvenX(step){
-  const oven=document.getElementById(step===0?'oven-start':'oven'+step);
-  if(!oven) return 0;
-  const track=document.querySelector('.chicken-track');
-  const ovenRect=oven.getBoundingClientRect();
-  const trackRect=track.getBoundingClientRect();
-  return ovenRect.left - trackRect.left + ovenRect.width/2 - 17;
+window.addEventListener('load',()=>{buildRoad();updateStats(0,MULTS[0]);});
+window.addEventListener('resize',buildRoad);
+
+function getLaneBottom(step){
+  if(step===0) return 8;
+  return (step-1)*laneHeight + laneHeight/2 - 20;
 }
 
-function moveChicken(step, animate=true){
-  const chicken=document.getElementById('chicken');
-  if(animate){chicken.classList.add('jump');setTimeout(()=>chicken.classList.remove('jump'),400);}
-  setTimeout(()=>{ chicken.style.left=Math.max(0,getOvenX(step))+'px'; },animate?50:0);
+function moveChicken(step,animate=true){
+  const wrap=document.getElementById('chickenWrap');
+  if(animate){
+    wrap.classList.add('jump');
+    setTimeout(()=>wrap.classList.remove('jump'),450);
+  }
+  wrap.style.bottom=getLaneBottom(step)+'px';
 }
 
-function updateOven(step, state){
-  // state: 'active','safe','burning','passed'
-  const el=document.getElementById(step===0?'oven-start':'oven'+step);
-  if(!el) return;
-  el.className='oven '+state;
-  if(state==='burning') el.innerHTML='🔥';
-  else if(state==='safe'||state==='passed') el.innerHTML='✅';
-  else if(state==='active') el.innerHTML='🍳';
-  else el.innerHTML='🍳';
+function setLaneState(step,state){
+  const lane=document.getElementById('lane'+step);
+  if(lane) lane.className='lane '+(state==='passed'?'passed':state==='active'?'active':'safe-lane');
+  const badge=document.getElementById('mlb'+step);
+  if(badge) badge.className='ml-badge '+(state==='passed'?'done':state==='active'?'current':state==='next'?'next':'');
 }
 
-function updateStepLabel(step, state){
-  const el=document.getElementById('msv'+step);
-  if(el) el.className='mstep-val '+state;
-}
-
-function updateStats(step, mult){
-  document.getElementById('multVal').textContent=parseFloat(mult).toFixed(2)+'x';
-  document.getElementById('multVal').style.color=mult<3?'var(--green)':mult<8?'var(--yellow)':'var(--orange)';
+function updateStats(step,mult){
+  document.getElementById('multVal').textContent=parseFloat(mult).toFixed(2)+'×';
+  const el=document.getElementById('multVal');
+  el.style.color=mult<3?'var(--green)':mult<8?'var(--yellow)':'var(--orange)';
   document.getElementById('stepVal').textContent=step+' / '+TOTAL;
-  document.getElementById('potWin').textContent=(betAmount*mult).toFixed(2);
-  document.getElementById('cashoutAmt').textContent='₹'+(betAmount*mult).toFixed(2);
+  const win=(betAmount*mult).toFixed(2);
+  document.getElementById('winVal').textContent='₹'+win;
+  document.getElementById('coAmt').textContent=win;
 }
 
-function setAmt(v){
+function sa(v){
   betAmount=v;
   document.getElementById('betAmt').value=v;
-  document.querySelectorAll('.qchip').forEach(c=>c.classList.toggle('sel',parseFloat(c.textContent.replace('₹',''))===v));
-  updatePot();
-}
-function updatePot(){
-  betAmount=parseFloat(document.getElementById('betAmt').value)||100;
-  document.getElementById('potWin').textContent=(betAmount*MULTS[1]).toFixed(2);
+  document.querySelectorAll('.qc').forEach(c=>c.classList.toggle('sel',parseFloat(c.textContent.replace('₹',''))===v));
 }
 
 function updateWallet(v){wallet=v;document.getElementById('walletAmt').textContent=parseFloat(v).toFixed(2);}
 function showToast(msg){
-  const el=document.getElementById('toast');
-  el.textContent=msg; el.classList.add('show');
-  clearTimeout(el._t); el._t=setTimeout(()=>el.classList.remove('show'),2500);
+  const t=document.getElementById('toast');
+  t.textContent=msg; t.classList.add('show');
+  clearTimeout(t._t); t._t=setTimeout(()=>t.classList.remove('show'),2500);
+}
+
+function showResult(type,icon,title,amount){
+  const ov=document.getElementById('resultOverlay');
+  const card=document.getElementById('resCard');
+  ov.classList.add('show');
+  card.className='res-card '+type;
+  document.getElementById('resIcon').textContent=icon;
+  document.getElementById('resTitle').textContent=title;
+  document.getElementById('resAmt').textContent=amount;
 }
 
 async function startGame(){
@@ -266,22 +331,24 @@ async function startGame(){
   try{
     const r=await fetch(API+'/api/chicken/start',{method:'POST',headers:{Authorization:'Bearer '+token,'Content-Type':'application/json'},body:JSON.stringify({amount:betAmount})});
     const d=await r.json();
-    if(!r.ok){showToast(d.error||'Failed');btn.disabled=false;btn.innerHTML='🐔 Start Game';return;}
+    if(!r.ok){showToast(d.error||'Failed');btn.disabled=false;btn.innerHTML='🐔 Start';return;}
     updateWallet(d.newBalance);
     gameActive=true; currentStep=0;
-    resetRoadUI();
-    document.getElementById('setupPanel').style.display='none';
+    // Reset UI
+    document.getElementById('resultOverlay').classList.remove('show');
+    document.getElementById('explosion').style.display='none';
+    document.getElementById('chickenSprite').textContent='🐔';
+    document.getElementById('chickenWrap').className='chicken-wrap';
+    moveChicken(0,false);
+    for(let i=1;i<=TOTAL;i++) setLaneState(i,'');
+    setLaneState(1,'next');
+    document.getElementById('setupRow').style.display='none';
     document.getElementById('startBtn').style.display='none';
     document.getElementById('jumpBtn').style.display='block';
     document.getElementById('cashoutBtn').style.display='none';
     document.getElementById('newgameBtn').style.display='none';
-    document.getElementById('resultBanner').className='result-banner';
-    updateOven(0,'safe');
-    moveChicken(0,false);
     updateStats(0,MULTS[0]);
-    // Highlight next oven
-    updateOven(1,'active');
-  }catch{showToast('Error');btn.disabled=false;btn.innerHTML='🐔 Start Game';}
+  }catch{showToast('Error');btn.disabled=false;btn.innerHTML='🐔 Start';}
 }
 
 async function doJump(){
@@ -294,43 +361,43 @@ async function doJump(){
     if(!r.ok){showToast(d.error||'Failed');btn.disabled=false;return;}
 
     if(d.result==='burned'){
-      // Mark current oven as burning
-      updateOven(d.step,'burning');
-      updateStepLabel(d.step,'burned');
-      const chicken=document.getElementById('chicken');
-      chicken.classList.add('burned');
+      // Show crash
+      moveChicken(d.step,true);
+      setLaneState(d.step,'active');
+      setTimeout(()=>{
+        document.getElementById('chickenWrap').className='chicken-wrap dead';
+        const exp=document.getElementById('explosion');
+        exp.style.display='block';
+        exp.style.bottom=getLaneBottom(d.step)+'px';
+        setTimeout(()=>exp.style.display='none',600);
+      },200);
       gameActive=false;
-      btn.style.display='none';
-      document.getElementById('cashoutBtn').style.display='none';
-      document.getElementById('newgameBtn').style.display='block';
-      const banner=document.getElementById('resultBanner');
-      banner.className='result-banner lose';
-      banner.textContent=`🔥 Burned! Lost ₹${betAmount} at step ${d.step}`;
-      showToast('🔥 The oven was hot! Lost ₹'+betAmount);
+      setTimeout(()=>{
+        showResult('lose','💥','Car ne mara!',`Lost ₹${betAmount}`);
+        document.getElementById('jumpBtn').style.display='none';
+        document.getElementById('newgameBtn').style.display='block';
+      },700);
+      showToast(`🚗 Car ne mara! Lost ₹${betAmount}`);
     } else {
-      // Safe!
-      updateOven(d.step,'safe');
-      updateStepLabel(d.step,'done');
-      if(d.step > 1) updateOven(d.step-1,'passed');
-      moveChicken(d.step);
+      setLaneState(d.step,'passed');
+      if(d.step>1) setLaneState(d.step-1,'passed');
+      moveChicken(d.step,true);
       currentStep=d.step;
       updateStats(d.step, d.multiplier);
-
       if(d.result==='maxed'){
         gameActive=false;
         updateWallet(d.newBalance);
-        btn.style.display='none';
-        document.getElementById('cashoutBtn').style.display='none';
-        document.getElementById('newgameBtn').style.display='block';
-        const banner=document.getElementById('resultBanner');
-        banner.className='result-banner win';
-        banner.textContent=`🎉 Max reached! Won ₹${d.win} (${d.multiplier}x)!`;
+        setTimeout(()=>{
+          showResult('win','🏆','Finish line!',`+₹${d.win} (${d.multiplier}×)`);
+          document.getElementById('jumpBtn').style.display='none';
+          document.getElementById('cashoutBtn').style.display='none';
+          document.getElementById('newgameBtn').style.display='block';
+        },500);
         showToast(`🎉 Won ₹${d.win}!`);
       } else {
-        // Show cashout + next oven
+        setLaneState(d.step+1,'next');
         btn.disabled=false;
         document.getElementById('cashoutBtn').style.display='block';
-        if(d.step < TOTAL) updateOven(d.step+1,'active');
       }
     }
   }catch{showToast('Error');btn.disabled=false;}
@@ -346,40 +413,33 @@ async function doCashout(){
     if(!r.ok){showToast(d.error||'Failed');btn.disabled=false;return;}
     updateWallet(d.newBalance);
     gameActive=false;
-    document.getElementById('jumpBtn').style.display='none';
-    btn.style.display='none';
-    document.getElementById('newgameBtn').style.display='block';
-    const banner=document.getElementById('resultBanner');
-    banner.className='result-banner win';
-    banner.textContent=`💰 Cashed out! Won ₹${d.win} at ${d.multiplier}x`;
-    showToast(`💰 Won ₹${d.win} at ${d.multiplier}x!`);
+    setTimeout(()=>{
+      showResult('win','💰','Safe!',`+₹${d.win} (${d.multiplier}×)`);
+      document.getElementById('jumpBtn').style.display='none';
+      btn.style.display='none';
+      document.getElementById('newgameBtn').style.display='block';
+    },300);
+    showToast(`💰 Won ₹${d.win} at ${d.multiplier}×!`);
   }catch{showToast('Error');btn.disabled=false;}
-}
-
-function resetRoadUI(){
-  const chicken=document.getElementById('chicken');
-  chicken.className='chicken'; chicken.style.left='0px'; chicken.innerHTML='🐔';
-  updateOven(0,'safe');
-  for(let i=1;i<=TOTAL;i++) updateOven(i,'idle');
-  for(let i=1;i<=TOTAL;i++){
-    const el=document.getElementById('msv'+i);
-    if(el) el.className='mstep-val';
-  }
 }
 
 function resetGame(){
   gameActive=false; currentStep=0;
-  resetRoadUI();
-  document.getElementById('setupPanel').style.display='flex';
+  document.getElementById('resultOverlay').classList.remove('show');
+  document.getElementById('chickenWrap').className='chicken-wrap';
+  document.getElementById('chickenSprite').textContent='🐔';
+  document.getElementById('explosion').style.display='none';
+  moveChicken(0,false);
+  for(let i=1;i<=TOTAL;i++) setLaneState(i,'');
+  setLaneState(1,'next');
+  document.getElementById('setupRow').style.display='flex';
   document.getElementById('startBtn').style.display='block';
   document.getElementById('startBtn').disabled=false;
-  document.getElementById('startBtn').innerHTML='🐔 Start Game';
+  document.getElementById('startBtn').textContent='🐔 Start';
   document.getElementById('jumpBtn').style.display='none';
   document.getElementById('cashoutBtn').style.display='none';
   document.getElementById('newgameBtn').style.display='none';
-  document.getElementById('resultBanner').className='result-banner';
   updateStats(0,MULTS[0]);
-  updatePot();
 }
 
 async function init(){
@@ -394,18 +454,16 @@ async function init(){
     if(d.active){
       betAmount=d.amount; currentStep=d.step; gameActive=true;
       document.getElementById('betAmt').value=betAmount;
-      resetRoadUI();
-      for(let i=1;i<=d.step;i++){updateOven(i,'safe');updateStepLabel(i,'done');}
-      if(d.step<TOTAL) updateOven(d.step+1,'active');
+      for(let i=1;i<=d.step;i++) setLaneState(i,'passed');
+      if(d.step<TOTAL) setLaneState(d.step+1,'next');
       moveChicken(d.step,false);
-      document.getElementById('setupPanel').style.display='none';
+      document.getElementById('setupRow').style.display='none';
       document.getElementById('startBtn').style.display='none';
       document.getElementById('jumpBtn').style.display='block';
       document.getElementById('cashoutBtn').style.display=d.step>0?'block':'none';
-      updateStats(d.step, d.multiplier);
+      updateStats(d.step,d.multiplier);
     }
   }catch{}
-  updatePot();
 }
 
 const socket=io();
