@@ -28,6 +28,51 @@ app.use(express.static(path.join(__dirname, 'public')));
 let maintenanceMode = false;
 app.get('/api/maintenance', (req, res) => res.json({ maintenance: maintenanceMode }));
 
+// ── Game on/off flags ──────────────────
+const gameEnabled = { color: true, aviator: true, mines: true, chicken: true };
+const gameStats   = {
+  color:   { bets: 0, betAmount: 0, payout: 0 },
+  aviator: { bets: 0, betAmount: 0, payout: 0 },
+  mines:   { bets: 0, betAmount: 0, payout: 0 },
+  chicken: { bets: 0, betAmount: 0, payout: 0 },
+};
+
+app.get('/api/admin/games', adminMiddleware, (req, res) => {
+  res.json({
+    enabled: gameEnabled,
+    stats: gameStats,
+    aviator: {
+      phase: avi.phase, multiplier: avi.multiplier, countdown: avi.countdown,
+      bets: avi.bets.length,
+      betAmount: avi.bets.reduce((s,b)=>s+b.amount,0),
+      history: avi.history.slice(0,10)
+    },
+    color: { phase: gameState.phase, round: gameState.roundNumber, bets: gameState.roundBets.length, forced: gameState.forcedColor },
+    minesActive: minesGames.size,
+    chickenActive: chickenGames.size,
+  });
+});
+
+app.post('/api/admin/games/toggle', adminMiddleware, (req, res) => {
+  const { game } = req.body;
+  if(!gameEnabled.hasOwnProperty(game)) return res.status(400).json({ error: 'Unknown game' });
+  gameEnabled[game] = !gameEnabled[game];
+  res.json({ success: true, game, enabled: gameEnabled[game] });
+});
+
+app.post('/api/admin/aviator/forcecrash', adminMiddleware, (req, res) => {
+  if(avi.phase !== 'flying') return res.status(400).json({ error: 'Not flying' });
+  avi.crashPoint = avi.multiplier; // crash NOW
+  res.json({ success: true });
+});
+
+app.post('/api/admin/aviator/setcrash', adminMiddleware, (req, res) => {
+  const { mult } = req.body;
+  if(!mult || mult < 1) return res.status(400).json({ error: 'Invalid' });
+  avi.crashPoint = parseFloat(mult);
+  res.json({ success: true, crashPoint: avi.crashPoint });
+});
+
 // ════════════════════════════════════════
 //  MONGODB
 // ════════════════════════════════════════
@@ -430,6 +475,7 @@ app.get('/api/game/state', (req, res) => {
 
 app.post('/api/game/bet', authMiddleware, async (req, res) => {
   try {
+    if (!gameEnabled.color) return res.status(400).json({ error: 'Color Trading is currently disabled' });
     const { color, amount } = req.body;
     if (!['red','green','violet'].includes(color)) return res.status(400).json({ error: 'Invalid color' });
     if (!amount || amount < 1 || isNaN(amount))   return res.status(400).json({ error: 'Invalid amount' });
@@ -883,6 +929,7 @@ app.get('/api/aviator/state', authMiddleware, (req, res) => {
 
 app.post('/api/aviator/bet', authMiddleware, async (req, res) => {
   try {
+    if (!gameEnabled.aviator) return res.status(400).json({ error: 'Aviator is currently disabled' });
     if (avi.phase !== 'waiting') return res.status(400).json({ error: 'Betting closed — wait for next round' });
     const { amount } = req.body;
     if (!amount || amount < 10) return res.status(400).json({ error: 'Minimum bet ₹10' });
@@ -932,6 +979,7 @@ function genMines(count) {
 
 app.post('/api/mines/start', authMiddleware, async (req, res) => {
   try {
+    if (!gameEnabled.mines) return res.status(400).json({ error: 'Mines is currently disabled' });
     const { amount, mines } = req.body;
     if (!amount || amount < 10) return res.status(400).json({ error: 'Minimum bet ₹10' });
     if (!mines || mines < 1 || mines > 24) return res.status(400).json({ error: 'Mines must be 1-24' });
@@ -1007,6 +1055,7 @@ const CHICKEN_RISK  = [0,0.22,0.24,0.26,0.30,0.34,0.38,0.42,0.46,0.50,0.55];
 
 app.post('/api/chicken/start', authMiddleware, async (req, res) => {
   try {
+    if (!gameEnabled.chicken) return res.status(400).json({ error: 'Chicken Road is currently disabled' });
     const { amount } = req.body;
     if (!amount || amount < 10) return res.status(400).json({ error: 'Minimum bet ₹10' });
     const existing = chickenGames.get(req.user.userId.toString());

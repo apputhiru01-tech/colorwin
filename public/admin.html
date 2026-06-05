@@ -157,6 +157,7 @@ tr:hover td{background:rgba(255,255,255,.02);}
     <div class="nav" id="nav-users"            onclick="showPage('users',this)">👤 Users <span class="nbadge" id="uCount">0</span></div>
     <div class="nav" id="nav-withdrawals"      onclick="showPage('withdrawals',this)">💸 Withdrawals <span class="nbadge" id="pCount" style="display:none"></span></div>
     <div class="nav" id="nav-deposits"         onclick="showPage('deposits',this)">💰 Deposits <span class="nbadge" id="dCount" style="display:none"></span></div>
+    <div class="nav" id="nav-games"            onclick="showPage('games',this)">🎮 All Games</div>
     <div class="nav" id="nav-history"          onclick="showPage('history',this)">📋 History</div>
     <div class="sfooter"><span class="sdot" id="sDot"></span><span class="stxt" id="sTxt">Connecting…</span></div>
   </aside>
@@ -180,6 +181,9 @@ tr:hover td{background:rgba(255,255,255,.02);}
       </div>
       <div class="mnav" id="mnav-users" onclick="showPage('users',this,'m')">
         <div class="mnav-icon">👤</div><span>Users</span>
+      </div>
+      <div class="mnav" id="mnav-games" onclick="showPage('games',this,'m')">
+        <div class="mnav-icon">🎮</div><span>Games</span>
       </div>
     </div>
   </nav>
@@ -314,6 +318,104 @@ tr:hover td{background:rgba(255,255,255,.02);}
           </table>
         </div>
       </div>
+    </div>
+
+    <!-- ALL GAMES -->
+    <div class="page" id="page-games">
+      <div><div class="ptitle">All Games Control</div><div class="psub">Enable/disable games & full control</div></div>
+
+      <!-- Color Trading -->
+      <div class="card" id="gc-color">
+        <div class="card-hdr">
+          <span>🎨 Color Trading</span>
+          <div style="display:flex;align-items:center;gap:10px;">
+            <span id="color-status" style="font-size:12px;color:var(--green);font-weight:700;">● LIVE</span>
+            <button class="abtn" id="color-toggle-btn" onclick="toggleGame('color')">Disable</button>
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="stats-row" style="grid-template-columns:repeat(3,1fr);">
+            <div class="scard"><div class="slbl">Round</div><div class="sval accent" id="gc-color-round">—</div></div>
+            <div class="scard"><div class="slbl">Live Bets</div><div class="sval yellow" id="gc-color-bets">0</div></div>
+            <div class="scard"><div class="slbl">Forced</div><div class="sval" id="gc-color-forced">None</div></div>
+          </div>
+          <div class="force-grid">
+            <button class="fbtn red" onclick="forceColor('red')">🔴<div class="fsub">Force Red</div></button>
+            <button class="fbtn green" onclick="forceColor('green')">🟢<div class="fsub">Force Green</div></button>
+            <button class="fbtn violet" onclick="forceColor('violet')">🟣<div class="fsub">Force Violet</div></button>
+            <button class="fbtn auto" onclick="forceColor(null)">🔀<div class="fsub">Random</div></button>
+          </div>
+          <div class="arow">
+            <button class="abtn danger" onclick="skipRound()">⏩ Skip Round</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Aviator -->
+      <div class="card" id="gc-aviator">
+        <div class="card-hdr">
+          <span>✈️ Aviator</span>
+          <div style="display:flex;align-items:center;gap:10px;">
+            <span id="aviator-status" style="font-size:12px;color:var(--green);font-weight:700;">● LIVE</span>
+            <button class="abtn" id="aviator-toggle-btn" onclick="toggleGame('aviator')">Disable</button>
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="stats-row" style="grid-template-columns:repeat(3,1fr);">
+            <div class="scard"><div class="slbl">Phase</div><div class="sval accent" id="gc-avi-phase">waiting</div></div>
+            <div class="scard"><div class="slbl">Multiplier</div><div class="sval green" id="gc-avi-mult">—</div></div>
+            <div class="scard"><div class="slbl">Live Bets</div><div class="sval yellow" id="gc-avi-bets">0</div></div>
+          </div>
+          <div class="scard" style="margin-top:4px;">
+            <div class="slbl">Total Bet Amount This Round</div>
+            <div class="sval accent" id="gc-avi-amt">₹0</div>
+          </div>
+          <div style="margin-top:8px;">
+            <div class="slbl" style="margin-bottom:6px;">Recent Crashes</div>
+            <div id="gc-avi-hist" style="display:flex;gap:6px;flex-wrap:wrap;"></div>
+          </div>
+          <div class="arow" style="margin-top:8px;">
+            <button class="abtn danger" onclick="aviForcecrash()">💥 Force Crash NOW</button>
+            <input class="bal-inp" id="aviCrashInp" type="number" min="1.01" step="0.1" value="2.0" style="width:80px;"/>
+            <button class="abtn" onclick="aviSetCrash()">📌 Set Next Crash</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Mines -->
+      <div class="card" id="gc-mines">
+        <div class="card-hdr">
+          <span>💣 Mines</span>
+          <div style="display:flex;align-items:center;gap:10px;">
+            <span id="mines-status" style="font-size:12px;color:var(--green);font-weight:700;">● LIVE</span>
+            <button class="abtn" id="mines-toggle-btn" onclick="toggleGame('mines')">Disable</button>
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="stats-row" style="grid-template-columns:1fr 1fr;">
+            <div class="scard"><div class="slbl">Active Games</div><div class="sval yellow" id="gc-mines-active">0</div></div>
+            <div class="scard"><div class="slbl">Status</div><div class="sval green" id="gc-mines-st">Online</div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Chicken Road -->
+      <div class="card" id="gc-chicken">
+        <div class="card-hdr">
+          <span>🐔 Chicken Road</span>
+          <div style="display:flex;align-items:center;gap:10px;">
+            <span id="chicken-status" style="font-size:12px;color:var(--green);font-weight:700;">● LIVE</span>
+            <button class="abtn" id="chicken-toggle-btn" onclick="toggleGame('chicken')">Disable</button>
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="stats-row" style="grid-template-columns:1fr 1fr;">
+            <div class="scard"><div class="slbl">Active Games</div><div class="sval yellow" id="gc-chicken-active">0</div></div>
+            <div class="scard"><div class="slbl">Status</div><div class="sval green" id="gc-chicken-st">Online</div></div>
+          </div>
+        </div>
+      </div>
+
     </div>
 
     <!-- HISTORY -->
@@ -479,6 +581,7 @@ function showPage(name, el, src){
   if(name==='withdrawals') loadWithdrawals();
   if(name==='deposits')    loadManualDeposits();
   if(name==='history')     loadRoundHistory();
+  if(name==='games')       loadGamesPage();
   window.scrollTo(0,0);
 }
 
@@ -700,6 +803,72 @@ async function forceColor(color){
 async function skipRound(){
   if(!confirm('Skip to result now?'))return;
   try{await fetch(API+'/api/admin/skip',{method:'POST',headers:{Authorization:'Bearer '+adminToken}});}catch{}
+}
+
+// ── All Games Control ──────────────────
+async function loadGamesPage(){
+  try{
+    const r=await fetch(API+'/api/admin/games',{headers:{Authorization:'Bearer '+adminToken}});
+    const d=await r.json();
+    // Color
+    document.getElementById('gc-color-round').textContent='#'+d.color.round;
+    document.getElementById('gc-color-bets').textContent=d.color.bets;
+    document.getElementById('gc-color-forced').textContent=d.color.forced||'None';
+    // Aviator
+    document.getElementById('gc-avi-phase').textContent=d.aviator.phase;
+    document.getElementById('gc-avi-mult').textContent=d.aviator.phase==='flying'?d.aviator.multiplier+'×':'—';
+    document.getElementById('gc-avi-bets').textContent=d.aviator.bets;
+    document.getElementById('gc-avi-amt').textContent='₹'+d.aviator.betAmount.toLocaleString('en-IN');
+    const hist=document.getElementById('gc-avi-hist');
+    hist.innerHTML=d.aviator.history.map(h=>`<span style="background:rgba(255,255,255,.06);border-radius:6px;padding:3px 8px;font-size:12px;font-weight:800;color:${h<2?'var(--green)':h<5?'var(--yellow)':'var(--red)'}">${h}×</span>`).join('');
+    // Mines & Chicken
+    document.getElementById('gc-mines-active').textContent=d.minesActive;
+    document.getElementById('gc-chicken-active').textContent=d.chickenActive;
+    // Toggles
+    ['color','aviator','mines','chicken'].forEach(g=>{
+      const on=d.enabled[g];
+      document.getElementById(g+'-status').textContent=on?'● LIVE':'⏹ OFF';
+      document.getElementById(g+'-status').style.color=on?'var(--green)':'var(--red)';
+      const btn=document.getElementById(g+'-toggle-btn');
+      btn.textContent=on?'Disable':'Enable';
+      btn.style.color=on?'var(--red)':'var(--green)';
+    });
+  }catch(e){flash('Failed to load game stats');}
+}
+
+async function toggleGame(game){
+  const on=document.getElementById(game+'-status').textContent.includes('LIVE');
+  if(!confirm(`${on?'Disable':'Enable'} ${game} game?`))return;
+  try{
+    const r=await fetch(API+'/api/admin/games/toggle',{method:'POST',headers:{Authorization:'Bearer '+adminToken,'Content-Type':'application/json'},body:JSON.stringify({game})});
+    const d=await r.json();
+    const nowOn=d.enabled;
+    document.getElementById(game+'-status').textContent=nowOn?'● LIVE':'⏹ OFF';
+    document.getElementById(game+'-status').style.color=nowOn?'var(--green)':'var(--red)';
+    const btn=document.getElementById(game+'-toggle-btn');
+    btn.textContent=nowOn?'Disable':'Enable';
+    btn.style.color=nowOn?'var(--red)':'var(--green)';
+    flash((nowOn?'✅ ':'⏹ ')+game+' '+(nowOn?'enabled':'disabled'));
+  }catch{flash('Failed');}
+}
+
+async function aviForcecrash(){
+  if(!confirm('Force crash the Aviator round NOW?'))return;
+  try{
+    const r=await fetch(API+'/api/admin/aviator/forcecrash',{method:'POST',headers:{Authorization:'Bearer '+adminToken}});
+    const d=await r.json();
+    if(!r.ok){flash(d.error||'Failed');return;}
+    flash('💥 Aviator crashed!');
+  }catch{flash('Failed');}
+}
+
+async function aviSetCrash(){
+  const mult=parseFloat(document.getElementById('aviCrashInp').value);
+  if(!mult||mult<1.01){flash('Enter valid multiplier');return;}
+  try{
+    await fetch(API+'/api/admin/aviator/setcrash',{method:'POST',headers:{Authorization:'Bearer '+adminToken,'Content-Type':'application/json'},body:JSON.stringify({mult})});
+    flash('📌 Next Aviator crash set to '+mult+'×');
+  }catch{flash('Failed');}
 }
 
 async function toggleMaintenance(){
