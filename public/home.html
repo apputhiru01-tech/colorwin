@@ -141,6 +141,25 @@ header{display:flex;align-items:center;justify-content:space-between;padding:16p
     </div>
   </div>
 
+  <!-- Mines -->
+  <div class="game-card" onclick="location.href='mines.html'" style="background:linear-gradient(135deg,#1a0f00,#201500,#1a1200);border:1.5px solid rgba(255,216,77,.25);border-radius:22px;overflow:hidden;cursor:pointer;transition:transform .15s;">
+    <div class="gc-inner">
+      <div class="gc-top">
+        <div class="gc-icon">💣</div>
+        <div class="gc-badge" style="background:rgba(255,216,77,.12);color:var(--yellow);border:1px solid rgba(255,216,77,.25);">💰 Big Win</div>
+      </div>
+      <div class="gc-name">Mines</div>
+      <div class="gc-desc">Grid mein chupi mines se bacho — jitne zyada gems dhoondo, utna bada multiplier!</div>
+      <div style="display:flex;gap:6px;margin-top:8px;">
+        <span style="font-size:20px;">💎</span><span style="font-size:20px;">💎</span><span style="font-size:20px;">💣</span><span style="font-size:20px;">💎</span><span style="font-size:20px;">💎</span>
+      </div>
+      <div class="gc-footer">
+        <div class="gc-stat">Up to <strong style="color:var(--yellow);">24x+</strong> per gem</div>
+        <button class="gc-play" onclick="event.stopPropagation();location.href='mines.html'" style="background:linear-gradient(135deg,#ffd84d,#e6a800);color:#111;">Play Now →</button>
+      </div>
+    </div>
+  </div>
+
   <!-- Aviator -->
   <div class="game-card avi-card" onclick="location.href='aviator.html'">
     <div class="gc-inner">

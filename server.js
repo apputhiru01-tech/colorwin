@@ -910,6 +910,91 @@ app.post('/api/aviator/cashout', authMiddleware, async (req, res) => {
 });
 
 // ════════════════════════════════════════
+//  MINES GAME
+// ════════════════════════════════════════
+const minesGames = new Map(); // userId -> game
+
+function minesMult(revealed, mines) {
+  let prob = 1;
+  for (let i = 0; i < revealed; i++) prob *= (25 - mines - i) / (25 - i);
+  return parseFloat((0.97 / prob).toFixed(2));
+}
+
+function genMines(count) {
+  const pos = new Set();
+  while (pos.size < count) pos.add(Math.floor(Math.random() * 25));
+  return [...pos];
+}
+
+app.post('/api/mines/start', authMiddleware, async (req, res) => {
+  try {
+    const { amount, mines } = req.body;
+    if (!amount || amount < 10) return res.status(400).json({ error: 'Minimum bet ₹10' });
+    if (!mines || mines < 1 || mines > 24) return res.status(400).json({ error: 'Mines must be 1-24' });
+    const existing = minesGames.get(req.user.userId.toString());
+    if (existing && existing.active) return res.status(400).json({ error: 'Finish current game first' });
+    const user = await User.findById(req.user.userId);
+    if (!user || user.wallet < amount) return res.status(400).json({ error: 'Insufficient balance' });
+    await User.findByIdAndUpdate(req.user.userId, { $inc: { wallet: -amount } });
+    const game = { amount, mines, minePos: genMines(mines), revealed: [], active: true };
+    minesGames.set(req.user.userId.toString(), game);
+    res.json({ success: true, newBalance: user.wallet - amount, multiplier: minesMult(0, mines) });
+  } catch (e) { res.status(500).json({ error: 'Failed' }); }
+});
+
+app.post('/api/mines/reveal', authMiddleware, async (req, res) => {
+  try {
+    const { tile } = req.body;
+    const game = minesGames.get(req.user.userId.toString());
+    if (!game || !game.active) return res.status(400).json({ error: 'No active game' });
+    if (tile < 0 || tile > 24) return res.status(400).json({ error: 'Invalid tile' });
+    if (game.revealed.includes(tile)) return res.status(400).json({ error: 'Already revealed' });
+    const isMine = game.minePos.includes(tile);
+    game.revealed.push(tile);
+    if (isMine) {
+      game.active = false;
+      return res.json({ result: 'mine', minePos: game.minePos, revealed: game.revealed });
+    }
+    const safeRevealed = game.revealed.filter(t => !game.minePos.includes(t)).length;
+    const mult = minesMult(safeRevealed, game.mines);
+    const allSafe = 25 - game.mines;
+    if (safeRevealed >= allSafe) {
+      // Auto cashout - found all gems
+      game.active = false;
+      const win = parseFloat((game.amount * mult).toFixed(2));
+      const user = await User.findByIdAndUpdate(req.user.userId, { $inc: { wallet: win } }, { new: true });
+      const sid = userSockets.get(req.user.userId.toString());
+      if (sid) io.to(sid).emit('wallet:update', { wallet: user.wallet, message: `+₹${win} Mines win!` });
+      return res.json({ result: 'safe', multiplier: mult, autoWin: true, win, newBalance: user.wallet, minePos: game.minePos });
+    }
+    res.json({ result: 'safe', multiplier: mult, revealed: game.revealed });
+  } catch (e) { res.status(500).json({ error: 'Failed' }); }
+});
+
+app.post('/api/mines/cashout', authMiddleware, async (req, res) => {
+  try {
+    const game = minesGames.get(req.user.userId.toString());
+    if (!game || !game.active) return res.status(400).json({ error: 'No active game' });
+    if (game.revealed.length === 0) return res.status(400).json({ error: 'Reveal at least one tile first' });
+    const safeRevealed = game.revealed.filter(t => !game.minePos.includes(t)).length;
+    const mult = minesMult(safeRevealed, game.mines);
+    const win = parseFloat((game.amount * mult).toFixed(2));
+    game.active = false;
+    const user = await User.findByIdAndUpdate(req.user.userId, { $inc: { wallet: win } }, { new: true });
+    const sid = userSockets.get(req.user.userId.toString());
+    if (sid) io.to(sid).emit('wallet:update', { wallet: user.wallet, message: `+₹${win} (${mult}x) 💎` });
+    res.json({ success: true, win, multiplier: mult, newBalance: user.wallet, minePos: game.minePos });
+  } catch (e) { res.status(500).json({ error: 'Failed' }); }
+});
+
+app.get('/api/mines/state', authMiddleware, (req, res) => {
+  const game = minesGames.get(req.user.userId.toString());
+  if (!game || !game.active) return res.json({ active: false });
+  const safeRevealed = game.revealed.filter(t => !game.minePos.includes(t)).length;
+  res.json({ active: true, amount: game.amount, mines: game.mines, revealed: game.revealed, multiplier: minesMult(safeRevealed, game.mines) });
+});
+
+// ════════════════════════════════════════
 //  START SERVER
 // ════════════════════════════════════════
 const PORT = process.env.PORT || 3000;
