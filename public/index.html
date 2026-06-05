@@ -158,7 +158,10 @@ main{width:100%;max-width:480px;padding:0 16px 100px;display:flex;flex-direction
 </div>
 
 <header>
-  <div class="logo">Color<span>Win</span></div>
+  <div style="display:flex;align-items:center;gap:10px;">
+    <button onclick="location.href='home.html'" style="background:none;border:1px solid var(--border);color:var(--muted);border-radius:8px;padding:5px 10px;font-size:12px;cursor:pointer;font-family:inherit;">⌂</button>
+    <div class="logo">Color<span>Win</span></div>
+  </div>
   <div class="header-right">
     <div class="wallet-pill" onclick="openWithdraw()">
       <span class="coin">₹</span><span id="walletAmt">0.00</span>

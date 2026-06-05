@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>ColorWin — Choose Game</title>
+<style>
+:root{--bg:#080b14;--surface:#0f1320;--card:#141826;--border:#222740;--text:#e8eaf0;--muted:#6b729a;--red:#ff4d6a;--green:#00d68f;--accent:#5b8fff;--yellow:#ffd84d;--violet:#9b59ff;}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,sans-serif;min-height:100vh;display:flex;flex-direction:column;max-width:480px;margin:0 auto;}
+
+header{display:flex;align-items:center;justify-content:space-between;padding:16px 20px;background:var(--surface);border-bottom:1px solid var(--border);}
+.logo{font-size:20px;font-weight:900;}
+.logo span{color:var(--yellow);}
+.user-row{display:flex;align-items:center;gap:10px;}
+.avatar{width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--violet));display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:800;color:#fff;}
+.username{font-size:13px;font-weight:700;color:var(--muted);}
+.logout-btn{background:none;border:1px solid var(--border);color:var(--muted);border-radius:8px;padding:5px 10px;font-size:12px;cursor:pointer;font-family:inherit;}
+
+.wallet-card{margin:20px 16px;background:linear-gradient(135deg,rgba(0,214,143,.12),rgba(91,143,255,.08));border:1.5px solid rgba(0,214,143,.25);border-radius:20px;padding:20px 22px;display:flex;align-items:center;justify-content:space-between;}
+.wc-left{}
+.wc-lbl{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;font-weight:700;}
+.wc-amt{font-size:36px;font-weight:900;color:var(--green);margin-top:4px;}
+.wc-right{display:flex;flex-direction:column;gap:8px;}
+.wc-btn{border:none;border-radius:12px;font-size:13px;font-weight:800;padding:10px 18px;cursor:pointer;font-family:inherit;}
+.add-btn{background:linear-gradient(135deg,#5b8fff,#3b5fff);color:#fff;}
+.wd-btn{background:rgba(0,214,143,.12);border:1.5px solid rgba(0,214,143,.3);color:var(--green);}
+
+.section-lbl{font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:1px;padding:0 16px;margin-bottom:12px;}
+
+.games{display:flex;flex-direction:column;gap:14px;padding:0 16px;flex:1;}
+
+.game-card{border-radius:22px;overflow:hidden;cursor:pointer;transition:transform .15s;position:relative;}
+.game-card:active{transform:scale(.98);}
+
+.color-card{background:linear-gradient(135deg,#1a0a2e,#0d1640,#141826);border:1.5px solid rgba(155,89,255,.3);}
+.avi-card{background:linear-gradient(135deg,#0a1628,#0d1f3c,#0f2040);border:1.5px solid rgba(91,143,255,.35);}
+
+.gc-inner{padding:22px 20px 20px;}
+.gc-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;}
+.gc-icon{font-size:44px;line-height:1;}
+.gc-badge{font-size:11px;font-weight:800;padding:4px 12px;border-radius:20px;text-transform:uppercase;letter-spacing:.5px;}
+.gc-badge.live{background:rgba(0,214,143,.15);color:var(--green);border:1px solid rgba(0,214,143,.3);}
+.gc-badge.hot{background:rgba(255,77,106,.12);color:var(--red);border:1px solid rgba(255,77,106,.3);}
+.gc-name{font-size:24px;font-weight:900;margin-bottom:6px;}
+.gc-desc{font-size:13px;color:var(--muted);line-height:1.5;}
+.gc-footer{display:flex;align-items:center;justify-content:space-between;margin-top:18px;padding-top:14px;border-top:1px solid rgba(255,255,255,.06);}
+.gc-stat{font-size:12px;color:var(--muted);}
+.gc-stat strong{color:var(--text);}
+.gc-play{border:none;border-radius:12px;font-size:14px;font-weight:800;padding:10px 22px;cursor:pointer;font-family:inherit;}
+.color-play{background:linear-gradient(135deg,#9b59ff,#7b39df);color:#fff;}
+.avi-play{background:linear-gradient(135deg,#5b8fff,#3b5fff);color:#fff;}
+
+.color-dots{display:flex;gap:6px;margin-top:8px;}
+.cdot{width:18px;height:18px;border-radius:50%;}
+.cdot.r{background:var(--red);}
+.cdot.g{background:var(--green);}
+.cdot.v{background:var(--violet);}
+
+.avi-bar{display:flex;gap:4px;align-items:flex-end;margin-top:8px;height:24px;}
+.abar{background:var(--accent);border-radius:3px 3px 0 0;width:10px;opacity:.6;}
+
+.bottom-space{height:20px;}
+
+/* Modals */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);display:none;align-items:flex-end;justify-content:center;z-index:100;}
+.modal-overlay.show{display:flex;}
+.modal-sheet{background:var(--card);border:1px solid var(--border);border-radius:24px 24px 0 0;padding:28px 24px 40px;width:100%;max-width:480px;animation:sUp .3s cubic-bezier(.34,1.56,.64,1);position:relative;}
+@keyframes sUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
+.m-close{position:absolute;top:20px;right:20px;background:none;border:none;color:var(--muted);font-size:22px;cursor:pointer;}
+.m-title{font-size:20px;font-weight:900;margin-bottom:16px;}
+.m-grp{display:flex;flex-direction:column;gap:6px;margin-bottom:14px;}
+.m-lbl{font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;}
+.m-inp{background:var(--surface);border:1.5px solid var(--border);border-radius:13px;color:var(--text);font-size:15px;font-weight:600;padding:13px 16px;outline:none;width:100%;font-family:inherit;}
+.m-inp:focus{border-color:var(--accent);}
+.quick-deps{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:4px;}
+.qdep{background:var(--surface);border:1px solid var(--border);border-radius:10px;color:var(--text);font-size:13px;font-weight:700;padding:8px 16px;cursor:pointer;font-family:inherit;}
+.qdep.sel{background:rgba(91,143,255,.15);border-color:var(--accent);color:var(--accent);}
+.m-btn{width:100%;background:linear-gradient(135deg,#5b8fff,#3b5fff);border:none;border-radius:14px;color:#fff;font-size:15px;font-weight:800;padding:15px;cursor:pointer;font-family:inherit;margin-top:4px;}
+.m-err{font-size:12px;color:var(--red);min-height:16px;}
+.success-msg{background:rgba(0,214,143,.1);border:1px solid rgba(0,214,143,.3);border-radius:12px;padding:14px 16px;color:var(--green);font-size:13px;font-weight:600;display:none;}
+.success-msg.show{display:block;}
+.copy-upi-btn{background:rgba(91,143,255,.15);border:1px solid var(--accent);border-radius:8px;color:var(--accent);font-size:11px;font-weight:700;padding:5px 10px;cursor:pointer;font-family:inherit;}
+.upi-pay-card{display:flex;align-items:center;gap:14px;background:var(--surface);border:1.5px solid var(--border);border-radius:14px;padding:14px 16px;cursor:pointer;font-family:inherit;width:100%;transition:all .15s;text-align:left;margin-bottom:10px;}
+.upi-pay-card:active{transform:scale(.98);}
+.upi-pay-icon{width:44px;height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:22px;font-weight:900;background:linear-gradient(135deg,#5b8fff,#3b5fff);color:#fff;}
+.upi-pay-info{flex:1;}
+.upi-pay-name{font-size:15px;font-weight:800;color:var(--accent);}
+.upi-pay-sub{font-size:11px;color:var(--muted);margin-top:1px;}
+.upi-pay-arrow{color:var(--muted);font-size:20px;}
+#toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(80px);background:var(--card);border:1px solid var(--border);border-radius:14px;padding:12px 24px;font-size:14px;font-weight:600;z-index:999;transition:transform .35s cubic-bezier(.34,1.56,.64,1);pointer-events:none;white-space:nowrap;}
+#toast.show{transform:translateX(-50%) translateY(0);}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">Color<span>Win</span></div>
+  <div class="user-row">
+    <div class="avatar" id="userAvatar">?</div>
+    <span class="username" id="userName">...</span>
+    <button class="logout-btn" onclick="doLogout()">Logout</button>
+  </div>
+</header>
+
+<!-- Wallet Card -->
+<div class="wallet-card">
+  <div class="wc-left">
+    <div class="wc-lbl">Your Wallet</div>
+    <div class="wc-amt">₹<span id="walletAmt">0.00</span></div>
+    <div style="font-size:11px;color:var(--muted);margin-top:4px;">Same balance for all games</div>
+  </div>
+  <div class="wc-right">
+    <button class="wc-btn add-btn" onclick="openDeposit()">+ Add Money</button>
+    <button class="wc-btn wd-btn" onclick="openWithdraw()">Withdraw</button>
+  </div>
+</div>
+
+<div class="section-lbl">Choose a Game</div>
+
+<div class="games">
+
+  <!-- Color Trading -->
+  <div class="game-card color-card" onclick="location.href='index.html'">
+    <div class="gc-inner">
+      <div class="gc-top">
+        <div class="gc-icon">🎨</div>
+        <div class="gc-badge live">🟢 Live</div>
+      </div>
+      <div class="gc-name">Color Trading</div>
+      <div class="gc-desc">Red, Green ya Violet — sahi color choose karo aur jeeto! Multiplier up to 3x</div>
+      <div class="color-dots">
+        <div class="cdot r"></div>
+        <div class="cdot g"></div>
+        <div class="cdot v"></div>
+      </div>
+      <div class="gc-footer">
+        <div class="gc-stat">Multiplier <strong>1.5x – 3x</strong></div>
+        <button class="gc-play color-play" onclick="event.stopPropagation();location.href='index.html'">Play Now →</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Aviator -->
+  <div class="game-card avi-card" onclick="location.href='aviator.html'">
+    <div class="gc-inner">
+      <div class="gc-top">
+        <div class="gc-icon">✈️</div>
+        <div class="gc-badge hot">🔥 Popular</div>
+      </div>
+      <div class="gc-name">Aviator</div>
+      <div class="gc-desc">Plane uda, multiplier badhao — crash se pehle cashout karo aur bada jeeto!</div>
+      <div class="avi-bar">
+        <div class="abar" style="height:8px;"></div>
+        <div class="abar" style="height:12px;"></div>
+        <div class="abar" style="height:16px;opacity:.7"></div>
+        <div class="abar" style="height:22px;opacity:.8"></div>
+        <div class="abar" style="height:18px;opacity:.9"></div>
+        <div class="abar" style="height:24px;"></div>
+      </div>
+      <div class="gc-footer">
+        <div class="gc-stat">Max win <strong>500x+</strong></div>
+        <button class="gc-play avi-play" onclick="event.stopPropagation();location.href='aviator.html'">Play Now →</button>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<div class="bottom-space"></div>
+
+<!-- Deposit Modal -->
+<div class="modal-overlay" id="dModal" onclick="if(event.target===this)this.classList.remove('show')">
+  <div class="modal-sheet">
+    <button class="m-close" onclick="document.getElementById('dModal').classList.remove('show')">✕</button>
+    <div class="m-title">Add Money</div>
+    <div class="m-grp">
+      <div class="m-lbl">Select Amount</div>
+      <div class="quick-deps">
+        <button class="qdep" onclick="setDA(100)">₹100</button>
+        <button class="qdep" onclick="setDA(200)">₹200</button>
+        <button class="qdep sel" onclick="setDA(500)">₹500</button>
+        <button class="qdep" onclick="setDA(1000)">₹1,000</button>
+        <button class="qdep" onclick="setDA(2000)">₹2,000</button>
+        <button class="qdep" onclick="setDA(5000)">₹5,000</button>
+      </div>
+      <input class="m-inp" id="dAmt" type="number" min="100" value="500" placeholder="Custom amount" oninput="document.querySelectorAll('.qdep').forEach(e=>e.classList.remove('sel'))"/>
+    </div>
+    <div style="background:linear-gradient(135deg,rgba(91,143,255,.1),rgba(155,89,255,.07));border:1.5px solid var(--accent);border-radius:14px;padding:14px 16px;margin-bottom:14px;display:flex;justify-content:space-between;align-items:center;">
+      <div>
+        <div style="font-size:10px;color:var(--muted);text-transform:uppercase;">Paying to</div>
+        <div style="font-size:15px;font-weight:800;" id="dUpiName">ColorWin</div>
+        <div style="font-size:12px;color:var(--accent);font-family:monospace;" id="dUpiId">loading…</div>
+      </div>
+      <button class="copy-upi-btn" onclick="navigator.clipboard.writeText(document.getElementById('dUpiId').textContent).then(()=>showToast('Copied!'))">📋 Copy</button>
+    </div>
+    <button class="upi-pay-card" onclick="openUpiPay()">
+      <div class="upi-pay-icon">₹</div>
+      <div class="upi-pay-info">
+        <div class="upi-pay-name">Pay via UPI</div>
+        <div class="upi-pay-sub">GPay / PhonePe / Paytm — choose your app</div>
+      </div>
+      <div class="upi-pay-arrow">›</div>
+    </button>
+    <div style="text-align:center;margin-bottom:12px;">
+      <div style="display:inline-block;background:#fff;border-radius:14px;padding:8px;">
+        <img id="dQr" src="" style="width:130px;height:130px;display:block;border-radius:8px;"/>
+      </div>
+    </div>
+    <button class="m-btn" style="background:var(--surface);border:1.5px solid var(--border);color:var(--muted);font-size:13px;padding:12px;" onclick="location.href='index.html#deposit'">Enter UTR after paying →</button>
+  </div>
+</div>
+
+<!-- Withdraw Modal -->
+<div class="modal-overlay" id="wModal" onclick="if(event.target===this)this.classList.remove('show')">
+  <div class="modal-sheet">
+    <button class="m-close" onclick="document.getElementById('wModal').classList.remove('show')">✕</button>
+    <div class="m-title">Withdraw</div>
+    <div style="font-size:32px;font-weight:900;color:var(--green);margin-bottom:16px;">₹<span id="wBal">0.00</span></div>
+    <div class="m-grp">
+      <div class="m-lbl">Amount (min ₹100)</div>
+      <input class="m-inp" id="wAmt" type="number" min="100" placeholder="Enter amount"/>
+    </div>
+    <div class="m-grp">
+      <div class="m-lbl">Your UPI ID</div>
+      <input class="m-inp" id="wUpi" type="text" placeholder="yourname@upi"/>
+    </div>
+    <div class="m-err" id="wErr"></div>
+    <div class="success-msg" id="wOk">✅ Withdrawal request submitted! Admin will transfer within 24 hours.</div>
+    <button class="m-btn" style="background:linear-gradient(135deg,#00d68f,#00a86b);" onclick="submitWithdraw()">Request Withdrawal →</button>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script src="/socket.io/socket.io.js"></script>
+<script>
+const API   = '';
+const token = localStorage.getItem('cw_token');
+if(!token) location.href='login.html';
+
+let wallet=0, adminUpiId='', adminUpiName='ColorWin', minDeposit=100;
+
+async function boot(){
+  try{
+    const r=await fetch(API+'/api/user/me',{headers:{Authorization:'Bearer '+token}});
+    if(!r.ok){localStorage.removeItem('cw_token');location.href='login.html';return;}
+    const d=await r.json();
+    const u=d.user;
+    wallet=u.wallet;
+    document.getElementById('walletAmt').textContent=parseFloat(wallet).toFixed(2);
+    document.getElementById('userName').textContent='@'+u.username;
+    document.getElementById('userAvatar').textContent=(u.name||u.username||'?')[0].toUpperCase();
+
+    const cfg=await fetch(API+'/api/config').then(r=>r.json());
+    adminUpiId=cfg.adminUpiId||'';
+    adminUpiName=cfg.adminUpiName||'ColorWin';
+    minDeposit=cfg.minDeposit||100;
+    document.getElementById('dUpiId').textContent=adminUpiId||'Contact admin';
+    document.getElementById('dUpiName').textContent=adminUpiName;
+    refreshQr();
+  }catch{}
+}
+
+function setDA(v){
+  document.getElementById('dAmt').value=v;
+  document.querySelectorAll('.qdep').forEach(e=>e.classList.toggle('sel',parseFloat(e.textContent.replace(/[₹,K]/g,''))*(e.textContent.includes('K')?1000:1)===v));
+  refreshQr();
+}
+
+function refreshQr(){
+  if(!adminUpiId) return;
+  const amt=document.getElementById('dAmt').value||500;
+  const data=`upi://pay?pa=${encodeURIComponent(adminUpiId)}&pn=${encodeURIComponent(adminUpiName)}&am=${amt}&cu=INR&tn=ColorWin+Deposit`;
+  document.getElementById('dQr').src=`https://api.qrserver.com/v1/create-qr-code/?size=130x130&data=${encodeURIComponent(data)}&bgcolor=ffffff&color=1a1a2e&qzone=1`;
+}
+
+function openUpiPay(){
+  const amt=document.getElementById('dAmt').value||500;
+  const url=`upi://pay?pa=${encodeURIComponent(adminUpiId)}&pn=${encodeURIComponent(adminUpiName)}&am=${amt}&cu=INR&tn=ColorWin+Deposit`;
+  window.location.href=url;
+}
+
+function openDeposit(){
+  document.getElementById('dModal').classList.add('show');
+  refreshQr();
+}
+
+function openWithdraw(){
+  document.getElementById('wBal').textContent=parseFloat(wallet).toFixed(2);
+  document.getElementById('wErr').textContent='';
+  document.getElementById('wOk').classList.remove('show');
+  document.getElementById('wModal').classList.add('show');
+}
+
+async function submitWithdraw(){
+  const amt=parseFloat(document.getElementById('wAmt').value);
+  const upi=document.getElementById('wUpi').value.trim();
+  const el=document.getElementById('wErr');
+  el.textContent='';
+  if(!amt||amt<100){el.textContent='Minimum ₹100';return;}
+  if(amt>wallet){el.textContent='Insufficient balance';return;}
+  if(!upi){el.textContent='Enter UPI ID';return;}
+  try{
+    const r=await fetch(API+'/api/payment/withdraw',{method:'POST',headers:{'Authorization':'Bearer '+token,'Content-Type':'application/json'},body:JSON.stringify({amount:amt,upiId:upi})});
+    const d=await r.json();
+    if(!r.ok){el.textContent=d.error||'Failed';return;}
+    wallet=d.newBalance;
+    document.getElementById('walletAmt').textContent=parseFloat(wallet).toFixed(2);
+    document.getElementById('wOk').classList.add('show');
+  }catch{el.textContent='Network error';}
+}
+
+function doLogout(){
+  localStorage.removeItem('cw_token');
+  location.href='login.html';
+}
+
+function showToast(msg){
+  const t=document.getElementById('toast');
+  t.textContent=msg; t.classList.add('show');
+  clearTimeout(t._t);
+  t._t=setTimeout(()=>t.classList.remove('show'),2500);
+}
+
+const socket=io();
+socket.on('wallet:update',d=>{
+  wallet=d.wallet;
+  document.getElementById('walletAmt').textContent=parseFloat(d.wallet).toFixed(2);
+});
+
+boot();
+</script>
+</body>
+</html>

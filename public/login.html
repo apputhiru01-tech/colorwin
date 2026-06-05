@@ -176,7 +176,7 @@ let flow = '', pendingEmail = '', pendingSignupData = null, pendingGoogleData = 
   if(!token) return;
   try{
     const r = await fetch(API+'/api/auth/me',{headers:{Authorization:'Bearer '+token}});
-    if(r.ok) location.href='index.html';
+    if(r.ok) location.href='home.html';
     else localStorage.removeItem('cw_token');
   }catch{}
 })();
@@ -350,7 +350,7 @@ function finish(token,msg){
   localStorage.setItem('cw_token',token);
   document.getElementById('successMsg').textContent=msg+' Redirecting…';
   goTo('s-success');
-  setTimeout(()=>location.href='index.html',2000);
+  setTimeout(()=>location.href='home.html',2000);
 }
 </script>
 </body>
