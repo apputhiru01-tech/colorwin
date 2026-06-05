@@ -876,7 +876,8 @@ async function aviCrash() {
 
 app.get('/api/aviator/state', authMiddleware, (req, res) => {
   const myBet = avi.bets.find(b => b.userId.toString() === req.user.userId.toString()) || null;
-  res.json({ phase: avi.phase, multiplier: avi.multiplier, countdown: avi.countdown, history: avi.history, myBet });
+  const liveBets = avi.bets.map(b => ({ username: b.username, amount: b.amount, cashedOut: b.cashedOut, cashoutMult: b.cashoutMult }));
+  res.json({ phase: avi.phase, multiplier: avi.multiplier, countdown: avi.countdown, history: avi.history, myBet, liveBets });
 });
 
 app.post('/api/aviator/bet', authMiddleware, async (req, res) => {
@@ -890,6 +891,7 @@ app.post('/api/aviator/bet', authMiddleware, async (req, res) => {
     if (!user || user.wallet < amount) return res.status(400).json({ error: 'Insufficient balance' });
     await User.findByIdAndUpdate(req.user.userId, { $inc: { wallet: -amount } });
     avi.bets.push({ userId: req.user.userId, username: user.username, amount, cashedOut: false, cashoutMult: null });
+    io.emit('avi:bet_placed', { username: user.username, amount });
     res.json({ success: true, newBalance: user.wallet - amount });
   } catch (e) { res.status(500).json({ error: 'Bet failed' }); }
 });
