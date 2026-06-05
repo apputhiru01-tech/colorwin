@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Aviator — ColorWin</title>
+<style>
+:root{--bg:#080b14;--surface:#0f1320;--card:#141826;--border:#222740;--text:#e8eaf0;--muted:#6b729a;--red:#ff4d6a;--green:#00d68f;--accent:#5b8fff;--yellow:#ffd84d;}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,sans-serif;min-height:100vh;display:flex;flex-direction:column;max-width:480px;margin:0 auto;}
+
+/* Header */
+header{display:flex;align-items:center;justify-content:space-between;padding:14px 16px;background:var(--surface);border-bottom:1px solid var(--border);}
+.logo{font-size:16px;font-weight:900;}
+.logo span{color:#ffd84d;}
+.back-btn{background:none;border:1px solid var(--border);color:var(--muted);border-radius:10px;padding:6px 12px;font-size:13px;cursor:pointer;font-family:inherit;}
+.wallet-pill{background:rgba(0,214,143,.1);border:1px solid rgba(0,214,143,.25);border-radius:20px;padding:6px 14px;font-size:13px;font-weight:700;color:var(--green);}
+
+/* History bar */
+.hist-bar{display:flex;gap:6px;padding:10px 14px;overflow-x:auto;background:var(--surface);border-bottom:1px solid var(--border);}
+.hist-bar::-webkit-scrollbar{display:none;}
+.hchip{flex-shrink:0;padding:4px 10px;border-radius:20px;font-size:12px;font-weight:800;}
+.hchip.low{background:rgba(0,214,143,.15);color:var(--green);}
+.hchip.mid{background:rgba(255,216,77,.12);color:var(--yellow);}
+.hchip.high{background:rgba(255,77,106,.15);color:var(--red);}
+
+/* Sky / Game area */
+.sky{position:relative;height:260px;background:linear-gradient(180deg,#0a0e1f 0%,#0d1428 40%,#111830 100%);overflow:hidden;border-bottom:2px solid var(--border);}
+.stars{position:absolute;inset:0;}
+.star{position:absolute;background:#fff;border-radius:50%;animation:twinkle 3s infinite;}
+@keyframes twinkle{0%,100%{opacity:.3}50%{opacity:1}}
+
+/* Grid lines */
+.grid-lines{position:absolute;inset:0;opacity:.08;}
+.grid-lines::before{content:'';position:absolute;inset:0;background:repeating-linear-gradient(0deg,transparent,transparent 40px,rgba(255,255,255,.5) 40px,rgba(255,255,255,.5) 41px),repeating-linear-gradient(90deg,transparent,transparent 40px,rgba(255,255,255,.5) 40px,rgba(255,255,255,.5) 41px);}
+
+/* Multiplier display */
+.mult-wrap{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;}
+.mult-num{font-size:72px;font-weight:900;letter-spacing:-3px;color:var(--green);transition:color .2s;text-shadow:0 0 40px currentColor;font-variant-numeric:tabular-nums;}
+.mult-num.yellow{color:var(--yellow);}
+.mult-num.red{color:var(--red);}
+.mult-lbl{font-size:14px;font-weight:700;color:var(--muted);letter-spacing:2px;text-transform:uppercase;}
+
+/* Plane */
+.plane{position:absolute;font-size:36px;transition:none;filter:drop-shadow(0 0 12px rgba(91,143,255,.8));}
+.plane.crashed{animation:planeCrash .5s forwards;}
+@keyframes planeCrash{0%{transform:rotate(0deg) scale(1);opacity:1}100%{transform:rotate(-90deg) scale(0.2);opacity:0}}
+
+/* Crash overlay */
+.crash-overlay{position:absolute;inset:0;display:none;align-items:center;justify-content:center;flex-direction:column;gap:8px;background:rgba(255,77,106,.15);backdrop-filter:blur(2px);}
+.crash-overlay.show{display:flex;animation:crashAnim .3s ease;}
+@keyframes crashAnim{from{opacity:0;transform:scale(.8)}to{opacity:1;transform:scale(1)}}
+.crash-txt{font-size:32px;font-weight:900;color:var(--red);}
+.crash-at{font-size:18px;font-weight:700;color:rgba(255,77,106,.8);}
+
+/* Wait overlay */
+.wait-overlay{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:10px;background:rgba(8,11,20,.7);}
+.wait-cd{font-size:56px;font-weight:900;color:var(--accent);}
+.wait-txt{font-size:14px;color:var(--muted);font-weight:600;}
+
+/* Graph line */
+.graph-canvas{position:absolute;inset:0;opacity:.6;}
+
+/* Live cashouts */
+.live-panel{max-height:90px;overflow:hidden;padding:8px 14px;background:var(--surface);border-bottom:1px solid var(--border);}
+.live-item{font-size:12px;color:var(--muted);display:flex;justify-content:space-between;padding:3px 0;border-bottom:1px solid rgba(255,255,255,.03);}
+.live-item:last-child{border-bottom:none;}
+.live-item .win{color:var(--green);font-weight:700;}
+.live-item .mult{color:var(--yellow);font-weight:700;}
+
+/* Bet panel */
+.bet-panel{padding:16px 14px;display:flex;flex-direction:column;gap:12px;flex:1;}
+.bet-row{display:flex;gap:10px;align-items:center;}
+.quick-bets{display:flex;gap:8px;flex-wrap:wrap;}
+.qbet{background:var(--surface);border:1px solid var(--border);border-radius:10px;color:var(--text);font-size:13px;font-weight:700;padding:8px 14px;cursor:pointer;font-family:inherit;transition:all .15s;}
+.qbet:hover{border-color:var(--accent);color:var(--accent);}
+.qbet.sel{background:rgba(91,143,255,.15);border-color:var(--accent);color:var(--accent);}
+.bet-input{background:var(--surface);border:1.5px solid var(--border);border-radius:13px;color:var(--text);font-size:18px;font-weight:800;padding:12px 16px;outline:none;flex:1;font-family:inherit;}
+.bet-input:focus{border-color:var(--accent);}
+.bet-btn{background:linear-gradient(135deg,#5b8fff,#3b5fff);border:none;border-radius:14px;color:#fff;font-size:15px;font-weight:800;padding:14px 24px;cursor:pointer;font-family:inherit;transition:all .15s;white-space:nowrap;}
+.bet-btn:disabled{opacity:.4;cursor:not-allowed;}
+.cashout-btn{width:100%;background:linear-gradient(135deg,#00d68f,#00a86b);border:none;border-radius:14px;color:#fff;font-size:18px;font-weight:900;padding:18px;cursor:pointer;font-family:inherit;display:none;animation:pulse 1s infinite;}
+@keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(0,214,143,.4)}50%{box-shadow:0 0 0 12px rgba(0,214,143,0)}}
+.bet-status{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:12px 16px;font-size:13px;display:none;}
+.bet-status.show{display:block;}
+.autobtn{background:var(--surface);border:1px solid var(--border);color:var(--muted);border-radius:10px;padding:7px 14px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;}
+.autobtn.on{border-color:var(--yellow);color:var(--yellow);background:rgba(255,216,77,.08);}
+</style>
+</head>
+<body>
+
+<header>
+  <button class="back-btn" onclick="location.href='index.html'">← Back</button>
+  <div class="logo">✈️ Avia<span>tor</span></div>
+  <div class="wallet-pill">₹<span id="walletAmt">0.00</span></div>
+</header>
+
+<!-- Crash history -->
+<div class="hist-bar" id="histBar">
+  <span style="font-size:12px;color:var(--muted);flex-shrink:0;align-self:center;">Recent:</span>
+</div>
+
+<!-- Game Sky -->
+<div class="sky" id="sky">
+  <canvas class="graph-canvas" id="graphCanvas"></canvas>
+  <div class="grid-lines"></div>
+  <div class="stars" id="stars"></div>
+
+  <div class="wait-overlay" id="waitOverlay">
+    <div class="wait-cd" id="waitCd">8</div>
+    <div class="wait-txt">Next round starting…</div>
+    <div style="font-size:12px;color:var(--muted);margin-top:4px;">Place your bet now!</div>
+  </div>
+
+  <div class="mult-wrap" id="multWrap" style="display:none;">
+    <div class="mult-num" id="multNum">1.00<span style="font-size:36px;">x</span></div>
+  </div>
+
+  <div class="crash-overlay" id="crashOverlay">
+    <div class="crash-txt">✈️ FLEW AWAY!</div>
+    <div class="crash-at" id="crashAt">at 2.45x</div>
+  </div>
+
+  <div class="plane" id="plane" style="left:10%;bottom:20%;">✈️</div>
+</div>
+
+<!-- Live cashouts -->
+<div class="live-panel" id="livePanel"></div>
+
+<!-- Bet Panel -->
+<div class="bet-panel">
+  <div class="quick-bets">
+    <button class="qbet" onclick="setAviAmt(50)">₹50</button>
+    <button class="qbet" onclick="setAviAmt(100)">₹100</button>
+    <button class="qbet sel" onclick="setAviAmt(200)">₹200</button>
+    <button class="qbet" onclick="setAviAmt(500)">₹500</button>
+    <button class="qbet" onclick="setAviAmt(1000)">₹1K</button>
+  </div>
+  <div class="bet-row">
+    <input class="bet-input" id="aviAmt" type="number" min="10" value="200" placeholder="Bet amount"/>
+    <button class="bet-btn" id="betBtn" onclick="placeBet()">Place Bet</button>
+  </div>
+  <div class="bet-status" id="betStatus"></div>
+  <button class="cashout-btn" id="cashoutBtn" onclick="doCashout()">💰 CASHOUT <span id="coAmt">₹0</span></button>
+</div>
+
+<script src="/socket.io/socket.io.js"></script>
+<script>
+const API   = '';
+const token = localStorage.getItem('cw_token');
+if(!token) location.href='login.html';
+
+let wallet     = 0;
+let myBet      = null;
+let phase      = 'waiting';
+let curMult    = 1.00;
+let graphPts   = [];
+let planeX     = 10, planeY = 20;
+
+// Canvas graph
+const canvas   = document.getElementById('graphCanvas');
+const ctx      = canvas.getContext('2d');
+
+function resizeCanvas(){
+  canvas.width  = canvas.offsetWidth;
+  canvas.height = canvas.offsetHeight;
+}
+resizeCanvas();
+window.addEventListener('resize', resizeCanvas);
+
+function drawGraph(){
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  if(graphPts.length < 2) return;
+  ctx.beginPath();
+  ctx.strokeStyle = phase==='crashed' ? '#ff4d6a' : '#00d68f';
+  ctx.lineWidth = 2.5;
+  ctx.shadowColor = ctx.strokeStyle;
+  ctx.shadowBlur = 8;
+  const maxM = Math.max(...graphPts, 1.5);
+  graphPts.forEach((m,i)=>{
+    const x = (i/(graphPts.length-1||1)) * canvas.width * 0.85 + canvas.width*0.05;
+    const y = canvas.height - (((m-1)/(maxM-1||1)) * canvas.height * 0.8 + canvas.height*0.05);
+    i===0 ? ctx.moveTo(x,y) : ctx.lineTo(x,y);
+  });
+  ctx.stroke();
+  ctx.shadowBlur = 0;
+}
+
+// Stars
+const starsEl = document.getElementById('stars');
+for(let i=0;i<40;i++){
+  const s=document.createElement('div');
+  s.className='star';
+  s.style.cssText=`width:${Math.random()*2+1}px;height:${Math.random()*2+1}px;left:${Math.random()*100}%;top:${Math.random()*100}%;animation-delay:${Math.random()*3}s;animation-duration:${Math.random()*3+2}s;`;
+  starsEl.appendChild(s);
+}
+
+function updateWallet(v){ wallet=v; document.getElementById('walletAmt').textContent=parseFloat(v).toFixed(2); }
+
+function setAviAmt(v){
+  document.getElementById('aviAmt').value=v;
+  document.querySelectorAll('.qbet').forEach(b=>b.classList.toggle('sel', parseFloat(b.textContent.replace('₹','').replace('K','000'))===v));
+}
+
+function setPhaseWait(countdown){
+  phase='waiting'; graphPts=[]; curMult=1.00;
+  document.getElementById('waitOverlay').style.display='flex';
+  document.getElementById('multWrap').style.display='none';
+  document.getElementById('crashOverlay').classList.remove('show');
+  document.getElementById('waitCd').textContent=countdown;
+  const plane=document.getElementById('plane');
+  plane.style.display='block'; plane.classList.remove('crashed');
+  plane.style.left='10%'; plane.style.bottom='20%'; plane.style.transform='';
+  planeX=10; planeY=20;
+  drawGraph();
+  // Reset cashout UI if no pending bet
+  if(!myBet){
+    document.getElementById('cashoutBtn').style.display='none';
+    document.getElementById('betStatus').classList.remove('show');
+    document.getElementById('betBtn').disabled=false;
+  }
+}
+
+function setPhaseFlying(){
+  phase='flying'; graphPts=[1.00];
+  document.getElementById('waitOverlay').style.display='none';
+  document.getElementById('multWrap').style.display='flex';
+  document.getElementById('crashOverlay').classList.remove('show');
+  updateMultDisplay(1.00);
+}
+
+function setMultiplier(m){
+  curMult=m; graphPts.push(m);
+  updateMultDisplay(m);
+  // Move plane diagonally
+  const pct = Math.min(m/20, 1);
+  planeX = 10 + pct*70;
+  planeY = 20 + pct*55;
+  const plane=document.getElementById('plane');
+  plane.style.left=planeX+'%';
+  plane.style.bottom=planeY+'%';
+  // Tilt plane upward
+  const angle = 15 + pct*20;
+  plane.style.transform=`rotate(-${angle}deg)`;
+  drawGraph();
+  // Update cashout button amount
+  if(myBet && !myBet.cashedOut){
+    const win=(myBet.amount*m).toFixed(2);
+    document.getElementById('coAmt').textContent='₹'+win;
+  }
+}
+
+function updateMultDisplay(m){
+  const el=document.getElementById('multNum');
+  el.innerHTML=m.toFixed(2)+'<span style="font-size:36px;">x</span>';
+  if(m<2) {el.className='mult-num';}
+  else if(m<5) {el.className='mult-num yellow';}
+  else {el.className='mult-num red';}
+}
+
+function setPhaseCrash(at){
+  phase='crashed';
+  graphPts.push(at);
+  drawGraph();
+  document.getElementById('crashAt').textContent='at '+at+'x';
+  document.getElementById('crashOverlay').classList.add('show');
+  document.getElementById('multWrap').style.display='none';
+  document.getElementById('plane').classList.add('crashed');
+  document.getElementById('cashoutBtn').style.display='none';
+  if(myBet && !myBet.cashedOut){
+    document.getElementById('betStatus').innerHTML=`<span style="color:var(--red);font-weight:800;">❌ Lost ₹${myBet.amount}</span> — crashed at ${at}x`;
+    document.getElementById('betStatus').classList.add('show');
+    myBet=null;
+  }
+}
+
+function addHistChip(at){
+  const bar=document.getElementById('histBar');
+  const chip=document.createElement('span');
+  chip.className='hchip '+(at<2?'low':at<5?'mid':'high');
+  chip.textContent=at+'x';
+  // Insert after "Recent:" label
+  const first=bar.children[1];
+  if(first) bar.insertBefore(chip,first); else bar.appendChild(chip);
+  // Keep max 12 chips
+  while(bar.children.length>13) bar.removeChild(bar.lastChild);
+}
+
+function addLiveItem(data){
+  const panel=document.getElementById('livePanel');
+  const div=document.createElement('div');
+  div.className='live-item';
+  div.innerHTML=`<span>@${data.username} cashed out</span><span><span class="mult">${data.mult}x</span> → <span class="win">+₹${data.win}</span></span>`;
+  panel.insertBefore(div,panel.firstChild);
+  while(panel.children.length>4) panel.removeChild(panel.lastChild);
+}
+
+// Load initial state
+async function loadState(){
+  try{
+    const r=await fetch(API+'/api/aviator/state',{headers:{Authorization:'Bearer '+token}});
+    const d=await r.json();
+    if(!r.ok){ if(r.status===401) location.href='login.html'; return; }
+    // Load history
+    d.history.forEach(h=>addHistChip(h));
+    if(d.phase==='waiting') setPhaseWait(d.countdown);
+    else if(d.phase==='flying'){ setPhaseFlying(); if(d.multiplier) setMultiplier(d.multiplier); }
+    else if(d.phase==='crashed') setPhaseCrash(d.multiplier||1);
+    if(d.myBet) restoreBet(d.myBet);
+  }catch(e){ console.error(e); }
+}
+
+async function loadWallet(){
+  try{
+    const r=await fetch(API+'/api/user/me',{headers:{Authorization:'Bearer '+token}});
+    const d=await r.json();
+    if(d.user) updateWallet(d.user.wallet);
+  }catch{}
+}
+
+function restoreBet(bet){
+  myBet=bet;
+  document.getElementById('betBtn').disabled=true;
+  document.getElementById('betStatus').innerHTML=`✈️ Bet placed: <strong>₹${bet.amount}</strong> — waiting for takeoff`;
+  document.getElementById('betStatus').classList.add('show');
+  if(phase==='flying' && !bet.cashedOut){
+    document.getElementById('cashoutBtn').style.display='block';
+  }
+}
+
+async function placeBet(){
+  if(phase!=='waiting'){ showToast('Wait for next round'); return; }
+  const amt=parseFloat(document.getElementById('aviAmt').value);
+  if(!amt||amt<10){ showToast('Minimum ₹10'); return; }
+  if(amt>wallet){ showToast('Insufficient balance'); return; }
+  const btn=document.getElementById('betBtn');
+  btn.disabled=true; btn.textContent='Placing…';
+  try{
+    const r=await fetch(API+'/api/aviator/bet',{
+      method:'POST',
+      headers:{Authorization:'Bearer '+token,'Content-Type':'application/json'},
+      body:JSON.stringify({amount:amt})
+    });
+    const d=await r.json();
+    if(!r.ok){ showToast(d.error||'Failed'); btn.disabled=false; btn.textContent='Place Bet'; return; }
+    myBet={amount:amt,cashedOut:false};
+    updateWallet(d.newBalance);
+    btn.textContent='Bet Placed ✓';
+    document.getElementById('betStatus').innerHTML=`✈️ Bet placed: <strong style="color:var(--accent)">₹${amt}</strong> — waiting for takeoff`;
+    document.getElementById('betStatus').classList.add('show');
+    showToast('Bet placed! ✈️');
+  }catch{ showToast('Network error'); btn.disabled=false; btn.textContent='Place Bet'; }
+}
+
+async function doCashout(){
+  if(phase!=='flying'||!myBet||myBet.cashedOut) return;
+  const btn=document.getElementById('cashoutBtn');
+  btn.disabled=true;
+  try{
+    const r=await fetch(API+'/api/aviator/cashout',{
+      method:'POST',
+      headers:{Authorization:'Bearer '+token,'Content-Type':'application/json'}
+    });
+    const d=await r.json();
+    if(!r.ok){ showToast(d.error||'Failed'); btn.disabled=false; return; }
+    myBet.cashedOut=true;
+    updateWallet(d.newBalance);
+    btn.style.display='none';
+    document.getElementById('betStatus').innerHTML=`<span style="color:var(--green);font-weight:800;">✅ Cashed out at ${d.multiplier}x → +₹${d.win}</span>`;
+    showToast(`🎉 Cashed out at ${d.multiplier}x! +₹${d.win}`);
+  }catch{ showToast('Network error'); btn.disabled=false; }
+}
+
+// Toast
+function showToast(msg){
+  let t=document.getElementById('toast');
+  if(!t){t=document.createElement('div');t.id='toast';t.style.cssText='position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(80px);background:var(--card);border:1px solid var(--border);border-radius:14px;padding:12px 24px;font-size:14px;font-weight:600;z-index:999;transition:transform .35s cubic-bezier(.34,1.56,.64,1);white-space:nowrap;';document.body.appendChild(t);}
+  t.textContent=msg;
+  t.style.transform='translateX(-50%) translateY(0)';
+  clearTimeout(t._t);
+  t._t=setTimeout(()=>t.style.transform='translateX(-50%) translateY(80px)',2500);
+}
+
+// Socket
+const socket=io();
+socket.on('avi:wait', d=>{ setPhaseWait(d.countdown); d.history.forEach(h=>addHistChip(h)); });
+socket.on('avi:cd',   d=>{ document.getElementById('waitCd').textContent=d.countdown; });
+socket.on('avi:fly',  ()=>{ setPhaseFlying(); if(myBet&&!myBet.cashedOut){ document.getElementById('cashoutBtn').style.display='block'; document.getElementById('coAmt').textContent='₹'+myBet.amount; } });
+socket.on('avi:tick', d=>setMultiplier(d.multiplier));
+socket.on('avi:crash',d=>{ setPhaseCrash(d.at); addHistChip(d.at); });
+socket.on('avi:cashout_pub', d=>addLiveItem(d));
+socket.on('avi:lost', ()=>{});
+socket.on('wallet:update', d=>updateWallet(d.wallet));
+
+loadState();
+loadWallet();
+</script>
+</body>
+</html>

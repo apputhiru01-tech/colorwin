@@ -816,6 +816,100 @@ async function processRound() {
 }
 
 // ════════════════════════════════════════
+//  AVIATOR GAME
+// ════════════════════════════════════════
+const avi = {
+  phase: 'waiting', multiplier: 1.00, crashPoint: 2.00,
+  startTime: null, bets: [], history: [], countdown: 8, roundId: 0
+};
+
+function aviCrashPoint() {
+  const r = Math.random();
+  if (r < 0.02) return 1.00;
+  return Math.min(parseFloat((0.97 / (1 - r)).toFixed(2)), 500);
+}
+
+function aviMult() {
+  if (!avi.startTime) return 1.00;
+  const s = (Date.now() - avi.startTime) / 1000;
+  return parseFloat(Math.pow(Math.E, 0.07 * s).toFixed(2));
+}
+
+function aviStart() {
+  avi.phase = 'waiting'; avi.multiplier = 1.00;
+  avi.crashPoint = aviCrashPoint(); avi.startTime = null;
+  avi.bets = []; avi.countdown = 8; avi.roundId++;
+  io.emit('avi:wait', { countdown: 8, history: avi.history });
+  let cd = 8;
+  const t = setInterval(() => {
+    cd--;
+    io.emit('avi:cd', { countdown: cd });
+    if (cd <= 0) { clearInterval(t); aviFly(); }
+  }, 1000);
+}
+
+function aviFly() {
+  avi.phase = 'flying'; avi.startTime = Date.now();
+  io.emit('avi:fly', { roundId: avi.roundId });
+  const t = setInterval(() => {
+    const m = aviMult(); avi.multiplier = m;
+    io.emit('avi:tick', { multiplier: m });
+    if (m >= avi.crashPoint) { clearInterval(t); aviCrash(); }
+  }, 100);
+}
+
+async function aviCrash() {
+  avi.phase = 'crashed';
+  const at = avi.crashPoint;
+  avi.history.unshift(at);
+  if (avi.history.length > 15) avi.history.pop();
+  for (const b of avi.bets) {
+    if (!b.cashedOut) {
+      const sid = userSockets.get(b.userId.toString());
+      if (sid) io.to(sid).emit('avi:lost', { amount: b.amount, at });
+    }
+  }
+  io.emit('avi:crash', { at, history: avi.history });
+  setTimeout(aviStart, 5000);
+}
+
+app.get('/api/aviator/state', authMiddleware, (req, res) => {
+  const myBet = avi.bets.find(b => b.userId.toString() === req.user.userId.toString()) || null;
+  res.json({ phase: avi.phase, multiplier: avi.multiplier, countdown: avi.countdown, history: avi.history, myBet });
+});
+
+app.post('/api/aviator/bet', authMiddleware, async (req, res) => {
+  try {
+    if (avi.phase !== 'waiting') return res.status(400).json({ error: 'Betting closed — wait for next round' });
+    const { amount } = req.body;
+    if (!amount || amount < 10) return res.status(400).json({ error: 'Minimum bet ₹10' });
+    if (avi.bets.find(b => b.userId.toString() === req.user.userId.toString()))
+      return res.status(400).json({ error: 'Already placed bet this round' });
+    const user = await User.findById(req.user.userId);
+    if (!user || user.wallet < amount) return res.status(400).json({ error: 'Insufficient balance' });
+    await User.findByIdAndUpdate(req.user.userId, { $inc: { wallet: -amount } });
+    avi.bets.push({ userId: req.user.userId, username: user.username, amount, cashedOut: false, cashoutMult: null });
+    res.json({ success: true, newBalance: user.wallet - amount });
+  } catch (e) { res.status(500).json({ error: 'Bet failed' }); }
+});
+
+app.post('/api/aviator/cashout', authMiddleware, async (req, res) => {
+  try {
+    if (avi.phase !== 'flying') return res.status(400).json({ error: 'Not flying' });
+    const bet = avi.bets.find(b => b.userId.toString() === req.user.userId.toString() && !b.cashedOut);
+    if (!bet) return res.status(400).json({ error: 'No active bet' });
+    const m = avi.multiplier;
+    const win = parseFloat((bet.amount * m).toFixed(2));
+    bet.cashedOut = true; bet.cashoutMult = m;
+    const user = await User.findByIdAndUpdate(req.user.userId, { $inc: { wallet: win } }, { new: true });
+    const sid = userSockets.get(req.user.userId.toString());
+    if (sid) io.to(sid).emit('wallet:update', { wallet: user.wallet, message: `+₹${win} (${m}x) ✈️` });
+    io.emit('avi:cashout_pub', { username: bet.username, amount: bet.amount, mult: m, win });
+    res.json({ success: true, multiplier: m, win, newBalance: user.wallet });
+  } catch (e) { res.status(500).json({ error: 'Cashout failed' }); }
+});
+
+// ════════════════════════════════════════
 //  START SERVER
 // ════════════════════════════════════════
 const PORT = process.env.PORT || 3000;
@@ -825,4 +919,5 @@ server.listen(PORT, async () => {
   console.log(`🔑  Login   → http://localhost:${PORT}/login.html`);
   console.log(`⚙️   Admin   → http://localhost:${PORT}/admin.html\n`);
   await initGame();
+  setTimeout(aviStart, 2000);
 });
