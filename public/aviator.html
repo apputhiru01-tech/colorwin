@@ -239,6 +239,49 @@ if(!token) location.href='login.html';
 let wallet=0, phase='waiting', curMult=1.00, myBet=null, graphPts=[];
 let autoCashMult=0, liveBets=[];
 
+/* ── Bot players ── */
+const BN=['rahul','priya','vikram','ankit','neha','sunny','raj','pooja','amit','riya','sachin','kavya','dev','simran','karan','rohit','divya','sonu','meena','arjun','preeti','nikhil','sonam','vivek','tanya','harsh','swati','deepak','nisha','vishal','shruti','mohit','rekha','gaurav','anjali','aditya','smita','ravi','komal','suresh','mansi','ajay','pallavi','piyush','isha','sandeep','ridhi','vinay','ruhi','prakash','tina','abhishek','seema','lokesh','sneha','kunal','pinki','tarun','radha','siddharth'];
+const BA=[200,300,500,500,800,1000,1000,1500,2000,2000,3000,5000,5000,8000,10000,15000,20000,50000];
+let botAddTimer=null, totalBotCount=0;
+
+function mkBots(){
+  totalBotCount = 500 + Math.floor(Math.random()*350); // 500-850
+  const visible = 22 + Math.floor(Math.random()*8); // 22-30 visible rows
+  const bots=[];
+  const used=new Set();
+  for(let i=0;i<visible;i++){
+    let name;
+    do{ name=BN[Math.floor(Math.random()*BN.length)]+(Math.floor(Math.random()*9000)+100); }while(used.has(name));
+    used.add(name);
+    const amt=BA[Math.floor(Math.random()*BA.length)];
+    const ac=Math.random()<0.60 ? parseFloat((1.08+Math.random()*2.6).toFixed(2)) : 0;
+    bots.push({username:name,amount:amt,autoCashout:ac,status:'waiting',isBot:true});
+  }
+  return bots;
+}
+
+function startBotJoin(){
+  clearInterval(botAddTimer);
+  liveBets=[];
+  const bots=mkBots();
+  let i=0;
+  // Stagger: add bots gradually during waiting
+  botAddTimer=setInterval(()=>{
+    if(i>=bots.length||phase!=='waiting'){clearInterval(botAddTimer);return;}
+    const count=Math.min(3+Math.floor(Math.random()*4),bots.length-i);
+    for(let c=0;c<count;c++) liveBets.unshift(bots[i++]);
+    renderBets();
+  },200);
+}
+
+function processBotTick(m){
+  liveBets.forEach(b=>{
+    if(b.isBot&&b.status==='flying'&&b.autoCashout>0&&m>=b.autoCashout){
+      b.status='won'; b.mult=b.autoCashout; b.win=parseFloat((b.amount*b.autoCashout).toFixed(0));
+    }
+  });
+}
+
 /* ── Auto cashout ── */
 function setAC(v){
   autoCashMult=v;
@@ -252,19 +295,23 @@ function setAC(v){
 /* ── Live bets ── */
 function renderBets(){
   const list=document.getElementById('bpList');
-  document.getElementById('bpCount').textContent=liveBets.length+' player'+(liveBets.length!==1?'s':'');
-  if(!liveBets.length){list.innerHTML='<div style="padding:10px 12px;font-size:11px;color:var(--muted);text-align:center;">Waiting for bets…</div>';return;}
-  list.innerHTML=liveBets.map(b=>{
-    let statusHtml='', cls='';
+  const total=totalBotCount+(myBet?1:0);
+  document.getElementById('bpCount').textContent=fmt(total)+' players';
+  if(!liveBets.length&&!myBet){list.innerHTML='<div style="padding:10px 12px;font-size:11px;color:var(--muted);text-align:center;">Waiting for bets…</div>';return;}
+  // Sort: won first, then flying, then waiting, then lost
+  const order={won:0,flying:1,waiting:2,lost:3};
+  const sorted=[...liveBets].sort((a,b)=>(order[a.status]||2)-(order[b.status]||2));
+  list.innerHTML=sorted.map(b=>{
+    let statusHtml='',cls='';
     if(b.status==='won'){
-      cls='won'; statusHtml=`✅ ${b.mult}× +₹${fmt(b.win)}`;
+      cls='won'; statusHtml=`✅ ${b.mult}× <b>+₹${fmt(b.win)}</b>`;
     } else if(b.status==='lost'){
-      cls='lost'; statusHtml=`❌ Lost`;
+      cls='lost'; statusHtml=`❌ Lost ₹${fmt(b.amount)}`;
     } else if(b.status==='flying'){
-      const live=(b.amount*curMult).toFixed(0);
+      const live=Math.floor(b.amount*curMult);
       cls='flying'; statusHtml=`✈ ₹${fmt(live)}`;
     } else {
-      cls='waiting'; statusHtml='⏳ Waiting';
+      cls='waiting'; statusHtml='⏳';
     }
     return `<div class="bp-row">
       <span class="bp-user">@${b.username}</span>
@@ -352,7 +399,7 @@ function drawGraph(){
 /* Phase helpers */
 function setWait(cd){
   phase='waiting'; graphPts=[]; curMult=1.00;
-  liveBets=[]; renderBets();
+  startBotJoin();
   document.getElementById('waitOv').style.display='flex';
   document.getElementById('multWrap').style.display='none';
   document.getElementById('crashOv').classList.remove('show');
@@ -370,6 +417,7 @@ function setWait(cd){
 
 function setFlying(){
   phase='flying'; graphPts=[1.00];
+  clearInterval(botAddTimer);
   liveBets.forEach(b=>{if(b.status==='waiting') b.status='flying';});
   renderBets();
   document.getElementById('waitOv').style.display='none';
@@ -401,7 +449,7 @@ function setTick(m){
     // Auto cashout check
     if(autoCashMult>0 && m>=autoCashMult) doCashout();
   }
-  // Update live bets panel every 3 ticks
+  processBotTick(m);
   if(graphPts.length%3===0) renderBets();
 }
 
@@ -413,7 +461,13 @@ function setMultColor(m){
 
 function setCrash(at){
   phase='crashed'; graphPts.push(at); drawGraph();
-  liveBets.forEach(b=>{if(b.status==='flying') b.status='lost';});
+  liveBets.forEach(b=>{
+    if(b.status==='flying'){
+      // Some bots "lucky" cashout right before crash
+      if(b.isBot&&Math.random()<0.15){b.status='won';b.mult=parseFloat((at*0.95+Math.random()*0.04).toFixed(2));b.win=parseFloat((b.amount*b.mult).toFixed(0));}
+      else b.status='lost';
+    }
+  });
   renderBets();
   document.getElementById('crashAt').textContent=at+'×';
   document.getElementById('crashOv').classList.add('show');
