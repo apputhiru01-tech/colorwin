@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Chicken Road — ColorWin</title>
+<style>
+:root{--bg:#080b14;--surface:#0f1320;--card:#141826;--border:#222740;--text:#e8eaf0;--muted:#6b729a;--red:#ff4d6a;--green:#00d68f;--accent:#5b8fff;--yellow:#ffd84d;--orange:#ff8c42;}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,sans-serif;min-height:100vh;display:flex;flex-direction:column;max-width:480px;margin:0 auto;}
+
+header{background:var(--surface);border-bottom:1px solid var(--border);padding:12px 16px;display:flex;align-items:center;justify-content:space-between;}
+.back-btn{background:rgba(255,255,255,.06);border:1px solid var(--border);color:var(--muted);border-radius:8px;padding:5px 10px;font-size:12px;cursor:pointer;font-family:inherit;}
+.wallet-pill{background:rgba(0,214,143,.1);border:1px solid rgba(0,214,143,.2);border-radius:20px;padding:5px 12px;font-size:13px;font-weight:800;color:var(--green);}
+
+/* Stats bar */
+.stats-bar{background:var(--surface);border-bottom:1px solid var(--border);padding:12px 18px;display:flex;justify-content:space-between;align-items:center;}
+.stat{text-align:center;}
+.stat-lbl{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;font-weight:700;}
+.stat-val{font-size:22px;font-weight:900;margin-top:2px;}
+.stat-val.green{color:var(--green);}
+.stat-val.yellow{color:var(--yellow);}
+.stat-val.orange{color:var(--orange);}
+
+/* Road area */
+.road-area{padding:20px 12px 10px;background:linear-gradient(180deg,#0a0e1a 0%,#0d1428 100%);}
+
+/* Multiplier row */
+.mult-row{display:flex;gap:6px;overflow-x:auto;padding-bottom:8px;margin-bottom:14px;}
+.mult-row::-webkit-scrollbar{display:none;}
+.mstep{flex-shrink:0;width:50px;display:flex;flex-direction:column;align-items:center;gap:4px;}
+.mstep-num{font-size:10px;color:var(--muted);font-weight:700;}
+.mstep-val{font-size:11px;font-weight:800;padding:3px 6px;border-radius:6px;background:rgba(255,255,255,.05);border:1px solid var(--border);color:var(--muted);}
+.mstep-val.done{background:rgba(0,214,143,.15);border-color:rgba(0,214,143,.3);color:var(--green);}
+.mstep-val.current{background:rgba(255,216,77,.15);border-color:rgba(255,216,77,.4);color:var(--yellow);animation:stepPulse 1s infinite;}
+@keyframes stepPulse{0%,100%{transform:scale(1)}50%{transform:scale(1.08)}}
+.mstep-val.burned{background:rgba(255,77,106,.12);border-color:rgba(255,77,106,.3);color:var(--red);}
+
+/* Road track */
+.road-track{position:relative;background:linear-gradient(180deg,rgba(255,140,66,.04),rgba(255,140,66,.02));border:1px solid rgba(255,140,66,.15);border-radius:20px;padding:16px 12px;overflow:hidden;}
+.road-bg{position:absolute;inset:0;background:repeating-linear-gradient(90deg,transparent,transparent 48px,rgba(255,255,255,.03) 48px,rgba(255,255,255,.03) 50px);border-radius:20px;}
+
+/* Ovens row */
+.ovens-row{display:flex;gap:8px;align-items:flex-end;position:relative;z-index:2;overflow-x:auto;padding-bottom:4px;}
+.ovens-row::-webkit-scrollbar{display:none;}
+
+.oven-slot{flex-shrink:0;width:52px;display:flex;flex-direction:column;align-items:center;gap:4px;}
+.oven{width:48px;height:52px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:28px;border:2px solid transparent;position:relative;transition:all .2s;}
+.oven.idle{background:rgba(255,140,66,.08);border-color:rgba(255,140,66,.2);}
+.oven.active{background:rgba(255,216,77,.12);border-color:var(--yellow);animation:ovenGlow .8s infinite;}
+@keyframes ovenGlow{0%,100%{box-shadow:0 0 0 0 rgba(255,216,77,.3)}50%{box-shadow:0 0 12px 4px rgba(255,216,77,.2)}}
+.oven.safe{background:rgba(0,214,143,.1);border-color:rgba(0,214,143,.3);}
+.oven.burning{background:rgba(255,77,106,.15);border-color:var(--red);animation:burnAnim .3s ease;}
+@keyframes burnAnim{0%{transform:scale(1)}50%{transform:scale(1.2)}100%{transform:scale(1)}}
+.oven.passed{background:rgba(0,214,143,.06);border-color:rgba(0,214,143,.15);opacity:.6;}
+.oven-label{font-size:10px;color:var(--muted);font-weight:700;text-align:center;}
+
+/* Chicken */
+.chicken-track{position:relative;height:50px;margin-top:8px;}
+.chicken{position:absolute;font-size:34px;transition:left .4s cubic-bezier(.34,1.56,.64,1);bottom:0;transform-origin:center bottom;}
+.chicken.jump{animation:chickenJump .4s ease;}
+@keyframes chickenJump{0%{transform:translateY(0) scaleX(1)}40%{transform:translateY(-18px) scaleX(1.1)}100%{transform:translateY(0) scaleX(1)}}
+.chicken.burned{animation:chickenBurn .5s ease forwards;}
+@keyframes chickenBurn{0%{transform:rotate(0) scale(1);opacity:1}50%{transform:rotate(20deg) scale(1.2);opacity:1}100%{transform:rotate(-90deg) scale(.2);opacity:0}}
+
+/* Bottom panel */
+.bottom{padding:14px;background:var(--surface);border-top:1px solid var(--border);display:flex;flex-direction:column;gap:10px;flex:1;}
+
+.setup{display:flex;flex-direction:column;gap:10px;}
+.inp-row{display:flex;gap:8px;align-items:center;}
+.inp-label{font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px;}
+.inp{background:var(--card);border:1.5px solid var(--border);border-radius:12px;color:var(--text);font-size:17px;font-weight:800;padding:11px 14px;outline:none;flex:1;font-family:inherit;}
+.inp:focus{border-color:var(--accent);}
+.quick-row{display:flex;gap:6px;}
+.qchip{background:var(--card);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:13px;font-weight:700;padding:7px 14px;cursor:pointer;font-family:inherit;}
+.qchip.sel{background:rgba(255,140,66,.15);border-color:var(--orange);color:var(--orange);}
+
+.action-row{display:flex;gap:8px;}
+.start-btn{flex:1;background:linear-gradient(135deg,#ff8c42,#e67322);border:none;border-radius:13px;color:#fff;font-size:15px;font-weight:900;padding:14px;cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:8px;}
+.start-btn:disabled{opacity:.4;cursor:not-allowed;}
+.jump-btn{flex:1;background:linear-gradient(135deg,#ffd84d,#e6a800);border:none;border-radius:13px;color:#111;font-size:15px;font-weight:900;padding:14px;cursor:pointer;font-family:inherit;display:none;animation:jumpGlow .8s infinite;}
+@keyframes jumpGlow{0%,100%{box-shadow:0 0 0 0 rgba(255,216,77,.4)}50%{box-shadow:0 0 12px 4px rgba(255,216,77,.1)}}
+.cashout-btn{flex:1;background:linear-gradient(135deg,#00d68f,#00a86b);border:none;border-radius:13px;color:#fff;font-size:14px;font-weight:900;padding:14px;cursor:pointer;font-family:inherit;display:none;animation:glowG 1s infinite;}
+@keyframes glowG{0%,100%{box-shadow:0 0 0 0 rgba(0,214,143,.35)}50%{box-shadow:0 0 10px 3px rgba(0,214,143,0)}}
+.newgame-btn{width:100%;background:var(--card);border:1.5px solid var(--border);border-radius:13px;color:var(--text);font-size:14px;font-weight:800;padding:13px;cursor:pointer;font-family:inherit;display:none;}
+
+.result-banner{display:none;padding:12px 16px;border-radius:12px;font-size:14px;font-weight:800;text-align:center;}
+.result-banner.win{background:rgba(0,214,143,.1);border:1px solid rgba(0,214,143,.25);color:var(--green);display:block;}
+.result-banner.lose{background:rgba(255,77,106,.08);border:1px solid rgba(255,77,106,.2);color:var(--red);display:block;}
+
+#toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%) translateY(60px);background:var(--card);border:1px solid var(--border);border-radius:14px;padding:10px 20px;font-size:14px;font-weight:700;z-index:999;transition:transform .3s;white-space:nowrap;pointer-events:none;}
+#toast.show{transform:translateX(-50%) translateY(0);}
+</style>
+</head>
+<body>
+
+<header>
+  <button class="back-btn" onclick="location.href='home.html'">← Home</button>
+  <div style="font-size:16px;font-weight:900;">🐔 Chicken Road</div>
+  <div class="wallet-pill">₹<span id="walletAmt">0.00</span></div>
+</header>
+
+<!-- Stats -->
+<div class="stats-bar">
+  <div class="stat">
+    <div class="stat-lbl">Multiplier</div>
+    <div class="stat-val green" id="multVal">1.00x</div>
+  </div>
+  <div class="stat">
+    <div class="stat-lbl">Step</div>
+    <div class="stat-val yellow" id="stepVal">0 / 10</div>
+  </div>
+  <div class="stat">
+    <div class="stat-lbl">Potential Win</div>
+    <div class="stat-val orange">₹<span id="potWin">0</span></div>
+  </div>
+</div>
+
+<!-- Road Area -->
+<div class="road-area">
+  <!-- Multiplier steps -->
+  <div class="mult-row" id="multRow"></div>
+
+  <!-- Road Track -->
+  <div class="road-track">
+    <div class="road-bg"></div>
+    <!-- Ovens -->
+    <div class="ovens-row" id="ovensRow"></div>
+    <!-- Chicken -->
+    <div class="chicken-track">
+      <div class="chicken" id="chicken" style="left:0px;">🐔</div>
+    </div>
+  </div>
+</div>
+
+<!-- Result -->
+<div style="padding:8px 14px 0;">
+  <div class="result-banner" id="resultBanner"></div>
+</div>
+
+<!-- Bottom Panel -->
+<div class="bottom">
+  <div class="setup" id="setupPanel">
+    <div>
+      <div class="inp-label">Bet Amount</div>
+      <div class="inp-row">
+        <input class="inp" id="betAmt" type="number" min="10" value="100" oninput="updatePot()"/>
+      </div>
+    </div>
+    <div class="quick-row">
+      <button class="qchip" onclick="setAmt(50)">₹50</button>
+      <button class="qchip sel" onclick="setAmt(100)">₹100</button>
+      <button class="qchip" onclick="setAmt(200)">₹200</button>
+      <button class="qchip" onclick="setAmt(500)">₹500</button>
+    </div>
+  </div>
+
+  <div class="result-banner" id="resultBanner2" style="display:none;"></div>
+
+  <div class="action-row">
+    <button class="start-btn" id="startBtn" onclick="startGame()">🐔 Start Game</button>
+    <button class="jump-btn"   id="jumpBtn"  onclick="doJump()">→ Jump!</button>
+    <button class="cashout-btn" id="cashoutBtn" onclick="doCashout()">💰 Cashout<br><small id="cashoutAmt" style="font-size:11px;opacity:.8;"></small></button>
+  </div>
+  <button class="newgame-btn" id="newgameBtn" onclick="resetGame()">↩ New Game</button>
+</div>
+
+<div id="toast"></div>
+<script src="/socket.io/socket.io.js"></script>
+<script>
+const API='', token=localStorage.getItem('cw_token');
+if(!token) location.href='login.html';
+
+const MULTS=[1.00,1.50,2.20,3.20,4.70,7.00,10.50,16.00,24.00,36.00,55.00];
+const TOTAL=10;
+let wallet=0, gameActive=false, currentStep=0, betAmount=100;
+
+// Build multiplier step labels
+const multRow=document.getElementById('multRow');
+MULTS.forEach((m,i)=>{
+  if(i===0) return;
+  const d=document.createElement('div');
+  d.className='mstep'; d.id='ms'+i;
+  d.innerHTML=`<div class="mstep-num">${i}</div><div class="mstep-val" id="msv${i}">${m}x</div>`;
+  multRow.appendChild(d);
+});
+
+// Build ovens + chicken track
+const ovensRow=document.getElementById('ovensRow');
+// Start position (safe zone)
+const startSlot=document.createElement('div');
+startSlot.className='oven-slot';
+startSlot.innerHTML=`<div class="oven safe" id="oven-start">🏠</div><div class="oven-label">Start</div>`;
+ovensRow.appendChild(startSlot);
+
+for(let i=1;i<=TOTAL;i++){
+  const slot=document.createElement('div');
+  slot.className='oven-slot';
+  slot.innerHTML=`<div class="oven idle" id="oven${i}">🍳</div><div class="oven-label">${MULTS[i]}x</div>`;
+  ovensRow.appendChild(slot);
+}
+
+function getOvenX(step){
+  const oven=document.getElementById(step===0?'oven-start':'oven'+step);
+  if(!oven) return 0;
+  const track=document.querySelector('.chicken-track');
+  const ovenRect=oven.getBoundingClientRect();
+  const trackRect=track.getBoundingClientRect();
+  return ovenRect.left - trackRect.left + ovenRect.width/2 - 17;
+}
+
+function moveChicken(step, animate=true){
+  const chicken=document.getElementById('chicken');
+  if(animate){chicken.classList.add('jump');setTimeout(()=>chicken.classList.remove('jump'),400);}
+  setTimeout(()=>{ chicken.style.left=Math.max(0,getOvenX(step))+'px'; },animate?50:0);
+}
+
+function updateOven(step, state){
+  // state: 'active','safe','burning','passed'
+  const el=document.getElementById(step===0?'oven-start':'oven'+step);
+  if(!el) return;
+  el.className='oven '+state;
+  if(state==='burning') el.innerHTML='🔥';
+  else if(state==='safe'||state==='passed') el.innerHTML='✅';
+  else if(state==='active') el.innerHTML='🍳';
+  else el.innerHTML='🍳';
+}
+
+function updateStepLabel(step, state){
+  const el=document.getElementById('msv'+step);
+  if(el) el.className='mstep-val '+state;
+}
+
+function updateStats(step, mult){
+  document.getElementById('multVal').textContent=parseFloat(mult).toFixed(2)+'x';
+  document.getElementById('multVal').style.color=mult<3?'var(--green)':mult<8?'var(--yellow)':'var(--orange)';
+  document.getElementById('stepVal').textContent=step+' / '+TOTAL;
+  document.getElementById('potWin').textContent=(betAmount*mult).toFixed(2);
+  document.getElementById('cashoutAmt').textContent='₹'+(betAmount*mult).toFixed(2);
+}
+
+function setAmt(v){
+  betAmount=v;
+  document.getElementById('betAmt').value=v;
+  document.querySelectorAll('.qchip').forEach(c=>c.classList.toggle('sel',parseFloat(c.textContent.replace('₹',''))===v));
+  updatePot();
+}
+function updatePot(){
+  betAmount=parseFloat(document.getElementById('betAmt').value)||100;
+  document.getElementById('potWin').textContent=(betAmount*MULTS[1]).toFixed(2);
+}
+
+function updateWallet(v){wallet=v;document.getElementById('walletAmt').textContent=parseFloat(v).toFixed(2);}
+function showToast(msg){
+  const el=document.getElementById('toast');
+  el.textContent=msg; el.classList.add('show');
+  clearTimeout(el._t); el._t=setTimeout(()=>el.classList.remove('show'),2500);
+}
+
+async function startGame(){
+  betAmount=parseFloat(document.getElementById('betAmt').value)||100;
+  if(betAmount<10){showToast('Min ₹10');return;}
+  if(betAmount>wallet){showToast('Insufficient balance');return;}
+  const btn=document.getElementById('startBtn');
+  btn.disabled=true; btn.textContent='Starting…';
+  try{
+    const r=await fetch(API+'/api/chicken/start',{method:'POST',headers:{Authorization:'Bearer '+token,'Content-Type':'application/json'},body:JSON.stringify({amount:betAmount})});
+    const d=await r.json();
+    if(!r.ok){showToast(d.error||'Failed');btn.disabled=false;btn.innerHTML='🐔 Start Game';return;}
+    updateWallet(d.newBalance);
+    gameActive=true; currentStep=0;
+    resetRoadUI();
+    document.getElementById('setupPanel').style.display='none';
+    document.getElementById('startBtn').style.display='none';
+    document.getElementById('jumpBtn').style.display='block';
+    document.getElementById('cashoutBtn').style.display='none';
+    document.getElementById('newgameBtn').style.display='none';
+    document.getElementById('resultBanner').className='result-banner';
+    updateOven(0,'safe');
+    moveChicken(0,false);
+    updateStats(0,MULTS[0]);
+    // Highlight next oven
+    updateOven(1,'active');
+  }catch{showToast('Error');btn.disabled=false;btn.innerHTML='🐔 Start Game';}
+}
+
+async function doJump(){
+  if(!gameActive) return;
+  const btn=document.getElementById('jumpBtn');
+  btn.disabled=true;
+  try{
+    const r=await fetch(API+'/api/chicken/jump',{method:'POST',headers:{Authorization:'Bearer '+token,'Content-Type':'application/json'}});
+    const d=await r.json();
+    if(!r.ok){showToast(d.error||'Failed');btn.disabled=false;return;}
+
+    if(d.result==='burned'){
+      // Mark current oven as burning
+      updateOven(d.step,'burning');
+      updateStepLabel(d.step,'burned');
+      const chicken=document.getElementById('chicken');
+      chicken.classList.add('burned');
+      gameActive=false;
+      btn.style.display='none';
+      document.getElementById('cashoutBtn').style.display='none';
+      document.getElementById('newgameBtn').style.display='block';
+      const banner=document.getElementById('resultBanner');
+      banner.className='result-banner lose';
+      banner.textContent=`🔥 Burned! Lost ₹${betAmount} at step ${d.step}`;
+      showToast('🔥 The oven was hot! Lost ₹'+betAmount);
+    } else {
+      // Safe!
+      updateOven(d.step,'safe');
+      updateStepLabel(d.step,'done');
+      if(d.step > 1) updateOven(d.step-1,'passed');
+      moveChicken(d.step);
+      currentStep=d.step;
+      updateStats(d.step, d.multiplier);
+
+      if(d.result==='maxed'){
+        gameActive=false;
+        updateWallet(d.newBalance);
+        btn.style.display='none';
+        document.getElementById('cashoutBtn').style.display='none';
+        document.getElementById('newgameBtn').style.display='block';
+        const banner=document.getElementById('resultBanner');
+        banner.className='result-banner win';
+        banner.textContent=`🎉 Max reached! Won ₹${d.win} (${d.multiplier}x)!`;
+        showToast(`🎉 Won ₹${d.win}!`);
+      } else {
+        // Show cashout + next oven
+        btn.disabled=false;
+        document.getElementById('cashoutBtn').style.display='block';
+        if(d.step < TOTAL) updateOven(d.step+1,'active');
+      }
+    }
+  }catch{showToast('Error');btn.disabled=false;}
+}
+
+async function doCashout(){
+  if(!gameActive) return;
+  const btn=document.getElementById('cashoutBtn');
+  btn.disabled=true;
+  try{
+    const r=await fetch(API+'/api/chicken/cashout',{method:'POST',headers:{Authorization:'Bearer '+token,'Content-Type':'application/json'}});
+    const d=await r.json();
+    if(!r.ok){showToast(d.error||'Failed');btn.disabled=false;return;}
+    updateWallet(d.newBalance);
+    gameActive=false;
+    document.getElementById('jumpBtn').style.display='none';
+    btn.style.display='none';
+    document.getElementById('newgameBtn').style.display='block';
+    const banner=document.getElementById('resultBanner');
+    banner.className='result-banner win';
+    banner.textContent=`💰 Cashed out! Won ₹${d.win} at ${d.multiplier}x`;
+    showToast(`💰 Won ₹${d.win} at ${d.multiplier}x!`);
+  }catch{showToast('Error');btn.disabled=false;}
+}
+
+function resetRoadUI(){
+  const chicken=document.getElementById('chicken');
+  chicken.className='chicken'; chicken.style.left='0px'; chicken.innerHTML='🐔';
+  updateOven(0,'safe');
+  for(let i=1;i<=TOTAL;i++) updateOven(i,'idle');
+  for(let i=1;i<=TOTAL;i++){
+    const el=document.getElementById('msv'+i);
+    if(el) el.className='mstep-val';
+  }
+}
+
+function resetGame(){
+  gameActive=false; currentStep=0;
+  resetRoadUI();
+  document.getElementById('setupPanel').style.display='flex';
+  document.getElementById('startBtn').style.display='block';
+  document.getElementById('startBtn').disabled=false;
+  document.getElementById('startBtn').innerHTML='🐔 Start Game';
+  document.getElementById('jumpBtn').style.display='none';
+  document.getElementById('cashoutBtn').style.display='none';
+  document.getElementById('newgameBtn').style.display='none';
+  document.getElementById('resultBanner').className='result-banner';
+  updateStats(0,MULTS[0]);
+  updatePot();
+}
+
+async function init(){
+  try{
+    const r=await fetch(API+'/api/auth/me',{headers:{Authorization:'Bearer '+token}});
+    if(!r.ok){localStorage.removeItem('cw_token');location.href='login.html';return;}
+    updateWallet((await r.json()).user.wallet);
+  }catch{}
+  try{
+    const r=await fetch(API+'/api/chicken/state',{headers:{Authorization:'Bearer '+token}});
+    const d=await r.json();
+    if(d.active){
+      betAmount=d.amount; currentStep=d.step; gameActive=true;
+      document.getElementById('betAmt').value=betAmount;
+      resetRoadUI();
+      for(let i=1;i<=d.step;i++){updateOven(i,'safe');updateStepLabel(i,'done');}
+      if(d.step<TOTAL) updateOven(d.step+1,'active');
+      moveChicken(d.step,false);
+      document.getElementById('setupPanel').style.display='none';
+      document.getElementById('startBtn').style.display='none';
+      document.getElementById('jumpBtn').style.display='block';
+      document.getElementById('cashoutBtn').style.display=d.step>0?'block':'none';
+      updateStats(d.step, d.multiplier);
+    }
+  }catch{}
+  updatePot();
+}
+
+const socket=io();
+socket.on('wallet:update',d=>updateWallet(d.wallet));
+init();
+</script>
+</body>
+</html>
