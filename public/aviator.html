@@ -312,7 +312,7 @@ function renderBets(){
       cls='lost'; statusHtml=`❌ Lost ₹${fmt(b.amount)}`;
     } else if(b.status==='flying'){
       const live=Math.floor(b.amount*curMult);
-      cls='flying'; statusHtml=`✈ ₹${fmt(live)}`;
+      cls='flying'; statusHtml=`✈ <b>₹${fmt(live)}</b>`;
     } else {
       cls='waiting'; statusHtml='⏳';
     }
@@ -453,7 +453,7 @@ function setTick(m){
     if(autoCashMult>0 && m>=autoCashMult) doCashout();
   }
   processBotTick(m);
-  if(graphPts.length%3===0) renderBets();
+  renderBets();
 }
 
 function setMultColor(m){
