@@ -312,7 +312,7 @@ async function loadState(){
 
 async function loadWallet(){
   try{
-    const r=await fetch(API+'/api/user/me',{headers:{Authorization:'Bearer '+token}});
+    const r=await fetch(API+'/api/auth/me',{headers:{Authorization:'Bearer '+token}});
     const d=await r.json();
     if(d.user) updateWallet(d.user.wallet);
   }catch{}
