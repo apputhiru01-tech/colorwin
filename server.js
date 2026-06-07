@@ -533,8 +533,13 @@ app.post('/api/auth/google/complete', async (req, res) => {
 // Get current user
 app.get('/api/auth/me', authMiddleware, async (req, res) => {
   try {
-    const user = await User.findById(req.user.userId).select('-password -__v');
+    let user = await User.findById(req.user.userId).select('-password -__v');
     if (!user) return res.status(404).json({ error: 'User not found' });
+    // Auto-generate referral code for existing users who don't have one
+    if (!user.referralCode) {
+      const code = await makeReferralCode(user.username);
+      user = await User.findByIdAndUpdate(user._id, { referralCode: code }, { new: true }).select('-password -__v');
+    }
     res.json({ user: safeUser(user) });
   } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
