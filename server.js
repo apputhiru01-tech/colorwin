@@ -1030,10 +1030,11 @@ const avi = {
 
 function aviCrashPoint() {
   const r = Math.random();
-  if (r < 0.12) return 1.00;           // 12% instant crash
-  if (r < 0.45) return parseFloat((1.01 + Math.random() * 0.8).toFixed(2)); // 33% crash 1.0–1.8x
-  const raw = 0.95 / (1 - r);          // remaining: 5% house edge
-  return Math.min(parseFloat(raw.toFixed(2)), 150);
+  if (r < 0.22) return 1.00;                                                  // 22% crash at 1.00x
+  if (r < 0.55) return parseFloat((1.01 + Math.random() * 0.49).toFixed(2)); // 33% crash 1.01–1.50x
+  if (r < 0.72) return parseFloat((1.51 + Math.random() * 0.49).toFixed(2)); // 17% crash 1.51–2.00x
+  const raw = 0.92 / (1 - r);                                                 // remaining 28%: 8% house edge
+  return Math.min(parseFloat(raw.toFixed(2)), 100);
 }
 
 // Random speed factor per round so each flight feels different
