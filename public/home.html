@@ -3,105 +3,103 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
-<title>ColorWin — Choose Game</title>
+<title>ColorWin</title>
 <style>
-:root{--bg:#080b14;--surface:#0f1320;--card:#141826;--border:#222740;--text:#e8eaf0;--muted:#6b729a;--red:#ff4d6a;--green:#00d68f;--accent:#5b8fff;--yellow:#ffd84d;--violet:#9b59ff;}
+:root{--bg:#0b0e1a;--surface:#141826;--card:#1a1f30;--border:#252a3d;--text:#e8eaf0;--muted:#6b729a;--red:#ff4d6a;--green:#00d68f;--accent:#4d8fff;--yellow:#ffd84d;--violet:#9b59ff;--teal:#00c2a8;}
 *{box-sizing:border-box;margin:0;padding:0;}
-body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,sans-serif;min-height:100vh;display:flex;flex-direction:column;max-width:480px;margin:0 auto;}
+body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,sans-serif;min-height:100vh;max-width:480px;margin:0 auto;display:flex;flex-direction:column;padding-bottom:72px;}
 
-header{display:flex;align-items:center;justify-content:space-between;padding:16px 20px;background:var(--surface);border-bottom:1px solid var(--border);}
-.logo{font-size:20px;font-weight:900;}
+/* ── Top Header ── */
+.top-header{display:flex;align-items:center;justify-content:space-between;padding:14px 16px 12px;background:var(--surface);}
+.logo{font-size:20px;font-weight:900;color:#fff;}
 .logo span{color:var(--yellow);}
-.user-row{display:flex;align-items:center;gap:10px;}
-.avatar{width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--violet));display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:800;color:#fff;}
-.username{font-size:13px;font-weight:700;color:var(--muted);}
-.logout-btn{background:none;border:1px solid var(--border);color:var(--muted);border-radius:8px;padding:5px 10px;font-size:12px;cursor:pointer;font-family:inherit;}
+.header-right{display:flex;align-items:center;gap:10px;}
+.wallet-chip{background:rgba(0,214,143,.12);border:1px solid rgba(0,214,143,.3);border-radius:20px;padding:6px 14px;font-size:14px;font-weight:800;color:var(--green);cursor:pointer;display:flex;align-items:center;gap:4px;}
+.wallet-chip .wc-add{font-size:11px;background:rgba(0,214,143,.2);border-radius:10px;padding:2px 7px;color:var(--green);}
+.hdr-avatar{width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,#5b8fff,#9b59ff);display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:800;cursor:pointer;}
 
-.wallet-card{margin:20px 16px;background:linear-gradient(135deg,rgba(0,214,143,.12),rgba(91,143,255,.08));border:1.5px solid rgba(0,214,143,.25);border-radius:20px;padding:20px 22px;display:flex;align-items:center;justify-content:space-between;}
-.wc-left{}
-.wc-lbl{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;font-weight:700;}
-.wc-amt{font-size:36px;font-weight:900;color:var(--green);margin-top:4px;}
-.wc-right{display:flex;flex-direction:column;gap:8px;}
-.wc-btn{border:none;border-radius:12px;font-size:13px;font-weight:800;padding:10px 18px;cursor:pointer;font-family:inherit;}
-.add-btn{background:linear-gradient(135deg,#5b8fff,#3b5fff);color:#fff;}
-.wd-btn{background:rgba(0,214,143,.12);border:1.5px solid rgba(0,214,143,.3);color:var(--green);}
+/* ── Category Tabs ── */
+.cat-tabs{display:flex;gap:0;padding:0 8px;background:var(--surface);border-bottom:1px solid var(--border);scrollbar-width:none;overflow-x:auto;}
+.cat-tabs::-webkit-scrollbar{display:none;}
+.cat-tab{display:flex;flex-direction:column;align-items:center;gap:3px;padding:10px 14px;border-radius:10px;cursor:pointer;white-space:nowrap;transition:all .2s;min-width:68px;border:none;background:none;font-family:inherit;}
+.cat-tab.active{background:linear-gradient(160deg,#1a50e0,#0d38b0);}
+.cat-tab-icon{font-size:20px;line-height:1;}
+.cat-tab-label{font-size:11px;font-weight:700;color:rgba(255,255,255,.5);}
+.cat-tab.active .cat-tab-label{color:#fff;}
 
-.section-lbl{font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:1px;padding:0 16px;margin-bottom:12px;}
+/* ── Sub-category Row ── */
+.sub-cat-row{display:flex;gap:10px;padding:12px 14px;overflow-x:auto;scrollbar-width:none;}
+.sub-cat-row::-webkit-scrollbar{display:none;}
+.sub-card{flex-shrink:0;width:108px;height:54px;border-radius:12px;overflow:hidden;cursor:pointer;position:relative;display:flex;align-items:center;justify-content:flex-end;padding-right:10px;box-shadow:0 3px 12px rgba(0,0,0,.5);}
+.sub-card-label{font-size:13px;font-weight:800;color:#fff;text-shadow:0 1px 5px rgba(0,0,0,.8);position:relative;z-index:2;letter-spacing:.3px;}
+.sub-card-bg{position:absolute;left:8px;top:50%;transform:translateY(-50%);font-size:28px;z-index:1;}
 
-/* ── 2-col thumbnail game grid ── */
-.game-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;padding:0 16px;margin-bottom:14px;}
-.gc-thumb{border-radius:16px;overflow:hidden;cursor:pointer;transition:transform .15s;background:#1a1a28;box-shadow:0 4px 16px rgba(0,0,0,.4);}
-.gc-thumb:active{transform:scale(.97);}
-.gc-art{height:150px;position:relative;overflow:hidden;display:flex;align-items:flex-end;justify-content:center;}
-.gc-thumb-label{background:rgba(15,15,25,.85);backdrop-filter:blur(4px);padding:9px 12px;font-size:12px;font-weight:800;color:#fff;letter-spacing:.8px;text-transform:uppercase;text-align:center;}
+/* ── Section Heading ── */
+.sec-head{display:flex;align-items:center;justify-content:space-between;padding:12px 14px 8px;}
+.sec-title{font-size:15px;font-weight:900;color:#fff;display:flex;align-items:center;gap:6px;}
+.sec-all{font-size:12px;color:var(--accent);font-weight:700;cursor:pointer;background:rgba(77,143,255,.12);border:1px solid rgba(77,143,255,.25);border-radius:20px;padding:4px 12px;}
 
-/* Aviator card art */
-.avi-art{background:linear-gradient(160deg,#2a0505 0%,#3d0808 40%,#1a0303 100%);}
-.avi-art::before{content:'';position:absolute;inset:0;background-image:repeating-linear-gradient(45deg,rgba(160,0,0,.18) 0,rgba(160,0,0,.18) 1px,transparent 0,transparent 50%),repeating-linear-gradient(-45deg,rgba(160,0,0,.18) 0,rgba(160,0,0,.18) 1px,transparent 0,transparent 50%);background-size:22px 22px;}
-.avi-art-inner{position:relative;z-index:2;display:flex;flex-direction:column;align-items:center;padding-bottom:12px;width:100%;}
-.avi-plane-svg{font-size:52px;filter:drop-shadow(0 0 14px rgba(220,0,0,.6));transform:scaleX(-1);display:block;line-height:1;}
-.avi-brand-txt{font-size:22px;font-weight:900;font-style:italic;color:#cc1111;font-family:Georgia,serif;text-shadow:0 0 20px rgba(255,0,0,.5);margin-top:2px;letter-spacing:-.5px;}
-.avi-brand-line{width:36px;height:2px;background:linear-gradient(90deg,transparent,#cc1111,transparent);margin:3px auto 0;}
+/* ── Game Grid 3-col ── */
+.game-grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;padding:0 12px 16px;}
+.gc3{border-radius:12px;overflow:hidden;cursor:pointer;transition:transform .15s;background:#1a1f30;box-shadow:0 4px 16px rgba(0,0,0,.5);}
+.gc3:active{transform:scale(.95);}
+.gc3-art{height:130px;position:relative;overflow:hidden;display:flex;align-items:center;justify-content:center;}
+.gc3-name{position:absolute;bottom:0;left:0;right:0;background:linear-gradient(transparent,rgba(0,0,0,.82));padding:22px 5px 5px;font-size:9.5px;font-weight:800;color:#fff;text-align:center;letter-spacing:.4px;line-height:1.3;text-transform:uppercase;}
+.rtp-badge{background:#071e1c;padding:4px 7px;display:flex;align-items:center;justify-content:space-between;}
+.rtp-lbl{font-size:9px;font-weight:700;color:var(--teal);letter-spacing:.5px;}
+.rtp-val{font-size:10px;font-weight:900;color:var(--teal);}
 
-/* Chicken Road card art */
-.cr-art{background:linear-gradient(180deg,#d45000 0%,#e87000 50%,#f09000 100%);}
-.cr-art::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 35% 0%,rgba(255,220,80,.35) 0%,transparent 55%),radial-gradient(ellipse at 75% 0%,rgba(255,180,40,.25) 0%,transparent 45%);}
-.cr-city{position:absolute;bottom:0;left:0;right:0;height:44px;background:#1a0800;clip-path:polygon(0 100%,0 70%,4% 70%,4% 45%,9% 45%,9% 60%,15% 60%,15% 30%,21% 30%,21% 60%,28% 60%,28% 42%,34% 42%,34% 60%,41% 60%,41% 22%,48% 22%,48% 60%,56% 60%,56% 38%,62% 38%,62% 60%,70% 60%,70% 28%,77% 28%,77% 60%,85% 60%,85% 48%,92% 48%,92% 60%,100% 60%,100% 100%);}
-.cr-art-inner{position:relative;z-index:2;display:flex;flex-direction:column;align-items:center;padding-bottom:46px;width:100%;}
-.cr-chicken-icon{font-size:58px;filter:drop-shadow(0 4px 10px rgba(0,0,0,.5));display:block;line-height:1;}
-.cr-brand-txt{font-size:14px;font-weight:900;color:#fff;text-shadow:0 2px 6px rgba(0,0,0,.6);text-align:center;line-height:1.2;}
+/* ── Aviator art ── */
+.art-avi{background:linear-gradient(160deg,#180202,#3a0707,#200404);}
+.art-avi::before{content:'';position:absolute;inset:0;background-image:repeating-linear-gradient(45deg,rgba(200,0,0,.12) 0,rgba(200,0,0,.12) 1px,transparent 0,transparent 36px),repeating-linear-gradient(-45deg,rgba(200,0,0,.12) 0,rgba(200,0,0,.12) 1px,transparent 0,transparent 36px);}
+.avi-art-c{position:relative;z-index:2;display:flex;flex-direction:column;align-items:center;}
+.avi-plane{font-size:40px;display:block;filter:drop-shadow(0 0 14px rgba(255,50,50,.9));transform:scaleX(-1);}
+.avi-logo{font-size:17px;font-weight:900;font-style:italic;color:#d80e0e;font-family:Georgia,serif;text-shadow:0 0 18px rgba(255,0,0,.7);margin-top:1px;}
+.avi-uline{width:24px;height:2px;background:linear-gradient(90deg,transparent,#d80e0e,transparent);margin:3px auto 0;}
 
-/* Mines card art */
-.mines-art{background:linear-gradient(160deg,#1a1500 0%,#2a2000 40%,#1a1a00 100%);}
-.mines-art::before{content:'';position:absolute;inset:0;background-image:repeating-linear-gradient(90deg,rgba(255,216,77,.06) 0,rgba(255,216,77,.06) 1px,transparent 0,transparent 30px),repeating-linear-gradient(0deg,rgba(255,216,77,.06) 0,rgba(255,216,77,.06) 1px,transparent 0,transparent 30px);}
-.mines-art-inner{position:relative;z-index:2;display:flex;flex-direction:column;align-items:center;padding-bottom:12px;width:100%;}
-.mines-icon{font-size:44px;display:block;line-height:1;filter:drop-shadow(0 0 12px rgba(255,216,77,.5));}
-.mines-brand-txt{font-size:20px;font-weight:900;color:#ffd84d;text-shadow:0 0 16px rgba(255,216,77,.5);margin-top:4px;letter-spacing:1px;}
+/* ── Chicken Road art ── */
+.art-cr{background:linear-gradient(170deg,#b52c00,#e05000,#c84000);}
+.art-cr::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 35% 0%,rgba(255,210,60,.3) 0%,transparent 55%);}
+.cr-art-c{position:relative;z-index:2;display:flex;flex-direction:column;align-items:center;padding-bottom:18px;}
+.cr-chick{font-size:50px;display:block;filter:drop-shadow(0 4px 10px rgba(0,0,0,.6));}
+.cr-city-mini{position:absolute;bottom:0;left:0;right:0;height:22px;background:#1a0400;clip-path:polygon(0 100%,0 55%,5% 55%,5% 25%,12% 25%,12% 55%,20% 55%,20% 38%,28% 38%,28% 55%,38% 55%,38% 18%,47% 18%,47% 55%,58% 55%,58% 32%,66% 32%,66% 55%,75% 55%,75% 25%,84% 25%,84% 55%,93% 55%,93% 45%,100% 45%,100% 100%);}
 
-/* Color Trading card art */
-.ct-art{background:linear-gradient(160deg,#0d0520 0%,#180a35 40%,#0d1030 100%);}
-.ct-art::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 50% 50%,rgba(155,89,255,.15) 0%,transparent 70%);}
-.ct-art-inner{position:relative;z-index:2;display:flex;flex-direction:column;align-items:center;padding-bottom:12px;width:100%;gap:8px;}
-.ct-dots-row{display:flex;gap:10px;margin-top:4px;}
-.ct-dot{width:28px;height:28px;border-radius:50%;box-shadow:0 0 14px currentColor;}
-.ct-dot.r{background:#ff4d6a;color:#ff4d6a;}
-.ct-dot.g{background:#00d68f;color:#00d68f;}
-.ct-dot.v{background:#9b59ff;color:#9b59ff;}
-.ct-brand-txt{font-size:16px;font-weight:900;color:#fff;letter-spacing:.5px;text-shadow:0 0 12px rgba(155,89,255,.5);}
+/* ── Color Trading art ── */
+.art-ct{background:linear-gradient(160deg,#0c0420,#1c0940,#0c0e2e);}
+.art-ct::before{content:'';position:absolute;inset:0;background:conic-gradient(from 0deg at 50% 45%,rgba(255,77,106,.15),rgba(91,143,255,.15),rgba(155,89,255,.15),rgba(0,214,143,.15),rgba(255,77,106,.15));}
+.ct-art-c{position:relative;z-index:2;display:flex;flex-direction:column;align-items:center;gap:8px;}
+.ct-vortex{width:54px;height:54px;border-radius:50%;background:conic-gradient(#ff4d6a 0% 25%,#00d68f 25% 50%,#5b8fff 50% 75%,#9b59ff 75% 100%);box-shadow:0 0 22px rgba(155,89,255,.6),0 0 8px rgba(255,77,106,.4);}
+.ct-inner-ring{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%) rotate(45deg);width:54px;height:54px;border-radius:50%;border:3px solid rgba(255,255,255,.12);}
 
-/* Full-width game cards (legacy style kept for compat) */
-.games{display:flex;flex-direction:column;gap:14px;padding:0 16px;flex:1;}
-.game-card{border-radius:22px;overflow:hidden;cursor:pointer;transition:transform .15s;position:relative;}
-.game-card:active{transform:scale(.98);}
-.color-card{background:linear-gradient(135deg,#1a0a2e,#0d1640,#141826);border:1.5px solid rgba(155,89,255,.3);}
-.avi-card{background:linear-gradient(135deg,#0a1628,#0d1f3c,#0f2040);border:1.5px solid rgba(91,143,255,.35);}
-.gc-inner{padding:22px 20px 20px;}
-.gc-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;}
-.gc-icon{font-size:44px;line-height:1;}
-.gc-badge{font-size:11px;font-weight:800;padding:4px 12px;border-radius:20px;text-transform:uppercase;letter-spacing:.5px;}
-.gc-badge.live{background:rgba(0,214,143,.15);color:var(--green);border:1px solid rgba(0,214,143,.3);}
-.gc-badge.hot{background:rgba(255,77,106,.12);color:var(--red);border:1px solid rgba(255,77,106,.3);}
-.gc-name{font-size:24px;font-weight:900;margin-bottom:6px;}
-.gc-desc{font-size:13px;color:var(--muted);line-height:1.5;}
-.gc-footer{display:flex;align-items:center;justify-content:space-between;margin-top:18px;padding-top:14px;border-top:1px solid rgba(255,255,255,.06);}
-.gc-stat{font-size:12px;color:var(--muted);}
-.gc-stat strong{color:var(--text);}
-.gc-play{border:none;border-radius:12px;font-size:14px;font-weight:800;padding:10px 22px;cursor:pointer;font-family:inherit;}
-.color-play{background:linear-gradient(135deg,#9b59ff,#7b39df);color:#fff;}
-.avi-play{background:linear-gradient(135deg,#5b8fff,#3b5fff);color:#fff;}
-.color-dots{display:flex;gap:6px;margin-top:8px;}
-.cdot{width:18px;height:18px;border-radius:50%;}
-.cdot.r{background:var(--red);}
-.cdot.g{background:var(--green);}
-.cdot.v{background:var(--violet);}
-.avi-bar{display:flex;gap:4px;align-items:flex-end;margin-top:8px;height:24px;}
-.abar{background:var(--accent);border-radius:3px 3px 0 0;width:10px;opacity:.6;}
-.bottom-space{height:20px;}
+/* ── Mines art ── */
+.art-mines{background:linear-gradient(160deg,#060518,#0c0a30,#0a1026);}
+.art-mines::before{content:'';position:absolute;inset:0;background-image:repeating-linear-gradient(90deg,rgba(77,143,255,.05) 0,rgba(77,143,255,.05) 1px,transparent 0,transparent 26px),repeating-linear-gradient(0deg,rgba(77,143,255,.05) 0,rgba(77,143,255,.05) 1px,transparent 0,transparent 26px);}
+.mines-art-c{position:relative;z-index:2;display:flex;flex-direction:column;align-items:center;gap:2px;}
+.mines-jili{font-size:8px;font-weight:900;color:#ffd84d;letter-spacing:1.5px;background:rgba(255,216,77,.15);border:1px solid rgba(255,216,77,.4);border-radius:4px;padding:2px 7px;}
+.mines-bomb{font-size:36px;display:block;filter:drop-shadow(0 0 14px rgba(255,216,77,.7));}
+.mines-logo{font-size:16px;font-weight:900;color:#ffd84d;text-shadow:0 0 12px rgba(255,216,77,.6);letter-spacing:1.5px;font-style:italic;}
 
-/* Modals */
-.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);display:none;align-items:flex-end;justify-content:center;z-index:100;}
+/* ── Coming Soon card ── */
+.art-soon{background:linear-gradient(160deg,#141422,#1c1c30);}
+.soon-c{position:relative;z-index:2;display:flex;flex-direction:column;align-items:center;gap:4px;}
+.soon-icon{font-size:30px;opacity:.4;}
+.soon-txt{font-size:9px;font-weight:800;color:var(--muted);text-transform:uppercase;text-align:center;letter-spacing:.5px;}
+
+/* ── Bottom Navigation ── */
+.bottom-nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:480px;background:var(--surface);border-top:1px solid var(--border);display:flex;align-items:flex-end;justify-content:space-around;padding:8px 0 14px;z-index:50;}
+.nav-item{display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;flex:1;padding-top:2px;}
+.nav-icon{font-size:22px;line-height:1;}
+.nav-label{font-size:10px;font-weight:700;color:var(--muted);}
+.nav-item.active .nav-label{color:var(--accent);}
+.nav-center{flex:1;display:flex;justify-content:center;align-items:flex-end;}
+.nav-spin-btn{width:56px;height:56px;border-radius:50%;background:linear-gradient(140deg,#ff8c00,#ff4400);display:flex;flex-direction:column;align-items:center;justify-content:center;box-shadow:0 4px 18px rgba(255,140,0,.45);margin-bottom:8px;cursor:pointer;border:3px solid var(--bg);}
+.spin-icon{font-size:22px;line-height:1;}
+.spin-lbl{font-size:8px;font-weight:900;color:#fff;white-space:nowrap;margin-top:1px;}
+
+/* ── Modals ── */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.75);display:none;align-items:flex-end;justify-content:center;z-index:200;}
 .modal-overlay.show{display:flex;}
-.modal-sheet{background:var(--card);border:1px solid var(--border);border-radius:24px 24px 0 0;padding:28px 24px 40px;width:100%;max-width:480px;animation:sUp .3s cubic-bezier(.34,1.56,.64,1);position:relative;}
+.modal-sheet{background:var(--card);border:1px solid var(--border);border-radius:24px 24px 0 0;padding:28px 24px 40px;width:100%;max-width:480px;animation:sUp .3s cubic-bezier(.34,1.56,.64,1);position:relative;max-height:90vh;overflow-y:auto;}
 @keyframes sUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
 .m-close{position:absolute;top:20px;right:20px;background:none;border:none;color:var(--muted);font-size:22px;cursor:pointer;}
 .m-title{font-size:20px;font-weight:900;margin-bottom:16px;}
@@ -124,185 +122,187 @@ header{display:flex;align-items:center;justify-content:space-between;padding:16p
 .upi-pay-name{font-size:15px;font-weight:800;color:var(--accent);}
 .upi-pay-sub{font-size:11px;color:var(--muted);margin-top:1px;}
 .upi-pay-arrow{color:var(--muted);font-size:20px;}
-#toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(80px);background:var(--card);border:1px solid var(--border);border-radius:14px;padding:12px 24px;font-size:14px;font-weight:600;z-index:999;transition:transform .35s cubic-bezier(.34,1.56,.64,1);pointer-events:none;white-space:nowrap;}
+#toast{position:fixed;bottom:90px;left:50%;transform:translateX(-50%) translateY(80px);background:var(--card);border:1px solid var(--border);border-radius:14px;padding:12px 24px;font-size:14px;font-weight:600;z-index:999;transition:transform .35s cubic-bezier(.34,1.56,.64,1);pointer-events:none;white-space:nowrap;}
 #toast.show{transform:translateX(-50%) translateY(0);}
 </style>
 </head>
 <body>
 
-<header>
+<!-- Top Header -->
+<div class="top-header">
   <div class="logo">Color<span>Win</span></div>
-  <div class="user-row">
-    <div class="avatar" id="userAvatar" onclick="location.href='profile.html'" style="cursor:pointer;" title="View Profile">?</div>
-    <span class="username" id="userName" onclick="location.href='profile.html'" style="cursor:pointer;">...</span>
-    <button class="logout-btn" onclick="doLogout()">Logout</button>
-  </div>
-</header>
-
-<!-- Wallet Card -->
-<div class="wallet-card">
-  <div class="wc-left">
-    <div class="wc-lbl">Your Wallet</div>
-    <div class="wc-amt">₹<span id="walletAmt">0.00</span></div>
-    <div style="font-size:11px;color:var(--muted);margin-top:4px;">Same balance for all games</div>
-  </div>
-  <div class="wc-right">
-    <button class="wc-btn add-btn" onclick="openDeposit()">+ Add Money</button>
-    <button class="wc-btn wd-btn" onclick="openWithdraw()">Withdraw</button>
+  <div class="header-right">
+    <div class="wallet-chip" onclick="openDeposit()">
+      ₹<span id="walletAmt">0.00</span>
+      <span class="wc-add">+ Add</span>
+    </div>
+    <div class="hdr-avatar" id="userAvatar" onclick="location.href='profile.html'">?</div>
   </div>
 </div>
 
-<div class="section-lbl">Choose a Game</div>
+<!-- Category Tabs -->
+<div class="cat-tabs">
+  <button class="cat-tab active">
+    <span class="cat-tab-icon">🏆</span>
+    <span class="cat-tab-label">Popular</span>
+  </button>
+  <button class="cat-tab">
+    <span class="cat-tab-icon">🎟️</span>
+    <span class="cat-tab-label">Lottery</span>
+  </button>
+  <button class="cat-tab">
+    <span class="cat-tab-icon">🎰</span>
+    <span class="cat-tab-label">Casino</span>
+  </button>
+  <button class="cat-tab">
+    <span class="cat-tab-icon">🎲</span>
+    <span class="cat-tab-label">Slots</span>
+  </button>
+</div>
 
-<!-- 2-col visual game cards -->
-<div class="game-grid">
+<!-- Sub-category Scroll Row -->
+<div class="sub-cat-row">
+  <div class="sub-card" style="background:linear-gradient(120deg,#9c0020,#e0103a);" onclick="location.href='chicken-road.html'">
+    <div class="sub-card-bg">🐔</div>
+    <span class="sub-card-label">Rummy</span>
+  </div>
+  <div class="sub-card" style="background:linear-gradient(120deg,#004f8a,#0080cc);" onclick="location.href='mines.html'">
+    <div class="sub-card-bg">🐟</div>
+    <span class="sub-card-label">Fishing</span>
+  </div>
+  <div class="sub-card" style="background:linear-gradient(120deg,#280a60,#5c20c0);" onclick="location.href='aviator.html'">
+    <div class="sub-card-bg">✈️</div>
+    <span class="sub-card-label">Original</span>
+  </div>
+  <div class="sub-card" style="background:linear-gradient(120deg,#0a3a10,#1a7a30);" onclick="location.href='index.html'">
+    <div class="sub-card-bg">🎨</div>
+    <span class="sub-card-label">Color</span>
+  </div>
+</div>
+
+<!-- Section Heading -->
+<div class="sec-head">
+  <div class="sec-title">🔥 Platform recommendation</div>
+  <div class="sec-all">All 4 ›</div>
+</div>
+
+<!-- 3-column Game Grid -->
+<div class="game-grid3">
 
   <!-- Aviator -->
-  <div class="gc-thumb" onclick="location.href='aviator.html'">
-    <div class="gc-art avi-art">
-      <div class="avi-art-inner">
-        <span class="avi-plane-svg">✈</span>
-        <div class="avi-brand-txt">Aviator</div>
-        <div class="avi-brand-line"></div>
+  <div class="gc3" onclick="location.href='aviator.html'">
+    <div class="gc3-art art-avi">
+      <div class="avi-art-c">
+        <span class="avi-plane">✈</span>
+        <div class="avi-logo">Aviator</div>
+        <div class="avi-uline"></div>
       </div>
+      <div class="gc3-name">AVIATOR</div>
     </div>
-    <div class="gc-thumb-label">AVIATOR</div>
+    <div class="rtp-badge">
+      <span class="rtp-lbl">RTP</span>
+      <span class="rtp-val">96.81%</span>
+    </div>
   </div>
 
-  <!-- Chicken Road -->
-  <div class="gc-thumb" onclick="location.href='chicken-road.html'">
-    <div class="gc-art cr-art">
-      <div class="cr-city"></div>
-      <div class="cr-art-inner">
-        <span class="cr-chicken-icon">🐔</span>
-        <div class="cr-brand-txt">Chicken<br>Road 2</div>
+  <!-- Chicken Road 2 -->
+  <div class="gc3" onclick="location.href='chicken-road.html'">
+    <div class="gc3-art art-cr">
+      <div class="cr-art-c">
+        <span class="cr-chick">🐔</span>
       </div>
+      <div class="cr-city-mini"></div>
+      <div class="gc3-name">CHICKEN<br>ROAD 2</div>
     </div>
-    <div class="gc-thumb-label">CHICKEN ROAD 2</div>
+    <div class="rtp-badge">
+      <span class="rtp-lbl">RTP</span>
+      <span class="rtp-val">97.42%</span>
+    </div>
   </div>
 
-  <!-- Mines -->
-  <div class="gc-thumb" onclick="location.href='mines.html'">
-    <div class="gc-art mines-art">
-      <div class="mines-art-inner">
-        <span class="mines-icon">💣</span>
-        <div class="mines-brand-txt">MINES</div>
-      </div>
-    </div>
-    <div class="gc-thumb-label">MINES</div>
-  </div>
-
-  <!-- Color Trading -->
-  <div class="gc-thumb" onclick="location.href='index.html'">
-    <div class="gc-art ct-art">
-      <div class="ct-art-inner">
-        <div class="ct-dots-row">
-          <div class="ct-dot r"></div>
-          <div class="ct-dot g"></div>
-          <div class="ct-dot v"></div>
+  <!-- Color Trading (Vortex) -->
+  <div class="gc3" onclick="location.href='index.html'">
+    <div class="gc3-art art-ct">
+      <div class="ct-art-c">
+        <div style="position:relative;display:flex;align-items:center;justify-content:center;">
+          <div class="ct-vortex"></div>
+          <div style="position:absolute;width:20px;height:20px;border-radius:50%;background:var(--bg);"></div>
         </div>
-        <div class="ct-brand-txt">Color Trading</div>
+        <div style="font-size:11px;font-weight:900;color:#fff;margin-top:5px;letter-spacing:.5px;text-align:center;">COLOR<br>TRADE</div>
       </div>
+      <div class="gc3-name">COLOR TRADING</div>
     </div>
-    <div class="gc-thumb-label">COLOR TRADING</div>
-  </div>
-
-</div>
-
-<div class="games" style="display:none;">
-  <!-- Color Trading -->
-  <div class="game-card color-card" onclick="location.href='index.html'">
-    <div class="gc-inner">
-      <div class="gc-top">
-        <div class="gc-icon">🎨</div>
-        <div class="gc-badge live">🟢 Live</div>
-      </div>
-      <div class="gc-name">Color Trading</div>
-      <div class="gc-desc">Red, Green ya Violet — sahi color choose karo aur jeeto! Multiplier up to 3x</div>
-      <div class="color-dots">
-        <div class="cdot r"></div>
-        <div class="cdot g"></div>
-        <div class="cdot v"></div>
-      </div>
-      <div class="gc-footer">
-        <div class="gc-stat">Multiplier <strong>1.5x – 3x</strong></div>
-        <button class="gc-play color-play" onclick="event.stopPropagation();location.href='index.html'">Play Now →</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- Chicken Road -->
-  <div class="game-card" onclick="location.href='chicken-road.html'" style="background:linear-gradient(135deg,#0f1a08,#141f0a,#0d1606);border:1.5px solid rgba(255,140,66,.25);border-radius:22px;overflow:hidden;cursor:pointer;transition:transform .15s;">
-    <div class="gc-inner">
-      <div class="gc-top">
-        <div class="gc-icon">🐔</div>
-        <div class="gc-badge" style="background:rgba(255,140,66,.12);color:var(--orange);border:1px solid rgba(255,140,66,.25);">⚡ Exciting</div>
-      </div>
-      <div class="gc-name">Chicken Road</div>
-      <div class="gc-desc">Murgi ko ovens se bachao — jitne zyada jump karo, utna bada multiplier!</div>
-      <div style="display:flex;gap:4px;margin-top:8px;align-items:center;">
-        <span style="font-size:22px;">🏠</span>
-        <span style="font-size:14px;color:var(--muted);">→</span>
-        <span style="font-size:22px;">🍳</span>
-        <span style="font-size:14px;color:var(--muted);">→</span>
-        <span style="font-size:22px;">🍳</span>
-        <span style="font-size:14px;color:var(--muted);">→</span>
-        <span style="font-size:22px;">🍳</span>
-        <span style="font-size:14px;color:var(--muted);">→ 55x</span>
-      </div>
-      <div class="gc-footer">
-        <div class="gc-stat">Max <strong style="color:var(--orange);">55x</strong> multiplier</div>
-        <button class="gc-play" onclick="event.stopPropagation();location.href='chicken-road.html'" style="background:linear-gradient(135deg,#ff8c42,#e67322);color:#fff;">Play Now →</button>
-      </div>
+    <div class="rtp-badge">
+      <span class="rtp-lbl">RTP</span>
+      <span class="rtp-val">96.25%</span>
     </div>
   </div>
 
   <!-- Mines -->
-  <div class="game-card" onclick="location.href='mines.html'" style="background:linear-gradient(135deg,#1a0f00,#201500,#1a1200);border:1.5px solid rgba(255,216,77,.25);border-radius:22px;overflow:hidden;cursor:pointer;transition:transform .15s;">
-    <div class="gc-inner">
-      <div class="gc-top">
-        <div class="gc-icon">💣</div>
-        <div class="gc-badge" style="background:rgba(255,216,77,.12);color:var(--yellow);border:1px solid rgba(255,216,77,.25);">💰 Big Win</div>
+  <div class="gc3" onclick="location.href='mines.html'">
+    <div class="gc3-art art-mines">
+      <div class="mines-art-c">
+        <div class="mines-jili">JILI</div>
+        <span class="mines-bomb">💣</span>
+        <div class="mines-logo">MINES</div>
       </div>
-      <div class="gc-name">Mines</div>
-      <div class="gc-desc">Grid mein chupi mines se bacho — jitne zyada gems dhoondo, utna bada multiplier!</div>
-      <div style="display:flex;gap:6px;margin-top:8px;">
-        <span style="font-size:20px;">💎</span><span style="font-size:20px;">💎</span><span style="font-size:20px;">💣</span><span style="font-size:20px;">💎</span><span style="font-size:20px;">💎</span>
-      </div>
-      <div class="gc-footer">
-        <div class="gc-stat">Up to <strong style="color:var(--yellow);">24x+</strong> per gem</div>
-        <button class="gc-play" onclick="event.stopPropagation();location.href='mines.html'" style="background:linear-gradient(135deg,#ffd84d,#e6a800);color:#111;">Play Now →</button>
-      </div>
+      <div class="gc3-name">MINES</div>
+    </div>
+    <div class="rtp-badge">
+      <span class="rtp-lbl">RTP</span>
+      <span class="rtp-val">96.48%</span>
     </div>
   </div>
 
-  <!-- Aviator -->
-  <div class="game-card avi-card" onclick="location.href='aviator.html'">
-    <div class="gc-inner">
-      <div class="gc-top">
-        <div class="gc-icon">✈️</div>
-        <div class="gc-badge hot">🔥 Popular</div>
-      </div>
-      <div class="gc-name">Aviator</div>
-      <div class="gc-desc">Plane uda, multiplier badhao — crash se pehle cashout karo aur bada jeeto!</div>
-      <div class="avi-bar">
-        <div class="abar" style="height:8px;"></div>
-        <div class="abar" style="height:12px;"></div>
-        <div class="abar" style="height:16px;opacity:.7"></div>
-        <div class="abar" style="height:22px;opacity:.8"></div>
-        <div class="abar" style="height:18px;opacity:.9"></div>
-        <div class="abar" style="height:24px;"></div>
-      </div>
-      <div class="gc-footer">
-        <div class="gc-stat">Max win <strong>500x+</strong></div>
-        <button class="gc-play avi-play" onclick="event.stopPropagation();location.href='aviator.html'">Play Now →</button>
+  <!-- Coming Soon -->
+  <div class="gc3" style="opacity:.5;cursor:default;">
+    <div class="gc3-art art-soon">
+      <div class="soon-c">
+        <span class="soon-icon">🎰</span>
+        <div class="soon-txt">Coming<br>Soon</div>
       </div>
     </div>
+    <div class="rtp-badge"><span class="rtp-lbl">RTP</span><span class="rtp-val">—</span></div>
+  </div>
+
+  <!-- Coming Soon 2 -->
+  <div class="gc3" style="opacity:.5;cursor:default;">
+    <div class="gc3-art art-soon">
+      <div class="soon-c">
+        <span class="soon-icon">🃏</span>
+        <div class="soon-txt">Coming<br>Soon</div>
+      </div>
+    </div>
+    <div class="rtp-badge"><span class="rtp-lbl">RTP</span><span class="rtp-val">—</span></div>
   </div>
 
 </div>
 
-<div class="bottom-space"></div>
+<!-- Bottom Navigation -->
+<div class="bottom-nav">
+  <div class="nav-item active">
+    <span class="nav-icon">🏠</span>
+    <span class="nav-label" style="color:var(--accent);">Home</span>
+  </div>
+  <div class="nav-item" onclick="openDeposit()">
+    <span class="nav-icon">🎁</span>
+    <span class="nav-label">Activity</span>
+  </div>
+  <div class="nav-center">
+    <div class="nav-spin-btn" onclick="openDeposit()">
+      <span class="spin-icon">🎰</span>
+      <span class="spin-lbl">Get ₹500</span>
+    </div>
+  </div>
+  <div class="nav-item" onclick="openDeposit()">
+    <span class="nav-icon">💰</span>
+    <span class="nav-label">Promotion</span>
+  </div>
+  <div class="nav-item" onclick="location.href='profile.html'">
+    <span class="nav-icon">👤</span>
+    <span class="nav-label">Account</span>
+  </div>
+</div>
 
 <!-- Deposit Modal -->
 <div class="modal-overlay" id="dModal" onclick="if(event.target===this)this.classList.remove('show')">
@@ -343,8 +343,6 @@ header{display:flex;align-items:center;justify-content:space-between;padding:16p
       </div>
     </div>
     <button class="m-btn" style="background:var(--surface);border:1.5px solid var(--border);color:var(--muted);font-size:13px;padding:12px;" onclick="showUtrStep()">Enter UTR after paying →</button>
-
-    <!-- UTR Step (hidden by default) -->
     <div id="utrStep" style="display:none;margin-top:4px;">
       <div style="height:1px;background:var(--border);margin-bottom:16px;"></div>
       <div class="m-grp">
@@ -386,7 +384,7 @@ header{display:flex;align-items:center;justify-content:space-between;padding:16p
 
 <script src="/socket.io/socket.io.js"></script>
 <script>
-const API   = '';
+const API = '';
 const token = localStorage.getItem('cw_token');
 if(!token) location.href='login.html';
 
@@ -400,7 +398,6 @@ async function boot(){
     const u=d.user;
     wallet=u.wallet;
     document.getElementById('walletAmt').textContent=parseFloat(wallet).toFixed(2);
-    document.getElementById('userName').textContent='@'+u.username;
     document.getElementById('userAvatar').textContent=(u.name||u.username||'?')[0].toUpperCase();
 
     const cfg=await fetch(API+'/api/config').then(r=>r.json());
@@ -490,11 +487,6 @@ async function submitWithdraw(){
     document.getElementById('walletAmt').textContent=parseFloat(wallet).toFixed(2);
     document.getElementById('wOk').classList.add('show');
   }catch{el.textContent='Network error';}
-}
-
-function doLogout(){
-  localStorage.removeItem('cw_token');
-  location.href='login.html';
 }
 
 function showToast(msg){
