@@ -282,6 +282,7 @@ header{background:var(--surface);border-bottom:2px solid var(--orange);padding:1
       <button class="mbtn jump-btn" id="jumpBtn" onclick="doJump()">⬆ JUMP!</button>
       <button class="mbtn cashout-btn" id="cashoutBtn" onclick="doCashout()">💰 Cash Out<br>₹<span id="coAmt">0</span></button>
     </div>
+    <button id="cancelBtn" onclick="cancelGame()" style="background:none;border:none;color:#888;font-size:12px;margin-top:6px;cursor:pointer;width:100%;text-align:center;">✕ Cancel game</button>
   </div>
 
   <!-- New game: shown after round ends -->
@@ -477,6 +478,17 @@ async function startGame(){
   }catch{showToast('Error');btn.disabled=false;btn.innerHTML='<span class="start-btn-icon">🐔</span> Start Game';}
 }
 
+async function cancelGame(){
+  if(!gameActive) return;
+  gameActive=false;
+  try{
+    const r=await fetch(API+'/api/chicken/cancel',{method:'POST',headers:{Authorization:'Bearer '+token}});
+    const d=await r.json();
+    if(d.refunded && d.newBalance!=null) updateWallet(d.newBalance);
+  }catch{}
+  resetGame();
+}
+
 function showCrashCar(step, onImpact){
   const road=document.getElementById('road');
   const car=document.createElement('div');
@@ -597,7 +609,8 @@ async function init(){
   try{
     const r=await fetch(API+'/api/chicken/state',{headers:{Authorization:'Bearer '+token}});
     const d=await r.json();
-    if(d.active){
+    if(d.active && d.step > 0){
+      // Resume mid-game (player already jumped)
       betAmount=d.amount; currentStep=d.step; gameActive=true;
       if(d.level) { selectedLevel=d.level; MULTS=LEVEL_DATA[d.level].mults; }
       document.getElementById('betAmt').value=betAmount;
@@ -605,8 +618,12 @@ async function init(){
       if(d.step<TOTAL) setLaneState(d.step+1,'next-lane');
       moveChicken(d.step,false);
       setGameMode('game');
-      document.getElementById('cashoutBtn').style.display=d.step>0?'block':'none';
+      document.getElementById('cashoutBtn').style.display='block';
       updateStats(d.step,d.multiplier);
+    } else if(d.active && d.step === 0){
+      // Stale game with no jumps — cancel and refund silently
+      await fetch(API+'/api/chicken/cancel',{method:'POST',headers:{Authorization:'Bearer '+token}});
+      setGameMode('setup');
     } else {
       setGameMode('setup');
     }

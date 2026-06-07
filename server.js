@@ -1356,6 +1356,21 @@ app.get('/api/chicken/state', authMiddleware, (req, res) => {
   res.json({ active: true, step: game.step, amount: game.amount, multiplier: lv.mults[game.step], level: game.level || 1 });
 });
 
+app.post('/api/chicken/cancel', authMiddleware, async (req, res) => {
+  try {
+    const game = chickenGames.get(req.user.userId.toString());
+    if (!game || !game.active) return res.json({ success: true });
+    game.active = false;
+    // Refund bet only if no jumps made yet
+    if (game.step === 0) {
+      await User.findByIdAndUpdate(req.user.userId, { $inc: { wallet: game.amount } });
+      const user = await User.findById(req.user.userId);
+      return res.json({ success: true, refunded: true, newBalance: user.wallet });
+    }
+    res.json({ success: true, refunded: false });
+  } catch (e) { res.status(500).json({ error: 'Failed' }); }
+});
+
 // ════════════════════════════════════════
 //  DAILY LUCKY SPIN
 // ════════════════════════════════════════
