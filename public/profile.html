@@ -1,0 +1,480 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Profile — ColorWin</title>
+<style>
+:root{--bg:#080b14;--surface:#0f1320;--card:#141826;--border:#222740;--text:#e8eaf0;--muted:#6b729a;--red:#ff4d6a;--green:#00d68f;--accent:#5b8fff;--yellow:#ffd84d;--violet:#9b59ff;}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,sans-serif;min-height:100vh;max-width:480px;margin:0 auto;padding-bottom:40px;}
+
+header{display:flex;align-items:center;gap:12px;padding:14px 16px;background:var(--surface);border-bottom:1px solid var(--border);}
+.back-btn{background:none;border:1px solid var(--border);color:var(--muted);border-radius:8px;padding:6px 12px;font-size:13px;cursor:pointer;font-family:inherit;}
+
+/* Profile hero */
+.hero{background:linear-gradient(135deg,rgba(91,143,255,.12),rgba(155,89,255,.08));border-bottom:1px solid var(--border);padding:28px 20px 24px;display:flex;flex-direction:column;align-items:center;gap:10px;text-align:center;}
+.avatar-big{width:72px;height:72px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--violet));display:flex;align-items:center;justify-content:center;font-size:30px;font-weight:900;color:#fff;border:3px solid rgba(91,143,255,.4);}
+.hero-name{font-size:22px;font-weight:900;}
+.hero-user{font-size:14px;color:var(--accent);font-weight:700;}
+.hero-email{font-size:12px;color:var(--muted);margin-top:2px;}
+.wallet-big{background:rgba(0,214,143,.1);border:1.5px solid rgba(0,214,143,.25);border-radius:16px;padding:12px 28px;margin-top:6px;}
+.wallet-lbl{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;font-weight:700;}
+.wallet-amt{font-size:32px;font-weight:900;color:var(--green);}
+.quick-btns{display:flex;gap:10px;margin-top:4px;}
+.qb{border:none;border-radius:12px;font-size:13px;font-weight:800;padding:10px 22px;cursor:pointer;font-family:inherit;}
+.qb.add{background:linear-gradient(135deg,#5b8fff,#3b5fff);color:#fff;}
+.qb.wd{background:rgba(0,214,143,.12);border:1.5px solid rgba(0,214,143,.3);color:var(--green);}
+
+/* Stats row */
+.stats-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;padding:16px;}
+.stat-card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:14px 10px;text-align:center;}
+.stat-val{font-size:22px;font-weight:900;}
+.stat-lbl{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-top:4px;}
+
+/* Section cards */
+.section{background:var(--card);border:1px solid var(--border);border-radius:18px;margin:0 16px 14px;overflow:hidden;}
+.sec-hdr{padding:14px 18px;border-bottom:1px solid var(--border);font-size:14px;font-weight:700;display:flex;align-items:center;gap:8px;}
+.sec-body{padding:18px;display:flex;flex-direction:column;gap:12px;}
+
+/* Form */
+.f-grp{display:flex;flex-direction:column;gap:5px;}
+.f-lbl{font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;}
+.f-inp{background:var(--surface);border:1.5px solid var(--border);border-radius:12px;color:var(--text);font-size:15px;font-weight:600;padding:12px 14px;outline:none;width:100%;font-family:inherit;transition:border-color .2s;}
+.f-inp:focus{border-color:var(--accent);}
+.f-inp:disabled{opacity:.5;cursor:not-allowed;}
+.save-btn{background:linear-gradient(135deg,#5b8fff,#3b5fff);border:none;border-radius:12px;color:#fff;font-size:14px;font-weight:800;padding:12px;cursor:pointer;font-family:inherit;width:100%;}
+.save-btn:disabled{opacity:.5;cursor:not-allowed;}
+.f-msg{font-size:12px;min-height:16px;}
+.f-msg.ok{color:var(--green);}
+.f-msg.err{color:var(--red);}
+
+/* History list */
+.hist-item{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:12px 14px;display:flex;justify-content:space-between;align-items:center;}
+.hi-left{}
+.hi-rnd{font-size:11px;color:var(--muted);}
+.hi-color{font-size:13px;font-weight:700;margin-top:2px;}
+.hi-color.red{color:var(--red);}
+.hi-color.green{color:var(--green);}
+.hi-color.violet{color:var(--violet);}
+.hi-right{text-align:right;}
+.hi-amt{font-size:15px;font-weight:900;}
+.hi-amt.win{color:var(--green);}
+.hi-amt.lose{color:var(--red);}
+.hi-bet{font-size:11px;color:var(--muted);margin-top:2px;}
+.dep-item{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:12px 14px;display:flex;justify-content:space-between;align-items:center;}
+.empty-txt{text-align:center;color:var(--muted);padding:20px;font-size:13px;}
+
+/* Logout */
+.logout-btn-big{width:calc(100% - 32px);margin:0 16px;background:rgba(255,77,106,.08);border:1.5px solid rgba(255,77,106,.25);border-radius:14px;color:var(--red);font-size:15px;font-weight:800;padding:14px;cursor:pointer;font-family:inherit;}
+.logout-btn-big:hover{background:rgba(255,77,106,.14);}
+
+/* Modal overlay */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);display:none;align-items:flex-end;justify-content:center;z-index:100;}
+.modal-overlay.show{display:flex;}
+.modal-sheet{background:var(--card);border:1px solid var(--border);border-radius:24px 24px 0 0;padding:28px 24px 40px;width:100%;max-width:480px;animation:sUp .3s cubic-bezier(.34,1.56,.64,1);position:relative;}
+@keyframes sUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
+.m-close{position:absolute;top:20px;right:20px;background:none;border:none;color:var(--muted);font-size:22px;cursor:pointer;}
+.m-title{font-size:20px;font-weight:900;margin-bottom:16px;}
+.m-grp{display:flex;flex-direction:column;gap:6px;margin-bottom:14px;}
+.m-lbl{font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;}
+.m-inp{background:var(--surface);border:1.5px solid var(--border);border-radius:13px;color:var(--text);font-size:15px;font-weight:600;padding:13px 16px;outline:none;width:100%;font-family:inherit;transition:border-color .2s;}
+.m-inp:focus{border-color:var(--accent);}
+.m-err{font-size:12px;color:var(--red);min-height:16px;}
+.m-btn{width:100%;border:none;border-radius:14px;color:#fff;font-size:15px;font-weight:800;padding:15px;cursor:pointer;font-family:inherit;margin-top:4px;}
+.m-btn.green{background:linear-gradient(135deg,#00d68f,#00a86b);}
+.m-btn.blue{background:linear-gradient(135deg,#5b8fff,#3b5fff);}
+.success-msg{background:rgba(0,214,143,.1);border:1px solid rgba(0,214,143,.3);border-radius:12px;padding:14px 16px;color:var(--green);font-size:13px;font-weight:600;display:none;}
+.success-msg.show{display:block;}
+.quick-deps{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px;}
+.qdep{background:var(--surface);border:1px solid var(--border);border-radius:10px;color:var(--text);font-size:13px;font-weight:700;padding:8px 16px;cursor:pointer;font-family:inherit;}
+.qdep.sel{background:rgba(91,143,255,.15);border-color:var(--accent);color:var(--accent);}
+.copy-upi-btn{background:rgba(91,143,255,.15);border:1px solid var(--accent);border-radius:8px;color:var(--accent);font-size:11px;font-weight:700;padding:5px 10px;cursor:pointer;font-family:inherit;}
+#toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(80px);background:var(--card);border:1px solid var(--border);border-radius:14px;padding:12px 24px;font-size:14px;font-weight:600;z-index:999;transition:transform .35s cubic-bezier(.34,1.56,.64,1);pointer-events:none;white-space:nowrap;}
+#toast.show{transform:translateX(-50%) translateY(0);}
+</style>
+</head>
+<body>
+
+<header>
+  <button class="back-btn" onclick="location.href='home.html'">← Back</button>
+  <span style="font-size:17px;font-weight:900;">My Profile</span>
+</header>
+
+<!-- Hero -->
+<div class="hero">
+  <div class="avatar-big" id="heroAvatar">?</div>
+  <div class="hero-name" id="heroName">Loading…</div>
+  <div class="hero-user" id="heroUser">@—</div>
+  <div class="hero-email" id="heroEmail"></div>
+  <div class="wallet-big">
+    <div class="wallet-lbl">Wallet Balance</div>
+    <div class="wallet-amt">₹<span id="walletAmt">0.00</span></div>
+  </div>
+  <div class="quick-btns">
+    <button class="qb add" onclick="openDeposit()">+ Add Money</button>
+    <button class="qb wd" onclick="openWithdraw()">Withdraw</button>
+  </div>
+</div>
+
+<!-- Stats -->
+<div class="stats-row">
+  <div class="stat-card">
+    <div class="stat-val accent" id="statBets" style="color:var(--accent);">0</div>
+    <div class="stat-lbl">Total Bets</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-val" id="statWins" style="color:var(--green);">0</div>
+    <div class="stat-lbl">Wins</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-val" id="statWinAmt" style="color:var(--yellow);font-size:16px;">₹0</div>
+    <div class="stat-lbl">Win Amount</div>
+  </div>
+</div>
+
+<!-- Edit Profile -->
+<div class="section">
+  <div class="sec-hdr">✏️ Edit Profile</div>
+  <div class="sec-body">
+    <div class="f-grp">
+      <div class="f-lbl">Full Name</div>
+      <input class="f-inp" id="pName" type="text" placeholder="Your full name"/>
+    </div>
+    <div class="f-grp">
+      <div class="f-lbl">Phone Number</div>
+      <input class="f-inp" id="pPhone" type="tel" placeholder="10-digit mobile number"/>
+    </div>
+    <div class="f-grp">
+      <div class="f-lbl">UPI ID</div>
+      <input class="f-inp" id="pUpi" type="text" placeholder="yourname@upi"/>
+    </div>
+    <div class="f-grp">
+      <div class="f-lbl">Username</div>
+      <input class="f-inp" id="pUsername" type="text" disabled/>
+    </div>
+    <div class="f-grp">
+      <div class="f-lbl">Email</div>
+      <input class="f-inp" id="pEmail" type="text" disabled/>
+    </div>
+    <div class="f-msg" id="profileMsg"></div>
+    <button class="save-btn" onclick="saveProfile()">Save Changes</button>
+  </div>
+</div>
+
+<!-- Change Password -->
+<div class="section">
+  <div class="sec-hdr">🔒 Change Password</div>
+  <div class="sec-body">
+    <div class="f-grp">
+      <div class="f-lbl">Current Password</div>
+      <input class="f-inp" id="pwOld" type="password" placeholder="Enter current password"/>
+    </div>
+    <div class="f-grp">
+      <div class="f-lbl">New Password</div>
+      <input class="f-inp" id="pwNew" type="password" placeholder="Min 8 characters"/>
+    </div>
+    <div class="f-grp">
+      <div class="f-lbl">Confirm New Password</div>
+      <input class="f-inp" id="pwConfirm" type="password" placeholder="Repeat new password"/>
+    </div>
+    <div class="f-msg" id="pwMsg"></div>
+    <button class="save-btn" onclick="changePassword()">Update Password</button>
+  </div>
+</div>
+
+<!-- Bet History -->
+<div class="section">
+  <div class="sec-hdr">🎮 My Bet History</div>
+  <div class="sec-body" id="betHistBody">
+    <div class="empty-txt">Loading…</div>
+  </div>
+</div>
+
+<!-- Deposit History -->
+<div class="section">
+  <div class="sec-hdr">💰 Deposit History</div>
+  <div class="sec-body" id="depHistBody">
+    <div class="empty-txt">Loading…</div>
+  </div>
+</div>
+
+<!-- Logout -->
+<button class="logout-btn-big" onclick="doLogout()">🚪 Logout</button>
+
+<!-- Deposit Modal -->
+<div class="modal-overlay" id="dModal" onclick="if(event.target===this)this.classList.remove('show')">
+  <div class="modal-sheet">
+    <button class="m-close" onclick="document.getElementById('dModal').classList.remove('show')">✕</button>
+    <div class="m-title">Add Money</div>
+    <div class="m-grp">
+      <div class="m-lbl">Select Amount</div>
+      <div class="quick-deps">
+        <button class="qdep" onclick="setDA(100)">₹100</button>
+        <button class="qdep" onclick="setDA(200)">₹200</button>
+        <button class="qdep sel" onclick="setDA(500)">₹500</button>
+        <button class="qdep" onclick="setDA(1000)">₹1,000</button>
+        <button class="qdep" onclick="setDA(2000)">₹2,000</button>
+        <button class="qdep" onclick="setDA(5000)">₹5,000</button>
+      </div>
+      <input class="m-inp" id="dAmt" type="number" min="50" value="500" placeholder="Custom amount" oninput="document.querySelectorAll('.qdep').forEach(e=>e.classList.remove('sel'))"/>
+    </div>
+    <div style="background:linear-gradient(135deg,rgba(91,143,255,.1),rgba(155,89,255,.07));border:1.5px solid var(--accent);border-radius:14px;padding:14px 16px;margin-bottom:14px;display:flex;justify-content:space-between;align-items:center;">
+      <div>
+        <div style="font-size:10px;color:var(--muted);text-transform:uppercase;">Paying to</div>
+        <div style="font-size:15px;font-weight:800;" id="dUpiName">ColorWin</div>
+        <div style="font-size:12px;color:var(--accent);font-family:monospace;" id="dUpiId">loading…</div>
+      </div>
+      <button class="copy-upi-btn" onclick="navigator.clipboard.writeText(document.getElementById('dUpiId').textContent).then(()=>showToast('Copied!'))">📋 Copy</button>
+    </div>
+    <button class="m-btn blue" onclick="openUpiPay()">Pay via UPI App →</button>
+    <div style="margin-top:10px;">
+      <button class="m-btn" style="background:var(--surface);border:1.5px solid var(--border);color:var(--muted);font-size:13px;padding:12px;" onclick="showUtrStep()">Enter UTR after paying →</button>
+    </div>
+    <div id="utrStep" style="display:none;margin-top:12px;">
+      <div style="height:1px;background:var(--border);margin-bottom:14px;"></div>
+      <div class="m-grp">
+        <div class="m-lbl">UTR / Transaction ID</div>
+        <input class="m-inp" id="utrNum" type="text" placeholder="Enter UTR number"/>
+      </div>
+      <div class="m-grp">
+        <div class="m-lbl">Your UPI ID (optional)</div>
+        <input class="m-inp" id="senderUpi" type="text" placeholder="yourname@upi"/>
+      </div>
+      <div class="m-err" id="utrErr"></div>
+      <div class="success-msg" id="utrOk">✅ Request submitted! Admin will verify and credit within 30 minutes.</div>
+      <button class="m-btn blue" onclick="submitUtr()">Submit UTR →</button>
+    </div>
+  </div>
+</div>
+
+<!-- Withdraw Modal -->
+<div class="modal-overlay" id="wModal" onclick="if(event.target===this)this.classList.remove('show')">
+  <div class="modal-sheet">
+    <button class="m-close" onclick="document.getElementById('wModal').classList.remove('show')">✕</button>
+    <div class="m-title">Withdraw</div>
+    <div style="font-size:32px;font-weight:900;color:var(--green);margin-bottom:16px;">₹<span id="wBal">0.00</span></div>
+    <div class="m-grp">
+      <div class="m-lbl">Amount (min ₹100)</div>
+      <input class="m-inp" id="wAmt" type="number" min="100" placeholder="Enter amount"/>
+    </div>
+    <div class="m-grp">
+      <div class="m-lbl">Your UPI ID</div>
+      <input class="m-inp" id="wUpi" type="text" placeholder="yourname@upi"/>
+    </div>
+    <div class="m-err" id="wErr"></div>
+    <div class="success-msg" id="wOk">✅ Request submitted! Admin will transfer within 24 hours.</div>
+    <button class="m-btn green" onclick="submitWithdraw()">Request Withdrawal →</button>
+  </div>
+</div>
+
+<div id="toast"></div>
+<script src="/socket.io/socket.io.js"></script>
+<script>
+const API = '', token = localStorage.getItem('cw_token');
+if(!token) location.href = 'login.html';
+
+let wallet = 0, adminUpiId = '', adminUpiName = 'ColorWin', minDeposit = 50;
+
+async function boot(){
+  try{
+    const r = await fetch(API+'/api/auth/me', {headers:{Authorization:'Bearer '+token}});
+    if(!r.ok){localStorage.removeItem('cw_token');location.href='login.html';return;}
+    const {user} = await r.json();
+    wallet = user.wallet;
+    document.getElementById('heroAvatar').textContent = (user.name||'?')[0].toUpperCase();
+    document.getElementById('heroName').textContent = user.name;
+    document.getElementById('heroUser').textContent = '@'+user.username;
+    document.getElementById('heroEmail').textContent = user.email;
+    document.getElementById('walletAmt').textContent = fmt(user.wallet);
+    document.getElementById('statBets').textContent = user.totalBets||0;
+    document.getElementById('statWins').textContent = user.totalWins||0;
+    document.getElementById('statWinAmt').textContent = '₹'+(user.totalWinAmount||0).toFixed(0);
+    // Pre-fill edit form
+    document.getElementById('pName').value = user.name||'';
+    document.getElementById('pPhone').value = user.phone||'';
+    document.getElementById('pUpi').value = user.upiId||'';
+    document.getElementById('pUsername').value = user.username||'';
+    document.getElementById('pEmail').value = user.email||'';
+    document.getElementById('wUpi').value = user.upiId||'';
+  }catch{}
+
+  try{
+    const cfg = await fetch(API+'/api/config').then(r=>r.json());
+    adminUpiId = cfg.adminUpiId||'';
+    adminUpiName = cfg.adminUpiName||'ColorWin';
+    minDeposit = cfg.minDeposit||50;
+    document.getElementById('dUpiId').textContent = adminUpiId||'Contact admin';
+    document.getElementById('dUpiName').textContent = adminUpiName;
+  }catch{}
+
+  loadBetHistory();
+  loadDepHistory();
+}
+
+function fmt(n){return(+n||0).toLocaleString('en-IN',{minimumFractionDigits:2,maximumFractionDigits:2});}
+
+async function saveProfile(){
+  const name = document.getElementById('pName').value.trim();
+  const phone = document.getElementById('pPhone').value.trim();
+  const upiId = document.getElementById('pUpi').value.trim();
+  const msg = document.getElementById('profileMsg');
+  msg.textContent=''; msg.className='f-msg';
+  if(!name){msg.textContent='Name is required';msg.className='f-msg err';return;}
+  if(phone && phone.replace(/\D/g,'').length < 10){msg.textContent='Enter valid 10-digit phone';msg.className='f-msg err';return;}
+  try{
+    const r = await fetch(API+'/api/auth/profile',{method:'PUT',headers:{'Authorization':'Bearer '+token,'Content-Type':'application/json'},body:JSON.stringify({name,phone,upiId})});
+    const d = await r.json();
+    if(!r.ok){msg.textContent=d.error||'Failed';msg.className='f-msg err';return;}
+    msg.textContent='✅ Profile updated!';msg.className='f-msg ok';
+    document.getElementById('heroName').textContent=name;
+    document.getElementById('heroAvatar').textContent=name[0].toUpperCase();
+    showToast('Profile saved!');
+    setTimeout(()=>{msg.textContent='';},3000);
+  }catch{msg.textContent='Network error';msg.className='f-msg err';}
+}
+
+async function changePassword(){
+  const oldP = document.getElementById('pwOld').value;
+  const newP = document.getElementById('pwNew').value;
+  const conf = document.getElementById('pwConfirm').value;
+  const msg = document.getElementById('pwMsg');
+  msg.textContent=''; msg.className='f-msg';
+  if(!oldP){msg.textContent='Enter current password';msg.className='f-msg err';return;}
+  if(newP.length<8){msg.textContent='New password must be at least 8 characters';msg.className='f-msg err';return;}
+  if(newP!==conf){msg.textContent='Passwords do not match';msg.className='f-msg err';return;}
+  try{
+    const r = await fetch(API+'/api/auth/password',{method:'PUT',headers:{'Authorization':'Bearer '+token,'Content-Type':'application/json'},body:JSON.stringify({oldPassword:oldP,newPassword:newP})});
+    const d = await r.json();
+    if(!r.ok){msg.textContent=d.error||'Failed';msg.className='f-msg err';return;}
+    msg.textContent='✅ Password changed!';msg.className='f-msg ok';
+    document.getElementById('pwOld').value='';
+    document.getElementById('pwNew').value='';
+    document.getElementById('pwConfirm').value='';
+    showToast('Password updated!');
+    setTimeout(()=>{msg.textContent='';},3000);
+  }catch{msg.textContent='Network error';msg.className='f-msg err';}
+}
+
+async function loadBetHistory(){
+  const el = document.getElementById('betHistBody');
+  try{
+    const r = await fetch(API+'/api/game/history',{headers:{Authorization:'Bearer '+token}});
+    const d = await r.json();
+    const bets = d.bets||[];
+    if(!bets.length){el.innerHTML='<div class="empty-txt">No bets yet</div>';return;}
+    el.innerHTML = bets.slice(0,15).map(b=>`
+      <div class="hist-item">
+        <div class="hi-left">
+          <div class="hi-rnd">Round #${String(b.roundNumber).padStart(4,'0')}</div>
+          <div class="hi-color ${b.color}">${b.color.toUpperCase()} → ${b.result.toUpperCase()}</div>
+        </div>
+        <div class="hi-right">
+          <div class="hi-amt ${b.win?'win':'lose'}">${b.win?'+₹'+b.payout.toFixed(2):'-₹'+b.amount.toFixed(2)}</div>
+          <div class="hi-bet">Bet ₹${b.amount.toFixed(2)}</div>
+        </div>
+      </div>`).join('');
+  }catch{el.innerHTML='<div class="empty-txt">Failed to load</div>';}
+}
+
+async function loadDepHistory(){
+  const el = document.getElementById('depHistBody');
+  try{
+    const r = await fetch(API+'/api/deposit/my',{headers:{Authorization:'Bearer '+token}});
+    const d = await r.json();
+    const deps = d.deposits||[];
+    if(!deps.length){el.innerHTML='<div class="empty-txt">No deposits yet</div>';return;}
+    el.innerHTML = deps.slice(0,10).map(dep=>{
+      const color = dep.status==='approved'?'var(--green)':dep.status==='rejected'?'var(--red)':'var(--yellow)';
+      const icon  = dep.status==='approved'?'✅':dep.status==='rejected'?'❌':'⏳';
+      return `<div class="dep-item">
+        <div>
+          <div style="font-size:16px;font-weight:800;">₹${(+dep.amount).toFixed(2)}</div>
+          <div style="font-size:11px;color:var(--muted);font-family:monospace;">UTR: ${dep.utrNumber}</div>
+          <div style="font-size:11px;color:var(--muted);">${new Date(dep.createdAt).toLocaleString('en-IN',{dateStyle:'short',timeStyle:'short'})}</div>
+          ${dep.adminNote?`<div style="font-size:11px;color:var(--muted);">${dep.adminNote}</div>`:''}
+        </div>
+        <div style="font-size:13px;font-weight:800;color:${color};">${icon} ${dep.status.toUpperCase()}</div>
+      </div>`;
+    }).join('');
+  }catch{el.innerHTML='<div class="empty-txt">Failed to load</div>';}
+}
+
+// Deposit modal
+function openDeposit(){
+  document.getElementById('utrStep').style.display='none';
+  document.getElementById('utrOk').classList.remove('show');
+  document.getElementById('utrErr').textContent='';
+  document.getElementById('utrNum').value='';
+  document.getElementById('senderUpi').value='';
+  document.getElementById('dModal').classList.add('show');
+}
+function setDA(v){
+  document.getElementById('dAmt').value=v;
+  document.querySelectorAll('.qdep').forEach(e=>e.classList.toggle('sel',parseFloat(e.textContent.replace(/[₹,]/g,''))===v));
+}
+function openUpiPay(){
+  if(!adminUpiId){showToast('UPI ID not configured');return;}
+  const amt=document.getElementById('dAmt').value||500;
+  const url=`upi://pay?pa=${encodeURIComponent(adminUpiId)}&pn=${encodeURIComponent(adminUpiName)}&am=${amt}&cu=INR&tn=ColorWin+Deposit`;
+  window.location.href=url;
+}
+function showUtrStep(){
+  document.getElementById('utrStep').style.display='block';
+  document.getElementById('utrOk').classList.remove('show');
+  document.getElementById('utrErr').textContent='';
+}
+async function submitUtr(){
+  const utr=document.getElementById('utrNum').value.trim();
+  const sUpi=document.getElementById('senderUpi').value.trim();
+  const amt=parseFloat(document.getElementById('dAmt').value);
+  const errEl=document.getElementById('utrErr');
+  errEl.textContent='';
+  if(!utr||utr.length<6){errEl.textContent='Enter valid UTR (min 6 digits)';return;}
+  if(!amt||amt<minDeposit){errEl.textContent=`Minimum deposit ₹${minDeposit}`;return;}
+  try{
+    const r=await fetch(API+'/api/deposit/manual',{method:'POST',headers:{'Authorization':'Bearer '+token,'Content-Type':'application/json'},body:JSON.stringify({amount:amt,utrNumber:utr,senderUpi:sUpi})});
+    const d=await r.json();
+    if(!r.ok){errEl.textContent=d.error||'Failed';return;}
+    document.getElementById('utrOk').classList.add('show');
+    document.getElementById('utrNum').value='';
+    document.getElementById('senderUpi').value='';
+  }catch{errEl.textContent='Network error';}
+}
+
+// Withdraw modal
+function openWithdraw(){
+  document.getElementById('wBal').textContent=fmt(wallet);
+  document.getElementById('wErr').textContent='';
+  document.getElementById('wOk').classList.remove('show');
+  document.getElementById('wModal').classList.add('show');
+}
+async function submitWithdraw(){
+  const amt=parseFloat(document.getElementById('wAmt').value);
+  const upi=document.getElementById('wUpi').value.trim();
+  const el=document.getElementById('wErr');
+  el.textContent='';
+  if(!amt||amt<100){el.textContent='Minimum ₹100';return;}
+  if(amt>wallet){el.textContent='Insufficient balance';return;}
+  if(!upi){el.textContent='Enter UPI ID';return;}
+  try{
+    const r=await fetch(API+'/api/payment/withdraw',{method:'POST',headers:{'Authorization':'Bearer '+token,'Content-Type':'application/json'},body:JSON.stringify({amount:amt,upiId:upi})});
+    const d=await r.json();
+    if(!r.ok){el.textContent=d.error||'Failed';return;}
+    wallet=d.newBalance;
+    document.getElementById('walletAmt').textContent=fmt(wallet);
+    document.getElementById('wOk').classList.add('show');
+    showToast('Withdrawal requested!');
+  }catch{el.textContent='Network error';}
+}
+
+function doLogout(){localStorage.removeItem('cw_token');location.href='login.html';}
+function showToast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove('show'),2500);}
+
+const socket=io();
+socket.on('wallet:update',d=>{if(d.wallet!=null){wallet=d.wallet;document.getElementById('walletAmt').textContent=fmt(d.wallet);}});
+
+boot();
+</script>
+</body>
+</html>
