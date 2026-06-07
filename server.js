@@ -996,15 +996,23 @@ function aviCrashPoint() {
   return Math.min(parseFloat(raw.toFixed(2)), 150);
 }
 
+// Random speed factor per round so each flight feels different
+function newSpeedFactor() {
+  // Range 0.025–0.075 → slow glide to fast rocket
+  return parseFloat((0.025 + Math.random() * 0.05).toFixed(4));
+}
+
 function aviMult() {
   if (!avi.startTime) return 1.00;
   const s = (Date.now() - avi.startTime) / 1000;
-  return parseFloat(Math.pow(Math.E, 0.04 * s).toFixed(2));
+  return parseFloat(Math.pow(Math.E, avi.speedFactor * s).toFixed(2));
 }
 
 function aviStart() {
   avi.phase = 'waiting'; avi.multiplier = 1.00;
-  avi.crashPoint = aviCrashPoint(); avi.startTime = null;
+  avi.crashPoint = aviCrashPoint();
+  avi.speedFactor = newSpeedFactor();
+  avi.startTime = null;
   avi.bets = []; avi.countdown = 8; avi.roundId++;
   io.emit('avi:wait', { countdown: 8, history: avi.history });
   let cd = 8;
@@ -1017,7 +1025,7 @@ function aviStart() {
 
 function aviFly() {
   avi.phase = 'flying'; avi.startTime = Date.now();
-  io.emit('avi:fly', { roundId: avi.roundId });
+  io.emit('avi:fly', { roundId: avi.roundId, speedFactor: avi.speedFactor });
   const t = setInterval(() => {
     const m = aviMult(); avi.multiplier = m;
     io.emit('avi:tick', { multiplier: m });
@@ -1061,7 +1069,7 @@ async function aviCrash() {
 app.get('/api/aviator/state', authMiddleware, (req, res) => {
   const myBet = avi.bets.find(b => b.userId.toString() === req.user.userId.toString()) || null;
   const liveBets = avi.bets.map(b => ({ username: b.username, amount: b.amount, cashedOut: b.cashedOut, cashoutMult: b.cashoutMult }));
-  res.json({ phase: avi.phase, multiplier: avi.multiplier, countdown: avi.countdown, history: avi.history, myBet, liveBets });
+  res.json({ phase: avi.phase, multiplier: avi.multiplier, countdown: avi.countdown, history: avi.history, myBet, liveBets, speedFactor: avi.speedFactor || 0.04 });
 });
 
 app.post('/api/aviator/bet', authMiddleware, async (req, res) => {

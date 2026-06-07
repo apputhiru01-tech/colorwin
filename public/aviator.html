@@ -47,7 +47,7 @@ canvas#gc{position:absolute;inset:0;width:100%;height:100%;}
 .star{position:absolute;background:#fff;border-radius:50%;pointer-events:none;}
 
 /* ── Plane ── */
-#planeEl{position:absolute;z-index:5;pointer-events:none;transition:none;filter:drop-shadow(0 0 10px rgba(255,50,50,.8));}
+#planeEl{position:absolute;z-index:5;pointer-events:none;transition:left 0.09s linear,bottom 0.09s linear,transform 0.12s ease-out;filter:drop-shadow(0 0 10px rgba(255,50,50,.8));}
 #planeEl svg{width:70px;height:44px;}
 #planeEl.crashed{animation:planeCrash .5s ease-in forwards;}
 @keyframes planeCrash{0%{opacity:1;transform:rotate(0) scale(1)}100%{opacity:0;transform:rotate(80deg) scale(.2)}}
@@ -340,7 +340,7 @@ const API='', token=localStorage.getItem('cw_token');
 if(!token) location.href='login.html';
 
 let wallet=0, phase='waiting', curMult=1.00, myBet=null, graphPts=[];
-let autoCashMult=0, liveBets=[];
+let autoCashMult=0, liveBets=[], roundSpeedFactor=0.04;
 let _pingStart=0;
 
 /* ── Tab switch ── */
@@ -717,7 +717,7 @@ async function init(){
     d.history?.forEach(h=>addChip(h));
     if(d.liveBets) liveBets=d.liveBets.map(b=>({...b,status:d.phase==='flying'?(b.cashedOut?'won':'flying'):'waiting'}));
     if(d.phase==='waiting') setWait(d.countdown||8);
-    else if(d.phase==='flying'){setFlying();if(d.multiplier) setTick(d.multiplier);}
+    else if(d.phase==='flying'){roundSpeedFactor=d.speedFactor||0.04;setFlying();if(d.multiplier) setTick(d.multiplier);}
     else setCrash(d.multiplier||1);
     if(d.roundId) document.getElementById('roundId').textContent='Round ID: '+d.roundId;
   }catch{}
@@ -729,7 +729,7 @@ let _pingInterval=setInterval(()=>{_pingStart=Date.now();socket.emit('ping');},3
 socket.on('pong',()=>{document.getElementById('pingMs').textContent=Date.now()-_pingStart;});
 socket.on('avi:wait',d=>{myBet=null;setWait(d.countdown||8);d.history?.forEach(h=>addChip(h));if(d.roundId)document.getElementById('roundId').textContent='Round ID: '+d.roundId;});
 socket.on('avi:cd',d=>{if(phase==='waiting') document.getElementById('wcd').textContent=d.countdown;});
-socket.on('avi:fly',()=>setFlying());
+socket.on('avi:fly',d=>{roundSpeedFactor=d?.speedFactor||0.04;setFlying();});
 socket.on('avi:tick',d=>setTick(d.multiplier));
 socket.on('avi:crash',d=>{setCrash(d.at);addChip(d.at);});
 socket.on('avi:cashout_pub',d=>{
