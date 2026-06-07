@@ -2,110 +2,129 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
-<title>Chicken Road — ColorWin</title>
+<meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover"/>
+<title>Chicken Road 2 — ColorWin</title>
 <style>
-:root{--bg:#0a0c12;--surface:#111520;--card:#171d2e;--border:#232a40;--text:#e8eaf0;--muted:#6b729a;--red:#ff4040;--green:#00d68f;--accent:#5b8fff;--yellow:#ffd84d;--orange:#ff8c42;}
+:root{--bg:#080c10;--surface:#0f1318;--card:#161d24;--border:#242e38;--text:#e8eaf0;--muted:#6b7a90;--orange:#ff8c42;--yellow:#ffd84d;--green:#00d68f;--red:#ff4444;--accent:#5b8fff;}
 *{box-sizing:border-box;margin:0;padding:0;}
-body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,sans-serif;height:100vh;display:flex;flex-direction:column;max-width:480px;margin:0 auto;overflow:hidden;}
+body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,sans-serif;height:100vh;height:100dvh;display:flex;flex-direction:column;max-width:480px;margin:0 auto;overflow:hidden;}
 
-/* Header */
-header{background:var(--surface);border-bottom:1px solid var(--border);padding:10px 14px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;}
-.back-btn{background:rgba(255,255,255,.06);border:1px solid var(--border);color:var(--muted);border-radius:8px;padding:5px 10px;font-size:12px;cursor:pointer;font-family:inherit;}
-.wallet-pill{background:rgba(0,214,143,.1);border:1px solid rgba(0,214,143,.2);border-radius:20px;padding:5px 12px;font-size:13px;font-weight:800;color:var(--green);}
+/* ── Header ── */
+header{background:var(--surface);border-bottom:2px solid var(--orange);padding:10px 14px;display:flex;align-items:center;justify-content:space-between;gap:10px;flex-shrink:0;}
+.back-btn{width:36px;height:36px;background:rgba(255,255,255,.06);border:1px solid var(--border);color:var(--muted);border-radius:10px;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-family:inherit;}
+.header-center{display:flex;flex-direction:column;align-items:center;flex:1;}
+.header-title{font-size:16px;font-weight:900;color:#fff;display:flex;align-items:center;gap:6px;}
+.header-badge{font-size:9px;font-weight:800;color:var(--orange);background:rgba(255,140,66,.15);border:1px solid rgba(255,140,66,.3);border-radius:5px;padding:2px 6px;letter-spacing:.5px;}
+.wallet-pill{background:rgba(0,214,143,.1);border:1px solid rgba(0,214,143,.25);border-radius:16px;padding:6px 12px;font-size:13px;font-weight:800;color:var(--green);white-space:nowrap;flex-shrink:0;}
 
-/* Top stats */
-.top-stats{background:linear-gradient(135deg,#111520,#0e1420);border-bottom:1px solid var(--border);padding:10px 16px;display:flex;justify-content:space-between;align-items:center;flex-shrink:0;}
-.ts-item{text-align:center;}
-.ts-lbl{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;font-weight:700;}
-.ts-val{font-size:20px;font-weight:900;margin-top:1px;}
+/* ── Stats Bar ── */
+.stats-bar{background:linear-gradient(180deg,#0d1118,#0a0e14);border-bottom:1px solid var(--border);padding:10px 8px;display:flex;align-items:center;flex-shrink:0;}
+.stat-item{flex:1;text-align:center;padding:0 4px;}
+.stat-lbl{font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;font-weight:700;margin-bottom:3px;}
+.stat-val{font-size:20px;font-weight:900;line-height:1;}
+.stat-val.green{color:var(--green);}
+.stat-val.yellow{color:var(--yellow);}
+.stat-val.orange{color:var(--orange);}
+.stat-div{width:1px;height:38px;background:var(--border);flex-shrink:0;}
 
-/* Road container */
-.road-wrap{flex:1;position:relative;overflow:hidden;background:#111;}
+/* ── Road Wrapper ── */
+.road-wrap{flex:1;display:flex;flex-direction:column;overflow:hidden;min-height:0;}
 
-/* Sky / destination zone */
-.dest-zone{height:42px;background:linear-gradient(180deg,#0a2a1a,#0d3020);display:flex;align-items:center;justify-content:center;gap:10px;border-bottom:3px solid #00d68f;flex-shrink:0;position:relative;z-index:5;}
-.dest-flag{font-size:22px;}
-.dest-txt{font-size:13px;font-weight:800;color:var(--green);}
+/* Destination */
+.dest-zone{background:linear-gradient(180deg,#031408,#051a0a);border-bottom:2.5px solid var(--green);padding:7px 14px;display:flex;align-items:center;justify-content:center;gap:10px;flex-shrink:0;}
+.dest-txt{font-size:12px;font-weight:900;color:var(--green);letter-spacing:.8px;}
 
-/* Road section */
-.road{flex:1;position:relative;overflow:hidden;}
+/* Road */
+.road{flex:1;position:relative;overflow:hidden;min-height:0;}
+.asphalt{position:absolute;inset:0;background:#111518;}
 
-/* Asphalt */
-.asphalt{position:absolute;inset:0;background:repeating-linear-gradient(180deg,#1a1a1a 0px,#1a1a1a 50px,#1c1c1c 50px,#1c1c1c 52px);}
-
-/* Lane separators - animated dashes */
-.lane-dash{position:absolute;left:0;right:0;height:2px;background:repeating-linear-gradient(90deg,transparent,transparent 20px,rgba(255,255,200,.18) 20px,rgba(255,255,200,.18) 36px);animation:dashMove 0.6s linear infinite;}
-@keyframes dashMove{from{background-position:0 0}to{background-position:56px 0}}
-
-/* Individual lane */
-.lane{position:absolute;left:0;right:0;height:52px;display:flex;align-items:center;overflow:hidden;transition:all .2s;}
-.lane.passed{background:rgba(0,214,143,.04);}
-.lane.active{background:rgba(255,216,77,.07);box-shadow:0 0 0 2px rgba(255,216,77,.2) inset;}
-.lane.safe-lane{background:rgba(0,214,143,.06);}
+/* Lanes */
+.lane{position:absolute;left:0;right:0;}
+.lane.passed{background:rgba(0,214,143,.05);}
+.lane.active{background:rgba(255,216,77,.09);}
+.lane.next-lane{background:rgba(255,140,66,.05);}
+.lane-dash{position:absolute;left:0;right:0;height:1px;background:repeating-linear-gradient(90deg,transparent,transparent 16px,rgba(255,255,255,.07) 16px,rgba(255,255,255,.07) 28px);animation:dashMove .45s linear infinite;}
+@keyframes dashMove{from{background-position:0 0}to{background-position:44px 0}}
 
 /* Cars */
-.car{position:absolute;font-size:26px;will-change:transform;}
+.car{position:absolute;will-change:transform;z-index:3;}
 .car.go-left{animation:goLeft linear infinite;}
 .car.go-right{animation:goRight linear infinite;}
-@keyframes goLeft{from{left:105%}to{left:-15%}}
-@keyframes goRight{from{right:105%}to{right:-15%}}
+@keyframes goLeft{from{left:110%}to{left:-20%}}
+@keyframes goRight{from{right:110%}to{right:-20%}}
+
+/* Multiplier badges */
+.mult-labels{position:absolute;right:5px;top:0;bottom:0;z-index:6;display:flex;flex-direction:column-reverse;pointer-events:none;}
+.ml-item{display:flex;align-items:center;justify-content:flex-end;}
+.ml-badge{background:rgba(0,0,0,.75);border:1px solid rgba(255,255,255,.08);border-radius:5px;padding:2px 6px;font-size:10px;font-weight:800;color:var(--muted);backdrop-filter:blur(4px);}
+.ml-badge.done{color:var(--green);border-color:rgba(0,214,143,.3);}
+.ml-badge.current{color:var(--yellow);border-color:rgba(255,216,77,.5);background:rgba(255,216,77,.12);}
+.ml-badge.next{color:#fff;border-color:rgba(255,255,255,.2);}
 
 /* Chicken */
-.chicken-wrap{position:absolute;left:50%;transform:translateX(-50%);z-index:10;transition:bottom .45s cubic-bezier(.34,1.56,.64,1);text-align:center;}
-.chicken-sprite{font-size:32px;display:block;animation:chickenBob 0.8s ease-in-out infinite;}
-@keyframes chickenBob{0%,100%{transform:translateY(0) scaleX(1)}50%{transform:translateY(-4px) scaleX(1.05)}}
-.chicken-wrap.jump .chicken-sprite{animation:chickenJump .45s ease;}
-@keyframes chickenJump{0%{transform:translateY(0) scaleX(1)}35%{transform:translateY(-20px) scaleX(1.15)}100%{transform:translateY(0) scaleX(1)}}
+.chicken-wrap{position:absolute;left:50%;transform:translateX(-50%);z-index:10;transition:bottom .42s cubic-bezier(.34,1.56,.64,1);text-align:center;}
+.chicken-sprite{font-size:34px;display:block;animation:chickenBob .85s ease-in-out infinite;filter:drop-shadow(0 0 8px rgba(255,140,66,.5));}
+@keyframes chickenBob{0%,100%{transform:translateY(0) scaleY(1)}50%{transform:translateY(-5px) scaleY(1.05)}}
+.chicken-wrap.jump .chicken-sprite{animation:chickenJump .42s ease;}
+@keyframes chickenJump{0%{transform:translateY(0)}35%{transform:translateY(-22px) scaleY(1.2)}100%{transform:translateY(0)}}
 .chicken-wrap.dead .chicken-sprite{animation:chickenDead .5s ease forwards;}
-@keyframes chickenDead{0%{transform:rotate(0) scale(1);filter:none}50%{transform:rotate(30deg) scale(1.3);filter:hue-rotate(90deg)}100%{transform:rotate(-80deg) scale(.15);opacity:0;filter:hue-rotate(180deg)}}
-
-/* Multiplier labels on right side */
-.mult-labels{position:absolute;right:8px;top:0;bottom:0;z-index:6;display:flex;flex-direction:column-reverse;pointer-events:none;}
-.ml-item{height:52px;display:flex;align-items:center;}
-.ml-badge{background:rgba(0,0,0,.6);border:1px solid rgba(255,255,255,.12);border-radius:6px;padding:2px 7px;font-size:11px;font-weight:800;color:var(--muted);}
-.ml-badge.done{color:var(--green);border-color:rgba(0,214,143,.3);}
-.ml-badge.current{color:var(--yellow);border-color:rgba(255,216,77,.4);background:rgba(255,216,77,.1);}
-.ml-badge.next{color:#fff;border-color:rgba(255,255,255,.25);}
+@keyframes chickenDead{0%{transform:rotate(0) scale(1)}50%{transform:rotate(40deg) scale(1.4);filter:hue-rotate(90deg)}100%{transform:rotate(-90deg) scale(.1);opacity:0}}
 
 /* Explosion */
-.explosion{position:absolute;left:50%;transform:translateX(-50%);font-size:48px;z-index:20;display:none;animation:explode .5s ease forwards;}
-@keyframes explode{0%{transform:translateX(-50%) scale(.5);opacity:1}100%{transform:translateX(-50%) scale(2.5);opacity:0}}
+.explosion{position:absolute;left:50%;transform:translateX(-50%);font-size:52px;z-index:20;display:none;animation:explode .55s ease forwards;}
+@keyframes explode{0%{transform:translateX(-50%) scale(.4);opacity:1}100%{transform:translateX(-50%) scale(2.8);opacity:0}}
 
 /* Start zone */
-.start-zone{height:46px;background:linear-gradient(180deg,#1a1008,#201500);display:flex;align-items:center;justify-content:center;border-top:3px solid var(--orange);flex-shrink:0;font-size:12px;color:var(--muted);font-weight:700;letter-spacing:1px;position:relative;z-index:5;}
+.start-zone{background:linear-gradient(180deg,#120800,#0c0500);border-top:2.5px solid var(--orange);padding:7px 14px;display:flex;align-items:center;justify-content:center;gap:8px;font-size:11px;font-weight:800;color:var(--orange);letter-spacing:1.5px;flex-shrink:0;}
 
 /* Result overlay */
-.result-overlay{position:absolute;inset:0;display:none;flex-direction:column;align-items:center;justify-content:center;gap:8px;z-index:30;backdrop-filter:blur(4px);}
+.result-overlay{position:absolute;inset:0;display:none;flex-direction:column;align-items:center;justify-content:center;z-index:30;backdrop-filter:blur(6px);background:rgba(0,0,0,.55);}
 .result-overlay.show{display:flex;animation:rIn .3s ease;}
-@keyframes rIn{from{opacity:0;transform:scale(.9)}to{opacity:1;transform:scale(1)}}
-.res-card{background:var(--card);border:2px solid;border-radius:20px;padding:24px 32px;text-align:center;}
-.res-card.win{border-color:var(--green);}
-.res-card.lose{border-color:var(--red);}
-.res-icon{font-size:48px;margin-bottom:8px;}
-.res-title{font-size:22px;font-weight:900;}
-.res-amount{font-size:32px;font-weight:900;margin-top:4px;}
+@keyframes rIn{from{opacity:0;transform:scale(.92)}to{opacity:1;transform:scale(1)}}
+.res-card{background:var(--card);border:2px solid;border-radius:22px;padding:26px 36px;text-align:center;box-shadow:0 12px 40px rgba(0,0,0,.7);}
+.res-card.win{border-color:var(--green);box-shadow:0 12px 40px rgba(0,214,143,.2);}
+.res-card.lose{border-color:var(--red);box-shadow:0 12px 40px rgba(255,68,68,.2);}
+.res-icon{font-size:54px;margin-bottom:10px;}
+.res-title{font-size:20px;font-weight:900;}
+.res-amount{font-size:28px;font-weight:900;margin-top:8px;}
+.res-card.win .res-amount{color:var(--green);}
+.res-card.lose .res-amount{color:var(--red);}
 
-/* Bottom panel */
-.bottom{background:var(--surface);border-top:1px solid var(--border);padding:12px 14px;flex-shrink:0;}
-.setup{display:flex;gap:8px;align-items:center;margin-bottom:10px;}
-.bet-inp{background:var(--card);border:1.5px solid var(--border);border-radius:11px;color:var(--text);font-size:17px;font-weight:800;padding:10px 14px;outline:none;flex:1;font-family:inherit;}
-.bet-inp:focus{border-color:var(--accent);}
-.qchips{display:flex;gap:6px;margin-bottom:10px;}
-.qc{background:var(--card);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:12px;font-weight:700;padding:6px 0;cursor:pointer;font-family:inherit;flex:1;text-align:center;}
-.qc.sel{background:rgba(255,140,66,.15);border-color:var(--orange);color:var(--orange);}
-.btn-row{display:flex;gap:8px;}
-.mbtn{flex:1;border:none;border-radius:12px;color:#fff;font-size:15px;font-weight:900;padding:14px;cursor:pointer;font-family:inherit;transition:all .15s;}
-.mbtn:disabled{opacity:.4;cursor:not-allowed;}
-.mbtn.start{background:linear-gradient(135deg,#ff8c42,#e67322);}
-.mbtn.jump{background:linear-gradient(135deg,#ffd84d,#e6a800);color:#111;display:none;animation:jGlow .7s infinite;}
-@keyframes jGlow{0%,100%{box-shadow:0 0 0 0 rgba(255,216,77,.4)}50%{box-shadow:0 0 12px 4px rgba(255,216,77,.1)}}
-.mbtn.cashout{background:linear-gradient(135deg,#00d68f,#00a86b);display:none;animation:cGlow 1s infinite;}
-@keyframes cGlow{0%,100%{box-shadow:0 0 0 0 rgba(0,214,143,.4)}50%{box-shadow:0 0 10px 3px rgba(0,214,143,0)}}
-.mbtn.newgame{background:var(--card);border:1.5px solid var(--border);color:var(--text);display:none;}
+/* ── Bottom Panel ── */
+.bottom-panel{background:var(--surface);border-top:1px solid var(--border);padding:12px 14px 16px;flex-shrink:0;}
 
-#toast{position:fixed;bottom:90px;left:50%;transform:translateX(-50%) translateY(30px);background:var(--card);border:1px solid var(--border);border-radius:12px;padding:10px 20px;font-size:13px;font-weight:700;z-index:99;transition:transform .3s;white-space:nowrap;pointer-events:none;opacity:0;}
+/* Bet amount row */
+.amount-row{display:flex;align-items:center;gap:8px;margin-bottom:8px;}
+.adj-btn{width:40px;height:40px;background:var(--card);border:1.5px solid var(--border);color:#fff;border-radius:50%;font-size:20px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-family:inherit;transition:all .15s;}
+.adj-btn:active{background:rgba(255,140,66,.2);border-color:var(--orange);}
+.bet-inp{flex:1;background:var(--card);border:1.5px solid var(--border);border-radius:12px;color:#fff;font-size:20px;font-weight:900;padding:10px 14px;outline:none;text-align:center;font-family:inherit;transition:border-color .2s;}
+.bet-inp:focus{border-color:var(--orange);}
+
+/* Quick chips */
+.chips-row{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:10px;}
+.chip{background:var(--card);border:1px solid var(--border);border-radius:9px;color:var(--text);font-size:12px;font-weight:700;padding:8px 0;cursor:pointer;font-family:inherit;text-align:center;transition:all .15s;}
+.chip.sel{background:rgba(255,140,66,.15);border-color:var(--orange);color:var(--orange);}
+.chip:active{transform:scale(.94);}
+
+/* Action buttons */
+.mbtn{border:none;border-radius:14px;color:#fff;font-size:16px;font-weight:900;padding:14px;cursor:pointer;font-family:inherit;transition:transform .1s,box-shadow .2s;display:flex;align-items:center;justify-content:center;gap:8px;letter-spacing:.2px;}
+.mbtn:active{transform:scale(.96);}
+.mbtn:disabled{opacity:.35;cursor:not-allowed;transform:none !important;}
+
+.start-btn{width:100%;background:linear-gradient(135deg,#ff8c42,#d06018);box-shadow:0 4px 18px rgba(255,140,66,.35);font-size:17px;}
+.start-btn-icon{font-size:22px;}
+
+.game-btns{display:flex;gap:8px;}
+.jump-btn{flex:3;background:linear-gradient(135deg,#ffd84d,#d4960a);color:#1a1000;font-size:18px;padding:16px;animation:jGlow .8s infinite;}
+@keyframes jGlow{0%,100%{box-shadow:0 4px 14px rgba(255,216,77,.25)}50%{box-shadow:0 4px 28px rgba(255,216,77,.6)}}
+.cashout-btn{flex:2;background:linear-gradient(135deg,#00d68f,#009060);font-size:13px;padding:16px 8px;animation:cGlow 1s infinite;text-align:center;line-height:1.3;}
+@keyframes cGlow{0%,100%{box-shadow:0 4px 12px rgba(0,214,143,.2)}50%{box-shadow:0 4px 24px rgba(0,214,143,.5)}}
+.newgame-btn{width:100%;background:var(--card);border:1.5px solid var(--border);color:var(--text);font-size:15px;}
+
+/* Toast */
+#toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(40px);background:var(--card);border:1px solid var(--border);border-radius:12px;padding:10px 22px;font-size:13px;font-weight:700;z-index:99;transition:transform .3s,opacity .3s;white-space:nowrap;pointer-events:none;opacity:0;}
 #toast.show{transform:translateX(-50%) translateY(0);opacity:1;}
+
 /* Win Overlay */
 #winOverlay{position:fixed;inset:0;z-index:9999;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,.88);backdrop-filter:blur(6px);cursor:pointer;}
 #winOverlay.show{display:flex;animation:wOvIn .35s ease;}
@@ -117,7 +136,7 @@ header{background:var(--surface);border-bottom:1px solid var(--border);padding:1
 @keyframes wBounce{0%{transform:scale(0) rotate(-20deg);opacity:0}70%{transform:scale(1.15) rotate(5deg)}100%{transform:scale(1) rotate(0);opacity:1}}
 .win-title{font-size:38px;font-weight:900;letter-spacing:-1px;background:linear-gradient(135deg,#ffd84d,#ff8c42,#ff4d6a);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;animation:wUp .5s .2s cubic-bezier(.34,1.56,.64,1) both;}
 @keyframes wUp{0%{transform:translateY(40px);opacity:0}100%{transform:translateY(0);opacity:1}}
-.win-amount{font-size:64px;font-weight:900;color:#00d68f;text-shadow:0 0 40px rgba(0,214,143,.7),0 0 80px rgba(0,214,143,.3);animation:wPop .6s .4s cubic-bezier(.34,1.56,.64,1) both;}
+.win-amount{font-size:64px;font-weight:900;color:#00d68f;text-shadow:0 0 40px rgba(0,214,143,.7);animation:wPop .6s .4s cubic-bezier(.34,1.56,.64,1) both;}
 @keyframes wPop{0%{transform:scale(0);opacity:0}70%{transform:scale(1.1)}100%{transform:scale(1);opacity:1}}
 .win-label{font-size:13px;color:rgba(255,255,255,.5);letter-spacing:3px;text-transform:uppercase;animation:wUp .5s .55s both;}
 .win-stars{font-size:28px;animation:wSpin 1s .3s both;display:block;}
@@ -128,59 +147,55 @@ header{background:var(--surface);border-bottom:1px solid var(--border);padding:1
 </head>
 <body>
 
+<!-- Header -->
 <header>
-  <button class="back-btn" onclick="location.href='home.html'">← Home</button>
-  <div style="font-size:15px;font-weight:900;">🐔 Chicken Road</div>
+  <button class="back-btn" onclick="location.href='home.html'">←</button>
+  <div class="header-center">
+    <div class="header-title">🐔 Chicken Road 2</div>
+    <div class="header-badge">JUMP TO WIN</div>
+  </div>
   <div class="wallet-pill">₹<span id="walletAmt">0.00</span></div>
 </header>
 
-<div class="top-stats">
-  <div class="ts-item">
-    <div class="ts-lbl">Multiplier</div>
-    <div class="ts-val" id="multVal" style="color:var(--green);">1.00×</div>
+<!-- Stats Bar -->
+<div class="stats-bar">
+  <div class="stat-item">
+    <div class="stat-lbl">Multiplier</div>
+    <div class="stat-val green" id="multVal">1.00×</div>
   </div>
-  <div class="ts-item">
-    <div class="ts-lbl">Step</div>
-    <div class="ts-val" id="stepVal" style="color:var(--yellow);">0 / 10</div>
+  <div class="stat-div"></div>
+  <div class="stat-item">
+    <div class="stat-lbl">Step</div>
+    <div class="stat-val yellow" id="stepVal">0 / 10</div>
   </div>
-  <div class="ts-item">
-    <div class="ts-lbl">Win If Cash</div>
-    <div class="ts-val" id="winVal" style="color:var(--orange);">₹0</div>
+  <div class="stat-div"></div>
+  <div class="stat-item">
+    <div class="stat-lbl">Win if Cash</div>
+    <div class="stat-val orange" id="winVal">₹0</div>
   </div>
 </div>
 
-<!-- Road wrapper -->
+<!-- Road -->
 <div class="road-wrap" id="roadWrap">
 
-  <!-- Destination -->
   <div class="dest-zone">
-    <span class="dest-flag">🏁</span>
-    <span class="dest-txt">FINISH — 55x</span>
-    <span class="dest-flag">🏁</span>
+    <span>🏁</span>
+    <span class="dest-txt">FINISH — 55×</span>
+    <span>🏁</span>
   </div>
 
-  <!-- Road with lanes + cars -->
-  <div class="road" id="road" style="height:calc(100% - 88px);position:relative;">
+  <div class="road" id="road">
     <div class="asphalt"></div>
-
-    <!-- Lanes populated by JS -->
     <div id="lanesContainer"></div>
-
-    <!-- Lane dashes -->
     <div id="dashesContainer"></div>
-
-    <!-- Mult labels -->
     <div class="mult-labels" id="multLabels"></div>
 
-    <!-- Chicken -->
-    <div class="chicken-wrap" id="chickenWrap" style="bottom:8px;">
+    <div class="chicken-wrap" id="chickenWrap" style="bottom:6px;">
       <span class="chicken-sprite" id="chickenSprite">🐔</span>
     </div>
 
-    <!-- Explosion -->
     <div class="explosion" id="explosion">💥</div>
 
-    <!-- Result overlay -->
     <div class="result-overlay" id="resultOverlay">
       <div class="res-card" id="resCard">
         <div class="res-icon" id="resIcon"></div>
@@ -190,29 +205,42 @@ header{background:var(--surface);border-bottom:1px solid var(--border);padding:1
     </div>
   </div>
 
-  <!-- Start zone -->
   <div class="start-zone">🏠 START ZONE</div>
 
 </div>
 
-<!-- Bottom -->
-<div class="bottom">
-  <div class="setup" id="setupRow">
-    <input class="bet-inp" id="betAmt" type="number" min="10" value="100" placeholder="Bet ₹"/>
-    <div class="qchips" style="flex:1;margin-bottom:0;">
-      <button class="qc" onclick="sa(50)">₹50</button>
-      <button class="qc sel" onclick="sa(100)">₹100</button>
-      <button class="qc" onclick="sa(200)">₹200</button>
-      <button class="qc" onclick="sa(500)">₹500</button>
+<!-- Bottom Panel -->
+<div class="bottom-panel">
+
+  <!-- Setup: shown before game starts -->
+  <div id="setupSection">
+    <div class="amount-row">
+      <button class="adj-btn" onclick="adjBet(.5)">−</button>
+      <input class="bet-inp" id="betAmt" type="number" min="10" value="100"/>
+      <button class="adj-btn" onclick="adjBet(2)">+</button>
+    </div>
+    <div class="chips-row">
+      <button class="chip" onclick="sa(50)">₹50</button>
+      <button class="chip sel" onclick="sa(100)">₹100</button>
+      <button class="chip" onclick="sa(200)">₹200</button>
+      <button class="chip" onclick="sa(500)">₹500</button>
+    </div>
+    <button class="mbtn start-btn" id="startBtn" onclick="startGame()">
+      <span class="start-btn-icon">🐔</span> Start Game
+    </button>
+  </div>
+
+  <!-- Game controls: shown while playing -->
+  <div id="gameSection" style="display:none;">
+    <div class="game-btns">
+      <button class="mbtn jump-btn" id="jumpBtn" onclick="doJump()">⬆ JUMP!</button>
+      <button class="mbtn cashout-btn" id="cashoutBtn" onclick="doCashout()">💰 Cash Out<br>₹<span id="coAmt">0</span></button>
     </div>
   </div>
 
-  <div class="btn-row">
-    <button class="mbtn start" id="startBtn" onclick="startGame()">🐔 Start</button>
-    <button class="mbtn jump"  id="jumpBtn"  onclick="doJump()">⬆ Jump!</button>
-    <button class="mbtn cashout" id="cashoutBtn" onclick="doCashout()">💰 ₹<span id="coAmt">0</span></button>
-    <button class="mbtn newgame" id="newgameBtn" onclick="resetGame()">↩ New</button>
-  </div>
+  <!-- New game: shown after round ends -->
+  <button class="mbtn newgame-btn" id="newgameBtn" style="display:none;" onclick="resetGame()">↩ New Game</button>
+
 </div>
 
 <div id="toast"></div>
@@ -224,33 +252,29 @@ if(!token) location.href='login.html';
 const MULTS=[1.00,1.50,2.20,3.20,4.70,7.00,10.50,16.00,24.00,36.00,55.00];
 const TOTAL=10;
 const CARS=['🚗','🚕','🚙','🚌','🏎','🚓','🚑','🚐'];
-const COLORS=['#ff4444','#44aaff','#ffaa00','#44ff88','#ff44aa','#aa44ff'];
 
 let wallet=0, gameActive=false, currentStep=0, betAmount=100;
-let laneHeight=52, roadHeight=520;
+let laneHeight=46, roadHeight=460;
 
-// Build road UI
 function buildRoad(){
   const road=document.getElementById('road');
   const lanesC=document.getElementById('lanesContainer');
   const dashesC=document.getElementById('dashesContainer');
   const multLabels=document.getElementById('multLabels');
-  roadHeight=road.offsetHeight||400;
-  laneHeight=Math.min(52,Math.floor((roadHeight-10)/TOTAL));
+  roadHeight=road.offsetHeight||420;
+  laneHeight=Math.min(52,Math.floor((roadHeight-8)/TOTAL));
 
   lanesC.innerHTML=''; dashesC.innerHTML=''; multLabels.innerHTML='';
 
   for(let i=1;i<=TOTAL;i++){
     const bottom=(i-1)*laneHeight;
 
-    // Lane div
     const lane=document.createElement('div');
     lane.className='lane';
     lane.id='lane'+i;
     lane.style.cssText=`bottom:${bottom}px;height:${laneHeight}px;`;
 
-    // Add animated cars to lane
-    const numCars=i<4?1:i<7?2:2;
+    const numCars=i<4?1:2;
     const goLeft=i%2===0;
     const speed=2.5+Math.random()*2.5;
 
@@ -258,53 +282,55 @@ function buildRoad(){
       const car=document.createElement('span');
       car.className='car '+(goLeft?'go-left':'go-right');
       car.textContent=CARS[Math.floor(Math.random()*CARS.length)];
-      const dur=(speed + c*1.5).toFixed(1);
+      const dur=(speed+c*1.6).toFixed(1);
       const delay=(-Math.random()*parseFloat(dur)).toFixed(1);
-      car.style.cssText=`font-size:${22+Math.floor(Math.random()*6)}px;top:50%;transform:translateY(-50%) scaleX(${goLeft?-1:1});animation-duration:${dur}s;animation-delay:${delay}s;`;
+      const sz=Math.max(18,Math.min(28,laneHeight-10));
+      car.style.cssText=`font-size:${sz}px;top:50%;transform:translateY(-50%) scaleX(${goLeft?-1:1});animation-duration:${dur}s;animation-delay:${delay}s;`;
       lane.appendChild(car);
     }
     lanesC.appendChild(lane);
 
-    // Dash line
     const dash=document.createElement('div');
     dash.className='lane-dash';
     dash.style.bottom=bottom+'px';
     dashesC.appendChild(dash);
 
-    // Multiplier label
     const ml=document.createElement('div');
     ml.className='ml-item';
+    ml.style.height=laneHeight+'px';
     const badge=document.createElement('div');
     badge.className='ml-badge';
     badge.id='mlb'+i;
-    badge.textContent=MULTS[i]+'x';
+    badge.textContent=MULTS[i]+'×';
     ml.appendChild(badge);
     multLabels.appendChild(ml);
   }
+  // Restore chicken position
+  moveChicken(currentStep, false);
 }
 
 window.addEventListener('load',()=>{buildRoad();updateStats(0,MULTS[0]);});
 window.addEventListener('resize',buildRoad);
 
 function getLaneBottom(step){
-  if(step===0) return 8;
-  return (step-1)*laneHeight + laneHeight/2 - 20;
+  if(step===0) return 6;
+  return (step-1)*laneHeight + laneHeight/2 - 18;
 }
 
-function moveChicken(step,animate=true){
+function moveChicken(step, animate=true){
   const wrap=document.getElementById('chickenWrap');
   if(animate){
     wrap.classList.add('jump');
-    setTimeout(()=>wrap.classList.remove('jump'),450);
+    setTimeout(()=>wrap.classList.remove('jump'),420);
   }
   wrap.style.bottom=getLaneBottom(step)+'px';
 }
 
 function setLaneState(step,state){
   const lane=document.getElementById('lane'+step);
-  if(lane) lane.className='lane '+(state==='passed'?'passed':state==='active'?'active':'safe-lane');
+  if(lane) lane.className='lane'+(state==='passed'?' passed':state==='active'?' active':state==='next-lane'?' next-lane':'');
   const badge=document.getElementById('mlb'+step);
-  if(badge) badge.className='ml-badge '+(state==='passed'?'done':state==='active'?'current':state==='next'?'next':'');
+  if(badge) badge.className='ml-badge'+(state==='passed'?' done':state==='active'?' current':state==='next-lane'?' next':'');
 }
 
 function updateStats(step,mult){
@@ -320,10 +346,19 @@ function updateStats(step,mult){
 function sa(v){
   betAmount=v;
   document.getElementById('betAmt').value=v;
-  document.querySelectorAll('.qc').forEach(c=>c.classList.toggle('sel',parseFloat(c.textContent.replace('₹',''))===v));
+  document.querySelectorAll('.chip').forEach(c=>c.classList.toggle('sel',parseFloat(c.textContent.replace('₹',''))===v));
+}
+
+function adjBet(factor){
+  let v=parseFloat(document.getElementById('betAmt').value)||100;
+  v=Math.max(10,Math.round(v*factor));
+  document.getElementById('betAmt').value=v;
+  betAmount=v;
+  document.querySelectorAll('.chip').forEach(c=>c.classList.remove('sel'));
 }
 
 function updateWallet(v){wallet=v;document.getElementById('walletAmt').textContent=parseFloat(v).toFixed(2);}
+
 function showToast(msg){
   const t=document.getElementById('toast');
   t.textContent=msg; t.classList.add('show');
@@ -332,12 +367,21 @@ function showToast(msg){
 
 function showResult(type,icon,title,amount){
   const ov=document.getElementById('resultOverlay');
-  const card=document.getElementById('resCard');
   ov.classList.add('show');
-  card.className='res-card '+type;
+  document.getElementById('resCard').className='res-card '+type;
   document.getElementById('resIcon').textContent=icon;
   document.getElementById('resTitle').textContent=title;
   document.getElementById('resAmt').textContent=amount;
+}
+
+function setGameMode(mode){
+  document.getElementById('setupSection').style.display=mode==='setup'?'block':'none';
+  document.getElementById('gameSection').style.display=mode==='game'?'block':'none';
+  document.getElementById('newgameBtn').style.display=mode==='newgame'?'block':'none';
+  if(mode==='game'){
+    document.getElementById('jumpBtn').style.display='block';
+    document.getElementById('cashoutBtn').style.display='none';
+  }
 }
 
 async function startGame(){
@@ -349,24 +393,19 @@ async function startGame(){
   try{
     const r=await fetch(API+'/api/chicken/start',{method:'POST',headers:{Authorization:'Bearer '+token,'Content-Type':'application/json'},body:JSON.stringify({amount:betAmount})});
     const d=await r.json();
-    if(!r.ok){showToast(d.error||'Failed');btn.disabled=false;btn.innerHTML='🐔 Start';return;}
+    if(!r.ok){showToast(d.error||'Failed');btn.disabled=false;btn.innerHTML='<span class="start-btn-icon">🐔</span> Start Game';return;}
     updateWallet(d.newBalance);
     gameActive=true; currentStep=0;
-    // Reset UI
     document.getElementById('resultOverlay').classList.remove('show');
     document.getElementById('explosion').style.display='none';
     document.getElementById('chickenSprite').textContent='🐔';
     document.getElementById('chickenWrap').className='chicken-wrap';
     moveChicken(0,false);
     for(let i=1;i<=TOTAL;i++) setLaneState(i,'');
-    setLaneState(1,'next');
-    document.getElementById('setupRow').style.display='none';
-    document.getElementById('startBtn').style.display='none';
-    document.getElementById('jumpBtn').style.display='block';
-    document.getElementById('cashoutBtn').style.display='none';
-    document.getElementById('newgameBtn').style.display='none';
+    setLaneState(1,'next-lane');
+    setGameMode('game');
     updateStats(0,MULTS[0]);
-  }catch{showToast('Error');btn.disabled=false;btn.innerHTML='🐔 Start';}
+  }catch{showToast('Error');btn.disabled=false;btn.innerHTML='<span class="start-btn-icon">🐔</span> Start Game';}
 }
 
 async function doJump(){
@@ -379,7 +418,6 @@ async function doJump(){
     if(!r.ok){showToast(d.error||'Failed');btn.disabled=false;return;}
 
     if(d.result==='burned'){
-      // Show crash
       moveChicken(d.step,true);
       setLaneState(d.step,'active');
       setTimeout(()=>{
@@ -391,14 +429,12 @@ async function doJump(){
       },200);
       gameActive=false;
       setTimeout(()=>{
-        showResult('lose','💥','Car ne mara!',`Lost ₹${betAmount}`);
-        document.getElementById('jumpBtn').style.display='none';
-        document.getElementById('newgameBtn').style.display='block';
+        showResult('lose','💥','Car ne mara!',`Lost ₹${betAmount.toFixed(2)}`);
+        setGameMode('newgame');
       },700);
-      showToast(`🚗 Car ne mara! Lost ₹${betAmount}`);
+      showToast(`🚗 Lost ₹${betAmount}`);
     } else {
       setLaneState(d.step,'passed');
-      if(d.step>1) setLaneState(d.step-1,'passed');
       moveChicken(d.step,true);
       currentStep=d.step;
       updateStats(d.step, d.multiplier);
@@ -406,15 +442,13 @@ async function doJump(){
         gameActive=false;
         updateWallet(d.newBalance);
         setTimeout(()=>{
-          showResult('win','🏆','Finish line!',`+₹${d.win} (${d.multiplier}×)`);
-          document.getElementById('jumpBtn').style.display='none';
-          document.getElementById('cashoutBtn').style.display='none';
-          document.getElementById('newgameBtn').style.display='block';
+          showResult('win','🏆','Finish! 55×',`+₹${parseFloat(d.win).toFixed(2)}`);
+          setGameMode('newgame');
         },500);
         showToast(`🎉 Won ₹${d.win}!`);
-        showWinAnimation(d.win, 'Chicken Road Win!');
+        showWinAnimation(d.win,'Chicken Road Win!');
       } else {
-        setLaneState(d.step+1,'next');
+        setLaneState(d.step+1,'next-lane');
         btn.disabled=false;
         document.getElementById('cashoutBtn').style.display='block';
       }
@@ -433,13 +467,11 @@ async function doCashout(){
     updateWallet(d.newBalance);
     gameActive=false;
     setTimeout(()=>{
-      showResult('win','💰','Safe!',`+₹${d.win} (${d.multiplier}×)`);
-      document.getElementById('jumpBtn').style.display='none';
-      btn.style.display='none';
-      document.getElementById('newgameBtn').style.display='block';
+      showResult('win','💰','Safe!',`+₹${parseFloat(d.win).toFixed(2)} (${d.multiplier}×)`);
+      setGameMode('newgame');
     },300);
     showToast(`💰 Won ₹${d.win} at ${d.multiplier}×!`);
-    showWinAnimation(d.win, 'Chicken Road Win!');
+    showWinAnimation(d.win,'Chicken Road Win!');
   }catch{showToast('Error');btn.disabled=false;}
 }
 
@@ -451,14 +483,10 @@ function resetGame(){
   document.getElementById('explosion').style.display='none';
   moveChicken(0,false);
   for(let i=1;i<=TOTAL;i++) setLaneState(i,'');
-  setLaneState(1,'next');
-  document.getElementById('setupRow').style.display='flex';
-  document.getElementById('startBtn').style.display='block';
+  setLaneState(1,'next-lane');
+  setGameMode('setup');
   document.getElementById('startBtn').disabled=false;
-  document.getElementById('startBtn').textContent='🐔 Start';
-  document.getElementById('jumpBtn').style.display='none';
-  document.getElementById('cashoutBtn').style.display='none';
-  document.getElementById('newgameBtn').style.display='none';
+  document.getElementById('startBtn').innerHTML='<span class="start-btn-icon">🐔</span> Start Game';
   updateStats(0,MULTS[0]);
 }
 
@@ -475,11 +503,9 @@ async function init(){
       betAmount=d.amount; currentStep=d.step; gameActive=true;
       document.getElementById('betAmt').value=betAmount;
       for(let i=1;i<=d.step;i++) setLaneState(i,'passed');
-      if(d.step<TOTAL) setLaneState(d.step+1,'next');
+      if(d.step<TOTAL) setLaneState(d.step+1,'next-lane');
       moveChicken(d.step,false);
-      document.getElementById('setupRow').style.display='none';
-      document.getElementById('startBtn').style.display='none';
-      document.getElementById('jumpBtn').style.display='block';
+      setGameMode('game');
       document.getElementById('cashoutBtn').style.display=d.step>0?'block':'none';
       updateStats(d.step,d.multiplier);
     }
@@ -517,11 +543,11 @@ function hideWinAnimation(){
 }
 function _startConfetti(){
   const canvas=document.getElementById('winCanvas');if(!canvas)return;
-  const ctx=canvas.getContext('2d');
+  const ctx2=canvas.getContext('2d');
   canvas.width=window.innerWidth;canvas.height=window.innerHeight;
   const pieces=[];
   for(let i=0;i<150;i++){pieces.push({x:Math.random()*canvas.width,y:Math.random()*canvas.height-canvas.height,w:7+Math.random()*10,h:4+Math.random()*6,color:_confettiColors[Math.floor(Math.random()*_confettiColors.length)],speed:2+Math.random()*5,angle:Math.random()*360,spin:(Math.random()-.5)*10,swingA:Math.random()*Math.PI*2,swingS:0.02+Math.random()*.04,swing:Math.random()*3-1.5});}
-  function draw(){ctx.clearRect(0,0,canvas.width,canvas.height);let alive=false;pieces.forEach(p=>{p.y+=p.speed;p.angle+=p.spin;p.swingA+=p.swingS;p.x+=Math.sin(p.swingA)*p.swing;if(p.y<canvas.height+30)alive=true;ctx.save();ctx.translate(p.x,p.y);ctx.rotate(p.angle*Math.PI/180);ctx.fillStyle=p.color;ctx.globalAlpha=Math.max(0,1-(p.y/canvas.height)*.4);ctx.fillRect(-p.w/2,-p.h/2,p.w,p.h);ctx.restore();});if(alive)_confettiFrame=requestAnimationFrame(draw);}
+  function draw(){ctx2.clearRect(0,0,canvas.width,canvas.height);let alive=false;pieces.forEach(p=>{p.y+=p.speed;p.angle+=p.spin;p.swingA+=p.swingS;p.x+=Math.sin(p.swingA)*p.swing;if(p.y<canvas.height+30)alive=true;ctx2.save();ctx2.translate(p.x,p.y);ctx2.rotate(p.angle*Math.PI/180);ctx2.fillStyle=p.color;ctx2.globalAlpha=Math.max(0,1-(p.y/canvas.height)*.4);ctx2.fillRect(-p.w/2,-p.h/2,p.w,p.h);ctx2.restore();});if(alive)_confettiFrame=requestAnimationFrame(draw);}
   cancelAnimationFrame(_confettiFrame);_confettiFrame=requestAnimationFrame(draw);
 }
 function _stopConfetti(){cancelAnimationFrame(_confettiFrame);const canvas=document.getElementById('winCanvas');if(canvas)canvas.getContext('2d').clearRect(0,0,canvas.width,canvas.height);}

