@@ -74,6 +74,15 @@ header{background:var(--surface);border-bottom:2px solid var(--orange);padding:1
 .explosion{position:absolute;left:50%;transform:translateX(-50%);font-size:52px;z-index:20;display:none;animation:explode .55s ease forwards;}
 @keyframes explode{0%{transform:translateX(-50%) scale(.4);opacity:1}100%{transform:translateX(-50%) scale(2.8);opacity:0}}
 
+/* Crash car & near-miss */
+.crash-car{position:absolute;z-index:16;font-size:36px;pointer-events:none;}
+@keyframes crashFromRight{from{left:110%;transform:scaleX(-1)}to{left:40%;transform:scaleX(-1)}}
+@keyframes crashFromLeft{from{left:-15%}to{left:40%}}
+@keyframes nearMissRight{from{left:115%;transform:scaleX(-1)}to{left:-20%;transform:scaleX(-1)}}
+@keyframes nearMissLeft{from{left:-15%}to{left:115%}}
+.crash-car.shake{animation:camShake .25s ease forwards;}
+@keyframes camShake{0%,100%{filter:none}25%{filter:brightness(3) saturate(3)}50%{filter:brightness(2)}75%{filter:brightness(3)}}
+
 /* Start zone */
 .start-zone{background:linear-gradient(180deg,#120800,#0c0500);border-top:2.5px solid var(--orange);padding:7px 14px;display:flex;align-items:center;justify-content:center;gap:8px;font-size:11px;font-weight:800;color:var(--orange);letter-spacing:1.5px;flex-shrink:0;}
 
@@ -463,6 +472,34 @@ async function startGame(){
   }catch{showToast('Error');btn.disabled=false;btn.innerHTML='<span class="start-btn-icon">🐔</span> Start Game';}
 }
 
+function showCrashCar(step, onImpact){
+  const road=document.getElementById('road');
+  const car=document.createElement('div');
+  car.className='crash-car';
+  const fromRight=Math.random()<0.5;
+  car.textContent=fromRight?'🚗':'🚙';
+  const bPx=getLaneBottom(step)+4;
+  car.style.cssText=`bottom:${bPx}px;animation:${fromRight?'crashFromRight':'crashFromLeft'} 0.38s ease-in forwards;`;
+  road.appendChild(car);
+  setTimeout(()=>{
+    car.classList.add('shake');
+    if(onImpact) onImpact();
+  },360);
+  setTimeout(()=>car.remove(),900);
+}
+
+function showNearMiss(step){
+  const road=document.getElementById('road');
+  const car=document.createElement('div');
+  car.className='crash-car';
+  const fromRight=Math.random()<0.5;
+  car.textContent=fromRight?'🚗':'🚙';
+  const bPx=getLaneBottom(step)+4;
+  car.style.cssText=`bottom:${bPx}px;animation:${fromRight?'nearMissRight':'nearMissLeft'} 0.28s linear forwards;`;
+  road.appendChild(car);
+  setTimeout(()=>car.remove(),320);
+}
+
 async function doJump(){
   if(!gameActive) return;
   const btn=document.getElementById('jumpBtn');
@@ -475,18 +512,18 @@ async function doJump(){
     if(d.result==='burned'){
       moveChicken(d.step,true);
       setLaneState(d.step,'active');
-      setTimeout(()=>{
+      gameActive=false;
+      showCrashCar(d.step,()=>{
         document.getElementById('chickenWrap').className='chicken-wrap dead';
         const exp=document.getElementById('explosion');
         exp.style.display='block';
         exp.style.bottom=getLaneBottom(d.step)+'px';
         setTimeout(()=>exp.style.display='none',600);
-      },200);
-      gameActive=false;
-      setTimeout(()=>{
-        showResult('lose','💥','Car ne mara!',`Lost ₹${betAmount.toFixed(2)}`);
-        setGameMode('newgame');
-      },700);
+        setTimeout(()=>{
+          showResult('lose','💥','Car ne mara!',`Lost ₹${betAmount.toFixed(2)}`);
+          setGameMode('newgame');
+        },500);
+      });
       showToast(`🚗 Lost ₹${betAmount}`);
     } else {
       setLaneState(d.step,'passed');
@@ -506,6 +543,7 @@ async function doJump(){
         setLaneState(d.step+1,'next-lane');
         btn.disabled=false;
         document.getElementById('cashoutBtn').style.display='block';
+        if(Math.random()<0.30) showNearMiss(d.step);
       }
     }
   }catch{showToast('Error');btn.disabled=false;}
