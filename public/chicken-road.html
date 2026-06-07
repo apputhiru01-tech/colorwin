@@ -121,6 +121,20 @@ header{background:var(--surface);border-bottom:2px solid var(--orange);padding:1
 @keyframes cGlow{0%,100%{box-shadow:0 4px 12px rgba(0,214,143,.2)}50%{box-shadow:0 4px 24px rgba(0,214,143,.5)}}
 .newgame-btn{width:100%;background:var(--card);border:1.5px solid var(--border);color:var(--text);font-size:15px;}
 
+/* Level selector */
+.level-row{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:10px;}
+.lvl-btn{background:var(--card);border:1.5px solid var(--border);border-radius:10px;padding:7px 4px;cursor:pointer;font-family:inherit;text-align:center;transition:all .15s;}
+.lvl-btn.sel{border-color:var(--orange);background:rgba(255,140,66,.12);}
+.lvl-name{font-size:10px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;}
+.lvl-mult{font-size:13px;font-weight:900;color:#fff;margin-top:2px;}
+.lvl-btn.sel .lvl-name{color:var(--orange);}
+.lvl-btn.sel .lvl-mult{color:var(--orange);}
+.lvl-risk{font-size:9px;margin-top:1px;font-weight:700;}
+.lvl-btn[data-lvl="1"] .lvl-risk{color:#00d68f;}
+.lvl-btn[data-lvl="2"] .lvl-risk{color:#ffd84d;}
+.lvl-btn[data-lvl="3"] .lvl-risk{color:#ff8c42;}
+.lvl-btn[data-lvl="4"] .lvl-risk{color:#ff4444;}
+
 /* Toast */
 #toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(40px);background:var(--card);border:1px solid var(--border);border-radius:12px;padding:10px 22px;font-size:13px;font-weight:700;z-index:99;transition:transform .3s,opacity .3s;white-space:nowrap;pointer-events:none;opacity:0;}
 #toast.show{transform:translateX(-50%) translateY(0);opacity:1;}
@@ -180,7 +194,7 @@ header{background:var(--surface);border-bottom:2px solid var(--orange);padding:1
 
   <div class="dest-zone">
     <span>🏁</span>
-    <span class="dest-txt">FINISH — 55×</span>
+    <span class="dest-txt">FINISH — 6.20×</span>
     <span>🏁</span>
   </div>
 
@@ -214,6 +228,29 @@ header{background:var(--surface);border-bottom:2px solid var(--orange);padding:1
 
   <!-- Setup: shown before game starts -->
   <div id="setupSection">
+    <!-- Level selector -->
+    <div class="level-row">
+      <button class="lvl-btn sel" data-lvl="1" onclick="setLevel(1)">
+        <div class="lvl-name">Easy</div>
+        <div class="lvl-mult">1.2×</div>
+        <div class="lvl-risk">Low</div>
+      </button>
+      <button class="lvl-btn" data-lvl="2" onclick="setLevel(2)">
+        <div class="lvl-name">Medium</div>
+        <div class="lvl-mult">2×</div>
+        <div class="lvl-risk">Mid</div>
+      </button>
+      <button class="lvl-btn" data-lvl="3" onclick="setLevel(3)">
+        <div class="lvl-name">Hard</div>
+        <div class="lvl-mult">3×</div>
+        <div class="lvl-risk">High</div>
+      </button>
+      <button class="lvl-btn" data-lvl="4" onclick="setLevel(4)">
+        <div class="lvl-name">Extreme</div>
+        <div class="lvl-mult">5×</div>
+        <div class="lvl-risk">Brutal</div>
+      </button>
+    </div>
     <div class="amount-row">
       <button class="adj-btn" onclick="adjBet(.5)">−</button>
       <input class="bet-inp" id="betAmt" type="number" min="10" value="100"/>
@@ -249,12 +286,30 @@ header{background:var(--surface);border-bottom:2px solid var(--orange);padding:1
 const API='', token=localStorage.getItem('cw_token');
 if(!token) location.href='login.html';
 
-const MULTS=[1.00,1.50,2.20,3.20,4.70,7.00,10.50,16.00,24.00,36.00,55.00];
+const LEVEL_DATA = {
+  1: { mults:[1.00,1.20,1.44,1.73,2.07,2.49,2.99,3.58,4.30,5.16,6.20],  label:'6.20×',  color:'#00d68f' },
+  2: { mults:[1.00,2.00,4.00,7.00,12.00,20.00,35.00,60.00,100.00,170.00,280.00], label:'280×', color:'#ffd84d' },
+  3: { mults:[1.00,3.00,8.00,20.00,50.00,120.00,280.00,650.00,1500.00,3500.00,8000.00], label:'8000×', color:'#ff8c42' },
+  4: { mults:[1.00,5.00,18.00,60.00,200.00,650.00,2000.00,6000.00,18000.00,50000.00,150000.00], label:'150000×', color:'#ff4444' },
+};
+let selectedLevel = 1;
+let MULTS = LEVEL_DATA[1].mults;
 const TOTAL=10;
 const CARS=['🚗','🚕','🚙','🚌','🏎','🚓','🚑','🚐'];
 
 let wallet=0, gameActive=false, currentStep=0, betAmount=100;
 let laneHeight=46, roadHeight=460;
+
+function setLevel(lvl) {
+  selectedLevel = lvl;
+  MULTS = LEVEL_DATA[lvl].mults;
+  document.querySelectorAll('.lvl-btn').forEach(b => b.classList.toggle('sel', parseInt(b.dataset.lvl) === lvl));
+  const ld = LEVEL_DATA[lvl];
+  document.querySelector('.dest-txt').textContent = `FINISH — ${ld.label}`;
+  document.querySelector('.dest-txt').style.color = ld.color;
+  buildRoad();
+  updateStats(0, MULTS[0]);
+}
 
 function buildRoad(){
   const road=document.getElementById('road');
@@ -391,7 +446,7 @@ async function startGame(){
   const btn=document.getElementById('startBtn');
   btn.disabled=true; btn.textContent='Starting…';
   try{
-    const r=await fetch(API+'/api/chicken/start',{method:'POST',headers:{Authorization:'Bearer '+token,'Content-Type':'application/json'},body:JSON.stringify({amount:betAmount})});
+    const r=await fetch(API+'/api/chicken/start',{method:'POST',headers:{Authorization:'Bearer '+token,'Content-Type':'application/json'},body:JSON.stringify({amount:betAmount,level:selectedLevel})});
     const d=await r.json();
     if(!r.ok){showToast(d.error||'Failed');btn.disabled=false;btn.innerHTML='<span class="start-btn-icon">🐔</span> Start Game';return;}
     updateWallet(d.newBalance);
@@ -442,7 +497,7 @@ async function doJump(){
         gameActive=false;
         updateWallet(d.newBalance);
         setTimeout(()=>{
-          showResult('win','🏆','Finish! 55×',`+₹${parseFloat(d.win).toFixed(2)}`);
+          showResult('win','🏆',`Finish! ${d.multiplier}×`,`+₹${parseFloat(d.win).toFixed(2)}`);
           setGameMode('newgame');
         },500);
         showToast(`🎉 Won ₹${d.win}!`);
@@ -501,6 +556,7 @@ async function init(){
     const d=await r.json();
     if(d.active){
       betAmount=d.amount; currentStep=d.step; gameActive=true;
+      if(d.level) { selectedLevel=d.level; MULTS=LEVEL_DATA[d.level].mults; }
       document.getElementById('betAmt').value=betAmount;
       for(let i=1;i<=d.step;i++) setLaneState(i,'passed');
       if(d.step<TOTAL) setLaneState(d.step+1,'next-lane');

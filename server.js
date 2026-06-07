@@ -1250,21 +1250,41 @@ app.get('/api/mines/state', authMiddleware, (req, res) => {
 //  CHICKEN ROAD GAME
 // ════════════════════════════════════════
 const chickenGames = new Map();
-const CHICKEN_MULTS = [1.00,1.50,2.20,3.20,4.70,7.00,10.50,16.00,24.00,36.00,55.00];
-const CHICKEN_RISK  = [0,0.22,0.24,0.26,0.30,0.34,0.38,0.42,0.46,0.50,0.55];
+
+const CHICKEN_LEVELS = {
+  1: { // Easy — 1.2× per step, low risk
+    mults: [1.00, 1.20, 1.44, 1.73, 2.07, 2.49, 2.99, 3.58, 4.30, 5.16, 6.20],
+    risk:  [0, 0.10, 0.12, 0.14, 0.16, 0.18, 0.20, 0.22, 0.24, 0.26, 0.28],
+  },
+  2: { // Medium — 2× per step, medium risk
+    mults: [1.00, 2.00, 4.00, 7.00, 12.00, 20.00, 35.00, 60.00, 100.00, 170.00, 280.00],
+    risk:  [0, 0.28, 0.32, 0.36, 0.40, 0.44, 0.48, 0.52, 0.55, 0.58, 0.62],
+  },
+  3: { // Hard — 3× per step, high risk
+    mults: [1.00, 3.00, 8.00, 20.00, 50.00, 120.00, 280.00, 650.00, 1500.00, 3500.00, 8000.00],
+    risk:  [0, 0.40, 0.44, 0.48, 0.52, 0.56, 0.60, 0.64, 0.68, 0.72, 0.76],
+  },
+  4: { // Extreme — 5× per step, brutal risk
+    mults: [1.00, 5.00, 18.00, 60.00, 200.00, 650.00, 2000.00, 6000.00, 18000.00, 50000.00, 150000.00],
+    risk:  [0, 0.55, 0.60, 0.65, 0.70, 0.74, 0.78, 0.82, 0.86, 0.90, 0.94],
+  },
+};
+
+function getLevel(game) { return CHICKEN_LEVELS[game.level] || CHICKEN_LEVELS[1]; }
 
 app.post('/api/chicken/start', authMiddleware, async (req, res) => {
   try {
     if (!gameEnabled.chicken) return res.status(400).json({ error: 'Chicken Road is currently disabled' });
-    const { amount } = req.body;
+    const { amount, level = 1 } = req.body;
+    const lvl = Math.min(4, Math.max(1, parseInt(level) || 1));
     if (!amount || amount < 10) return res.status(400).json({ error: 'Minimum bet ₹10' });
     const existing = chickenGames.get(req.user.userId.toString());
     if (existing && existing.active) return res.status(400).json({ error: 'Finish current game first' });
     const user = await User.findById(req.user.userId);
     if (!user || user.wallet < amount) return res.status(400).json({ error: 'Insufficient balance' });
     await User.findByIdAndUpdate(req.user.userId, { $inc: { wallet: -amount } });
-    chickenGames.set(req.user.userId.toString(), { amount, step: 0, active: true });
-    res.json({ success: true, newBalance: user.wallet - amount, step: 0, multiplier: CHICKEN_MULTS[0] });
+    chickenGames.set(req.user.userId.toString(), { amount, step: 0, active: true, level: lvl });
+    res.json({ success: true, newBalance: user.wallet - amount, step: 0, multiplier: CHICKEN_LEVELS[lvl].mults[0], level: lvl });
   } catch (e) { res.status(500).json({ error: 'Failed' }); }
 });
 
@@ -1272,17 +1292,18 @@ app.post('/api/chicken/jump', authMiddleware, async (req, res) => {
   try {
     const game = chickenGames.get(req.user.userId.toString());
     if (!game || !game.active) return res.status(400).json({ error: 'No active game' });
+    const lv = getLevel(game);
     const nextStep = game.step + 1;
-    if (nextStep >= CHICKEN_MULTS.length) return res.status(400).json({ error: 'Already at max' });
+    if (nextStep >= lv.mults.length) return res.status(400).json({ error: 'Already at max' });
 
     const pUser = await User.findById(req.user.userId).select('newPlayerState');
     let burned;
     if (pUser?.newPlayerState === 'first') {
-      burned = false; // always safe in first game
+      burned = false;
     } else if (pUser?.newPlayerState === 'second') {
-      burned = true;  // always crash in second game
+      burned = true;
     } else {
-      burned = Math.random() < CHICKEN_RISK[nextStep];
+      burned = Math.random() < lv.risk[nextStep];
     }
 
     if (burned) {
@@ -1293,8 +1314,8 @@ app.post('/api/chicken/jump', authMiddleware, async (req, res) => {
       return res.json({ result: 'burned', step: nextStep });
     }
     game.step = nextStep;
-    const mult = CHICKEN_MULTS[nextStep];
-    const maxed = nextStep >= CHICKEN_MULTS.length - 1;
+    const mult = lv.mults[nextStep];
+    const maxed = nextStep >= lv.mults.length - 1;
     if (maxed) {
       game.active = false;
       const win = parseFloat((game.amount * mult).toFixed(2));
@@ -1314,7 +1335,8 @@ app.post('/api/chicken/cashout', authMiddleware, async (req, res) => {
     const game = chickenGames.get(req.user.userId.toString());
     if (!game || !game.active) return res.status(400).json({ error: 'No active game' });
     if (game.step === 0) return res.status(400).json({ error: 'Jump at least once first' });
-    const mult = CHICKEN_MULTS[game.step];
+    const lv = getLevel(game);
+    const mult = lv.mults[game.step];
     const win = parseFloat((game.amount * mult).toFixed(2));
     game.active = false;
     const pUser = await User.findById(req.user.userId).select('newPlayerState');
@@ -1330,7 +1352,8 @@ app.post('/api/chicken/cashout', authMiddleware, async (req, res) => {
 app.get('/api/chicken/state', authMiddleware, (req, res) => {
   const game = chickenGames.get(req.user.userId.toString());
   if (!game || !game.active) return res.json({ active: false });
-  res.json({ active: true, step: game.step, amount: game.amount, multiplier: CHICKEN_MULTS[game.step] });
+  const lv = getLevel(game);
+  res.json({ active: true, step: game.step, amount: game.amount, multiplier: lv.mults[game.step], level: game.level || 1 });
 });
 
 // ════════════════════════════════════════
