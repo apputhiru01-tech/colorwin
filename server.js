@@ -316,7 +316,7 @@ app.get('/api/config', (req, res) => {
     hasEmail:        !!mailer,
     adminUpiId:      process.env.ADMIN_UPI_ID   || '',
     adminUpiName:    process.env.ADMIN_UPI_NAME || 'ColorWin',
-    minDeposit:      parseInt(process.env.MIN_DEPOSIT || '50'),
+    minDeposit:      parseInt(process.env.MIN_DEPOSIT || '200'),
   });
 });
 
@@ -328,7 +328,7 @@ app.get('/api/config', (req, res) => {
 app.post('/api/deposit/manual', authMiddleware, async (req, res) => {
   try {
     const { amount, utrNumber, senderUpi } = req.body;
-    const minDep = parseInt(process.env.MIN_DEPOSIT || '50');
+    const minDep = parseInt(process.env.MIN_DEPOSIT || '200');
     if (!amount || amount < minDep)
       return res.status(400).json({ error: `Minimum deposit is ₹${minDep}` });
     if (!utrNumber || utrNumber.trim().length < 6)
