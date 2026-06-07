@@ -444,7 +444,9 @@ function setGameMode(mode){
   document.getElementById('gameSection').style.display=mode==='game'?'block':'none';
   document.getElementById('newgameBtn').style.display=mode==='newgame'?'block':'none';
   if(mode==='game'){
-    document.getElementById('jumpBtn').style.display='block';
+    const jb=document.getElementById('jumpBtn');
+    jb.style.display='block';
+    jb.disabled=false;
     document.getElementById('cashoutBtn').style.display='none';
   }
   if(mode==='setup'){
