@@ -244,9 +244,13 @@ tr:hover td{background:rgba(255,255,255,.02);}
       <div class="card">
         <div class="card-hdr">Add Balance to Player</div>
         <div class="card-body">
-          <div style="font-size:13px;color:var(--muted);">Select a user and add funds to their wallet.</div>
+          <div style="font-size:13px;color:var(--muted);">Type username and add funds to their wallet.</div>
           <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;">
-            <select class="bal-inp" id="balUser" style="width:200px;"><option value="">Select user…</option></select>
+            <div style="position:relative;">
+              <input class="bal-inp" id="balUserInput" type="text" placeholder="Type username…" style="width:200px;" oninput="filterUsers(this.value)" autocomplete="off"/>
+              <div id="userSuggest" style="display:none;position:absolute;top:100%;left:0;right:0;background:var(--card);border:1px solid var(--border);border-radius:10px;z-index:50;max-height:180px;overflow-y:auto;margin-top:4px;box-shadow:0 8px 24px rgba(0,0,0,.5);"></div>
+            </div>
+            <input class="bal-inp" id="balUserId" type="hidden"/>
             <input class="bal-inp" id="balAmt" type="number" min="1" value="500" placeholder="₹ amount"/>
             <button class="add-btn" onclick="addBalance()">+ Add ₹</button>
             <button class="abtn" onclick="addBalance(100)">+₹100</button>
@@ -396,6 +400,16 @@ tr:hover td{background:rgba(255,255,255,.02);}
             <div class="scard"><div class="slbl">Active Games</div><div class="sval yellow" id="gc-mines-active">0</div></div>
             <div class="scard"><div class="slbl">Status</div><div class="sval green" id="gc-mines-st">Online</div></div>
           </div>
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-top:4px;">
+            <div style="font-size:13px;font-weight:700;color:var(--muted);">Live Player Games</div>
+            <button class="abtn" onclick="loadMinesGames()" style="font-size:12px;padding:6px 12px;">🔄 Refresh</button>
+          </div>
+          <div style="overflow-x:auto;">
+            <table>
+              <thead><tr><th>Player</th><th>Bet</th><th>Mines</th><th>Revealed</th><th>Multiplier</th><th>Pot. Win</th><th>Actions</th></tr></thead>
+              <tbody id="mines-games-body"><tr><td colspan="7" style="text-align:center;color:var(--muted);padding:16px;">No active games</td></tr></tbody>
+            </table>
+          </div>
         </div>
       </div>
 
@@ -412,6 +426,16 @@ tr:hover td{background:rgba(255,255,255,.02);}
           <div class="stats-row" style="grid-template-columns:1fr 1fr;">
             <div class="scard"><div class="slbl">Active Games</div><div class="sval yellow" id="gc-chicken-active">0</div></div>
             <div class="scard"><div class="slbl">Status</div><div class="sval green" id="gc-chicken-st">Online</div></div>
+          </div>
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-top:4px;">
+            <div style="font-size:13px;font-weight:700;color:var(--muted);">Live Player Games</div>
+            <button class="abtn" onclick="loadChickenGames()" style="font-size:12px;padding:6px 12px;">🔄 Refresh</button>
+          </div>
+          <div style="overflow-x:auto;">
+            <table>
+              <thead><tr><th>Player</th><th>Bet</th><th>Step</th><th>Multiplier</th><th>Pot. Win</th><th>Next Risk</th><th>Actions</th></tr></thead>
+              <tbody id="chicken-games-body"><tr><td colspan="7" style="text-align:center;color:var(--muted);padding:16px;">No active games</td></tr></tbody>
+            </table>
           </div>
         </div>
       </div>
@@ -578,6 +602,7 @@ function showPage(name, el, src){
   if(sideEl) sideEl.classList.add('active');
   if(mobEl)  mobEl.classList.add('active');
   if(name==='users')       loadUsers();
+  if(name==='control')     loadUsers();
   if(name==='withdrawals') loadWithdrawals();
   if(name==='deposits')    loadManualDeposits();
   if(name==='history')     loadRoundHistory();
@@ -821,9 +846,6 @@ async function loadGamesPage(){
     document.getElementById('gc-avi-amt').textContent='₹'+d.aviator.betAmount.toLocaleString('en-IN');
     const hist=document.getElementById('gc-avi-hist');
     hist.innerHTML=d.aviator.history.map(h=>`<span style="background:rgba(255,255,255,.06);border-radius:6px;padding:3px 8px;font-size:12px;font-weight:800;color:${h<2?'var(--green)':h<5?'var(--yellow)':'var(--red)'}">${h}×</span>`).join('');
-    // Mines & Chicken
-    document.getElementById('gc-mines-active').textContent=d.minesActive;
-    document.getElementById('gc-chicken-active').textContent=d.chickenActive;
     // Toggles
     ['color','aviator','mines','chicken'].forEach(g=>{
       const on=d.enabled[g];
@@ -834,6 +856,75 @@ async function loadGamesPage(){
       btn.style.color=on?'var(--red)':'var(--green)';
     });
   }catch(e){flash('Failed to load game stats');}
+  // Load per-user active games
+  loadMinesGames();
+  loadChickenGames();
+}
+
+async function loadMinesGames(){
+  try{
+    const r=await fetch(API+'/api/admin/games/mines/active',{headers:{Authorization:'Bearer '+adminToken}});
+    const d=await r.json();
+    document.getElementById('gc-mines-active').textContent=d.games.length;
+    document.getElementById('mines-games-body').innerHTML=d.games.length
+      ?d.games.map(g=>`<tr>
+          <td><span style="color:var(--accent);font-weight:700;">@${g.username}</span><div style="font-size:11px;color:var(--muted);">${g.name}</div></td>
+          <td style="font-weight:700;color:var(--yellow);">₹${g.amount}</td>
+          <td><span class="badge red">${g.mines} 💣</span></td>
+          <td>${g.safeRevealed}/${25-g.mines} gems</td>
+          <td style="font-weight:700;color:var(--green);">${g.multiplier}×</td>
+          <td style="font-weight:700;color:var(--yellow);">₹${g.potentialWin}</td>
+          <td style="display:flex;gap:6px;flex-wrap:wrap;">
+            <button class="app-btn" onclick="forceMinesGame('${g.userId}','win')">✓ Win</button>
+            <button class="rej-btn"  onclick="forceMinesGame('${g.userId}','lose')">✕ Lose</button>
+          </td>
+        </tr>`).join('')
+      :'<tr><td colspan="7" style="text-align:center;color:var(--muted);padding:16px;">No active games</td></tr>';
+  }catch{flash('Failed to load mines games');}
+}
+
+async function forceMinesGame(userId, outcome){
+  if(!confirm(`Force ${outcome} for this Mines game?`))return;
+  try{
+    const r=await fetch(API+'/api/admin/games/mines/force',{method:'POST',headers:{'Authorization':'Bearer '+adminToken,'Content-Type':'application/json'},body:JSON.stringify({userId,outcome})});
+    const d=await r.json();
+    if(!r.ok){flash(d.error||'Failed');return;}
+    flash(outcome==='win'?`✅ Mines forced win — ₹${d.win} paid out`:'❌ Mines forced lose');
+    loadMinesGames();
+  }catch{flash('Failed');}
+}
+
+async function loadChickenGames(){
+  try{
+    const r=await fetch(API+'/api/admin/games/chicken/active',{headers:{Authorization:'Bearer '+adminToken}});
+    const d=await r.json();
+    document.getElementById('gc-chicken-active').textContent=d.games.length;
+    document.getElementById('chicken-games-body').innerHTML=d.games.length
+      ?d.games.map(g=>`<tr>
+          <td><span style="color:var(--accent);font-weight:700;">@${g.username}</span><div style="font-size:11px;color:var(--muted);">${g.name}</div></td>
+          <td style="font-weight:700;color:var(--yellow);">₹${g.amount}</td>
+          <td><span class="badge accent">Step ${g.step}</span></td>
+          <td style="font-weight:700;color:var(--green);">${g.multiplier}×</td>
+          <td style="font-weight:700;color:var(--yellow);">₹${g.potentialWin}</td>
+          <td style="color:var(--orange);">${g.nextRisk}</td>
+          <td style="display:flex;gap:6px;flex-wrap:wrap;">
+            <button class="app-btn" onclick="forceChickenGame('${g.userId}','cashout')">✓ Cashout</button>
+            <button class="rej-btn"  onclick="forceChickenGame('${g.userId}','burn')">🔥 Burn</button>
+          </td>
+        </tr>`).join('')
+      :'<tr><td colspan="7" style="text-align:center;color:var(--muted);padding:16px;">No active games</td></tr>';
+  }catch{flash('Failed to load chicken games');}
+}
+
+async function forceChickenGame(userId, outcome){
+  if(!confirm(`Force ${outcome} for this Chicken Road game?`))return;
+  try{
+    const r=await fetch(API+'/api/admin/games/chicken/force',{method:'POST',headers:{'Authorization':'Bearer '+adminToken,'Content-Type':'application/json'},body:JSON.stringify({userId,outcome})});
+    const d=await r.json();
+    if(!r.ok){flash(d.error||'Failed');return;}
+    flash(outcome==='cashout'?`✅ Chicken cashout — ₹${d.win} paid out`:'🔥 Chicken burned');
+    loadChickenGames();
+  }catch{flash('Failed');}
 }
 
 async function toggleGame(game){
@@ -890,19 +981,46 @@ async function toggleMaintenance(){
   }catch{flash('Failed to toggle maintenance');}
 }
 
+function filterUsers(q){
+  const box=document.getElementById('userSuggest');
+  if(!q.trim()){box.style.display='none';document.getElementById('balUserId').value='';return;}
+  const matches=usersCache.filter(u=>u.username.toLowerCase().includes(q.toLowerCase())||u.name.toLowerCase().includes(q.toLowerCase()));
+  if(!matches.length){box.style.display='none';document.getElementById('balUserId').value='';return;}
+  box.style.display='block';
+  box.innerHTML=matches.slice(0,8).map(u=>`
+    <div onclick="selectUser('${u._id}','${escHtml(u.username)}','${escHtml(u.name)}')" style="padding:10px 14px;cursor:pointer;border-bottom:1px solid var(--border);font-size:13px;" onmouseover="this.style.background='rgba(255,255,255,.04)'" onmouseout="this.style.background=''">
+      <span style="color:var(--accent);font-weight:700;">@${u.username}</span>
+      <span style="color:var(--muted);margin-left:6px;">${u.name}</span>
+      <span style="float:right;color:var(--green);font-weight:700;">₹${(u.wallet||0).toFixed(2)}</span>
+    </div>`).join('');
+}
+
+function selectUser(id, username, name){
+  document.getElementById('balUserId').value=id;
+  document.getElementById('balUserInput').value='@'+username+' — '+name;
+  document.getElementById('userSuggest').style.display='none';
+}
+
+document.addEventListener('click', e=>{
+  if(!e.target.closest('#balUserInput')&&!e.target.closest('#userSuggest'))
+    document.getElementById('userSuggest').style.display='none';
+});
+
 async function addBalance(preset){
-  const userId=document.getElementById('balUser').value;
+  const userId=document.getElementById('balUserId').value;
   const amt=preset||parseFloat(document.getElementById('balAmt').value);
-  if(!userId){flash('Select a user first');return;}
+  if(!userId){flash('Type and select a username first');return;}
   if(!amt||amt<=0){flash('Enter valid amount');return;}
   try{
     const r=await fetch(API+'/api/admin/balance',{method:'POST',headers:{'Authorization':'Bearer '+adminToken,'Content-Type':'application/json'},body:JSON.stringify({userId,amount:amt})});
     const d=await r.json();
     if(!r.ok){flash(d.error||'Failed');return;}
     const el=document.getElementById('balAlert');
-    el.textContent=`✅ Added ₹${amt}. New balance: ₹${d.newBalance.toFixed(2)}`;
+    el.textContent=`✅ Added ₹${amt} to @${document.getElementById('balUserInput').value.split(' ')[0].replace('@','')}. New balance: ₹${d.newBalance.toFixed(2)}`;
     el.className='alert success show';
     setTimeout(()=>el.classList.remove('show'),4000);
+    document.getElementById('balUserInput').value='';
+    document.getElementById('balUserId').value='';
     loadUsers();
   }catch{}
 }

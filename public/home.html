@@ -97,8 +97,8 @@ header{display:flex;align-items:center;justify-content:space-between;padding:16p
 <header>
   <div class="logo">Color<span>Win</span></div>
   <div class="user-row">
-    <div class="avatar" id="userAvatar">?</div>
-    <span class="username" id="userName">...</span>
+    <div class="avatar" id="userAvatar" onclick="location.href='profile.html'" style="cursor:pointer;" title="View Profile">?</div>
+    <span class="username" id="userName" onclick="location.href='profile.html'" style="cursor:pointer;">...</span>
     <button class="logout-btn" onclick="doLogout()">Logout</button>
   </div>
 </header>
@@ -252,7 +252,23 @@ header{display:flex;align-items:center;justify-content:space-between;padding:16p
         <img id="dQr" src="" style="width:130px;height:130px;display:block;border-radius:8px;"/>
       </div>
     </div>
-    <button class="m-btn" style="background:var(--surface);border:1.5px solid var(--border);color:var(--muted);font-size:13px;padding:12px;" onclick="location.href='index.html#deposit'">Enter UTR after paying →</button>
+    <button class="m-btn" style="background:var(--surface);border:1.5px solid var(--border);color:var(--muted);font-size:13px;padding:12px;" onclick="showUtrStep()">Enter UTR after paying →</button>
+
+    <!-- UTR Step (hidden by default) -->
+    <div id="utrStep" style="display:none;margin-top:4px;">
+      <div style="height:1px;background:var(--border);margin-bottom:16px;"></div>
+      <div class="m-grp">
+        <div class="m-lbl">UTR / Transaction ID</div>
+        <input class="m-inp" id="utrNum" type="text" placeholder="Enter 12-digit UTR number"/>
+      </div>
+      <div class="m-grp">
+        <div class="m-lbl">Your UPI ID (optional)</div>
+        <input class="m-inp" id="senderUpi" type="text" placeholder="yourname@upi"/>
+      </div>
+      <div class="m-err" id="utrErr"></div>
+      <div class="success-msg" id="utrOk">✅ Request submitted! Admin will verify and credit within 30 minutes.</div>
+      <button class="m-btn" onclick="submitUtr()">Submit UTR →</button>
+    </div>
   </div>
 </div>
 
@@ -328,7 +344,37 @@ function openUpiPay(){
 
 function openDeposit(){
   document.getElementById('dModal').classList.add('show');
+  document.getElementById('utrStep').style.display='none';
+  document.getElementById('utrOk').classList.remove('show');
+  document.getElementById('utrErr').textContent='';
+  document.getElementById('utrNum').value='';
+  document.getElementById('senderUpi').value='';
   refreshQr();
+}
+
+function showUtrStep(){
+  document.getElementById('utrStep').style.display='block';
+  document.getElementById('utrNum').focus();
+  document.getElementById('utrOk').classList.remove('show');
+  document.getElementById('utrErr').textContent='';
+}
+
+async function submitUtr(){
+  const utr=document.getElementById('utrNum').value.trim();
+  const sUpi=document.getElementById('senderUpi').value.trim();
+  const amt=parseFloat(document.getElementById('dAmt').value);
+  const errEl=document.getElementById('utrErr');
+  errEl.textContent='';
+  if(!utr||utr.length<6){errEl.textContent='Enter valid UTR number (min 6 digits)';return;}
+  if(!amt||amt<minDeposit){errEl.textContent=`Minimum deposit ₹${minDeposit}`;return;}
+  try{
+    const r=await fetch(API+'/api/deposit/manual',{method:'POST',headers:{'Authorization':'Bearer '+token,'Content-Type':'application/json'},body:JSON.stringify({amount:amt,utrNumber:utr,senderUpi:sUpi})});
+    const d=await r.json();
+    if(!r.ok){errEl.textContent=d.error||'Submission failed';return;}
+    document.getElementById('utrOk').classList.add('show');
+    document.getElementById('utrNum').value='';
+    document.getElementById('senderUpi').value='';
+  }catch{errEl.textContent='Network error. Try again.';}
 }
 
 function openWithdraw(){

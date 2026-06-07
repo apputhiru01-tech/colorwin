@@ -73,6 +73,77 @@ app.post('/api/admin/aviator/setcrash', adminMiddleware, (req, res) => {
   res.json({ success: true, crashPoint: avi.crashPoint });
 });
 
+app.get('/api/admin/games/mines/active', adminMiddleware, async (req, res) => {
+  try {
+    const games = [];
+    for (const [userId, game] of minesGames.entries()) {
+      if (!game.active) continue;
+      const user = await User.findById(userId).select('username name');
+      const safeRevealed = game.revealed.filter(t => !game.minePos.includes(t)).length;
+      const mult = minesMult(Math.max(safeRevealed, 0), game.mines);
+      games.push({ userId, username: user?.username||'?', name: user?.name||'', amount: game.amount, mines: game.mines, revealed: game.revealed.length, safeRevealed, multiplier: mult, potentialWin: parseFloat((game.amount * mult).toFixed(2)) });
+    }
+    res.json({ games });
+  } catch(e) { res.status(500).json({ error: 'Server error' }); }
+});
+
+app.post('/api/admin/games/mines/force', adminMiddleware, async (req, res) => {
+  try {
+    const { userId, outcome } = req.body;
+    const game = minesGames.get(userId);
+    if (!game || !game.active) return res.status(400).json({ error: 'No active game' });
+    game.active = false;
+    const sid = userSockets.get(userId);
+    if (outcome === 'win') {
+      const safeRevealed = game.revealed.filter(t => !game.minePos.includes(t)).length;
+      const mult = minesMult(Math.max(safeRevealed, 1), game.mines);
+      const win = parseFloat((game.amount * mult).toFixed(2));
+      const user = await User.findByIdAndUpdate(userId, { $inc: { wallet: win } }, { new: true });
+      if (sid) io.to(sid).emit('mines:admin_force', { result: 'win', win, minePos: game.minePos });
+      if (sid) io.to(sid).emit('wallet:update', { wallet: user.wallet, message: `+₹${win} (Admin)` });
+      res.json({ success: true, win });
+    } else {
+      if (sid) io.to(sid).emit('mines:admin_force', { result: 'lose', minePos: game.minePos });
+      res.json({ success: true });
+    }
+  } catch(e) { res.status(500).json({ error: 'Server error' }); }
+});
+
+app.get('/api/admin/games/chicken/active', adminMiddleware, async (req, res) => {
+  try {
+    const games = [];
+    for (const [userId, game] of chickenGames.entries()) {
+      if (!game.active) continue;
+      const user = await User.findById(userId).select('username name');
+      const mult = CHICKEN_MULTS[game.step];
+      const nextRisk = game.step + 1 < CHICKEN_RISK.length ? (CHICKEN_RISK[game.step + 1] * 100).toFixed(0) + '%' : '—';
+      games.push({ userId, username: user?.username||'?', name: user?.name||'', amount: game.amount, step: game.step, multiplier: mult, potentialWin: parseFloat((game.amount * mult).toFixed(2)), nextRisk });
+    }
+    res.json({ games });
+  } catch(e) { res.status(500).json({ error: 'Server error' }); }
+});
+
+app.post('/api/admin/games/chicken/force', adminMiddleware, async (req, res) => {
+  try {
+    const { userId, outcome } = req.body;
+    const game = chickenGames.get(userId);
+    if (!game || !game.active) return res.status(400).json({ error: 'No active game' });
+    game.active = false;
+    const sid = userSockets.get(userId);
+    if (outcome === 'cashout') {
+      const mult = CHICKEN_MULTS[game.step] || 1;
+      const win = parseFloat((game.amount * mult).toFixed(2));
+      const user = await User.findByIdAndUpdate(userId, { $inc: { wallet: win } }, { new: true });
+      if (sid) io.to(sid).emit('chicken:admin_force', { result: 'cashout', win, multiplier: mult });
+      if (sid) io.to(sid).emit('wallet:update', { wallet: user.wallet, message: `+₹${win} (Admin)` });
+      res.json({ success: true, win });
+    } else {
+      if (sid) io.to(sid).emit('chicken:admin_force', { result: 'burned' });
+      res.json({ success: true });
+    }
+  } catch(e) { res.status(500).json({ error: 'Server error' }); }
+});
+
 // ════════════════════════════════════════
 //  MONGODB
 // ════════════════════════════════════════
@@ -414,7 +485,7 @@ app.post('/api/auth/google/complete', async (req, res) => {
 
     const user = await User.create({
       name, username: username.toLowerCase(), email: email.toLowerCase(),
-      phone, upiId: upiId || '', loginMethod: 'google', isVerified: true, wallet: 500,
+      phone, upiId: upiId || '', loginMethod: 'google', isVerified: true, wallet: 10,
     });
     const token = jwt.sign({ userId: user._id, username: user.username }, JWT_SECRET, { expiresIn: '30d' });
     res.json({ success: true, token, user: safeUser(user) });
@@ -435,6 +506,37 @@ app.put('/api/auth/upi', authMiddleware, async (req, res) => {
   try {
     const { upiId } = req.body;
     await User.findByIdAndUpdate(req.user.userId, { upiId });
+    res.json({ success: true });
+  } catch (e) { res.status(500).json({ error: 'Update failed' }); }
+});
+
+// Update profile (name, phone, upiId)
+app.put('/api/auth/profile', authMiddleware, async (req, res) => {
+  try {
+    const { name, phone, upiId } = req.body;
+    if (!name || !name.trim()) return res.status(400).json({ error: 'Name is required' });
+    await User.findByIdAndUpdate(req.user.userId, {
+      name:  name.trim(),
+      phone: phone?.trim() || '',
+      upiId: upiId?.trim() || '',
+    });
+    res.json({ success: true });
+  } catch (e) { res.status(500).json({ error: 'Update failed' }); }
+});
+
+// Change password
+app.put('/api/auth/password', authMiddleware, async (req, res) => {
+  try {
+    const { oldPassword, newPassword } = req.body;
+    if (!oldPassword || !newPassword) return res.status(400).json({ error: 'Both passwords required' });
+    if (newPassword.length < 8) return res.status(400).json({ error: 'Password must be at least 8 characters' });
+    const user = await User.findById(req.user.userId);
+    if (!user) return res.status(404).json({ error: 'User not found' });
+    if (user.loginMethod === 'google') return res.status(400).json({ error: 'Google accounts cannot change password here' });
+    const match = await bcrypt.compare(oldPassword, user.password || '');
+    if (!match) return res.status(400).json({ error: 'Current password is incorrect' });
+    const hashed = await bcrypt.hash(newPassword, 12);
+    await User.findByIdAndUpdate(req.user.userId, { password: hashed });
     res.json({ success: true });
   } catch (e) { res.status(500).json({ error: 'Update failed' }); }
 });
@@ -880,7 +982,7 @@ function aviCrashPoint() {
 function aviMult() {
   if (!avi.startTime) return 1.00;
   const s = (Date.now() - avi.startTime) / 1000;
-  return parseFloat(Math.pow(Math.E, 0.07 * s).toFixed(2));
+  return parseFloat(Math.pow(Math.E, 0.04 * s).toFixed(2));
 }
 
 function aviStart() {
