@@ -171,6 +171,7 @@ const UserSchema = new mongoose.Schema({
   spinsUsedToday:  { type: Number, default: 0 },
   dailyRewardDate: { type: Date,   default: null },
   dailyRewardDay:  { type: Number, default: 0 },
+  claimDates:      { type: [Date], default: [] },
 }, { timestamps: true });
 const User = mongoose.model('User', UserSchema);
 
@@ -1309,27 +1310,31 @@ function pickSpinPrize() {
 const MAX_SPINS_PER_DAY = 3;
 
 // Daily Reward ladder (7-day streak)
-const DAILY_REWARDS = [10, 25, 50, 75, 100, 150, 300];
+// Daily reward pool: ₹2, ₹4, ₹5 (diamond = max)
+function pickDailyReward() {
+  const pool = [2, 2, 2, 4, 4, 5]; // ~50% ₹2, ~33% ₹4, ~17% ₹5(💎)
+  return pool[Math.floor(Math.random() * pool.length)];
+}
 
 app.get('/api/daily-reward/status', authMiddleware, async (req, res) => {
   try {
-    const user = await User.findById(req.user.userId).select('dailyRewardDate dailyRewardDay');
+    const user = await User.findById(req.user.userId).select('dailyRewardDate dailyRewardDay claimDates');
     const today = new Date(); today.setHours(0, 0, 0, 0);
     const yesterday = new Date(today); yesterday.setDate(yesterday.getDate() - 1);
+    const tomorrow = new Date(today); tomorrow.setDate(tomorrow.getDate() + 1);
     const lastDate = user.dailyRewardDate ? new Date(user.dailyRewardDate) : null;
     let day = user.dailyRewardDay || 0;
     let canClaim = false;
     if (!lastDate || lastDate < today) {
-      if (lastDate && lastDate >= yesterday) {
-        // Consecutive day — advance streak
-        canClaim = true;
-      } else {
-        // Missed / first time — reset to day 1
-        day = 0; canClaim = true;
-      }
+      if (lastDate && lastDate >= yesterday) canClaim = true;
+      else { day = 0; canClaim = true; }
     }
-    const tomorrow = new Date(today); tomorrow.setDate(tomorrow.getDate() + 1);
-    res.json({ canClaim, day, rewards: DAILY_REWARDS, nextClaim: tomorrow.getTime() });
+    // Build claimed dates for current month
+    const m = today.getMonth(), y = today.getFullYear();
+    const claimedDates = (user.claimDates || [])
+      .filter(d => { const dt = new Date(d); return dt.getMonth() === m && dt.getFullYear() === y; })
+      .map(d => new Date(d).getDate());
+    res.json({ canClaim, day, claimedDates, nextClaim: tomorrow.getTime() });
   } catch(e) { res.status(500).json({ error: 'Failed' }); }
 });
 
@@ -1338,15 +1343,17 @@ app.post('/api/daily-reward/claim', authMiddleware, async (req, res) => {
     const user = await User.findById(req.user.userId).select('dailyRewardDate dailyRewardDay wallet');
     const today = new Date(); today.setHours(0, 0, 0, 0);
     const yesterday = new Date(today); yesterday.setDate(yesterday.getDate() - 1);
+    const tomorrow = new Date(today); tomorrow.setDate(tomorrow.getDate() + 1);
     const lastDate = user.dailyRewardDate ? new Date(user.dailyRewardDate) : null;
     if (lastDate && lastDate >= today) return res.status(400).json({ error: 'Already claimed today!' });
     let day = user.dailyRewardDay || 0;
-    if (!lastDate || lastDate < yesterday) day = 0; // reset streak
-    const prize = DAILY_REWARDS[day % DAILY_REWARDS.length];
-    const nextDay = (day + 1) % DAILY_REWARDS.length;
-    const tomorrow = new Date(today); tomorrow.setDate(tomorrow.getDate() + 1);
+    if (!lastDate || lastDate < yesterday) day = 0;
+    const prize = pickDailyReward();
+    const nextDay = day + 1;
+    const now = new Date();
     const updated = await User.findByIdAndUpdate(req.user.userId,
-      { dailyRewardDate: new Date(), dailyRewardDay: nextDay, $inc: { wallet: prize } }, { new: true });
+      { dailyRewardDate: now, dailyRewardDay: nextDay, $inc: { wallet: prize }, $push: { claimDates: now } },
+      { new: true });
     res.json({ prize, newBalance: updated.wallet, day, nextDay, nextClaim: tomorrow.getTime() });
   } catch(e) { res.status(500).json({ error: 'Failed' }); }
 });

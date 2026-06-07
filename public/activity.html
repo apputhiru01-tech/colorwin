@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Activity — ColorWin</title>
+<style>
+:root{
+  --bg:#0a0e1a;
+  --surface:#111827;
+  --card:#141e30;
+  --border:rgba(255,255,255,.08);
+  --text:#e8eaf0;
+  --muted:#5a6280;
+  --green:#00d68f;
+  --orange:#ff8c42;
+  --gold:#ffd84d;
+  --diamond:#a78bfa;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+html,body{height:100%;height:100dvh;overflow:hidden;}
+body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,sans-serif;display:flex;flex-direction:column;max-width:480px;margin:0 auto;}
+
+/* Header */
+header{background:#0d1220;border-bottom:1px solid var(--border);flex-shrink:0;padding:10px 14px;display:flex;align-items:center;gap:10px;}
+.back-btn{background:rgba(255,255,255,.08);border:1px solid var(--border);color:#ccc;border-radius:10px;width:36px;height:36px;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-family:inherit;}
+.hdr-title{font-size:17px;font-weight:900;flex:1;}
+.hdr-wallet{font-size:13px;font-weight:800;color:var(--green);background:rgba(0,214,143,.1);border:1px solid rgba(0,214,143,.2);border-radius:20px;padding:4px 12px;}
+
+/* Scroll */
+.scroll{flex:1;overflow-y:auto;padding:14px;}
+.scroll::-webkit-scrollbar{display:none;}
+
+/* Streak bar */
+.streak-bar{display:flex;align-items:center;justify-content:space-between;background:linear-gradient(135deg,rgba(255,216,77,.08),rgba(167,139,250,.08));border:1px solid rgba(255,216,77,.2);border-radius:16px;padding:12px 16px;margin-bottom:14px;}
+.streak-left{display:flex;align-items:center;gap:10px;}
+.streak-fire{font-size:28px;line-height:1;}
+.streak-days{font-size:26px;font-weight:900;color:var(--gold);line-height:1;}
+.streak-lbl{font-size:11px;color:var(--muted);margin-top:1px;}
+.streak-right{text-align:right;}
+.streak-max-lbl{font-size:10px;color:var(--muted);margin-bottom:2px;}
+.streak-max-val{font-size:18px;}
+
+/* Month nav */
+.month-nav{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;}
+.mnav-btn{background:rgba(255,255,255,.07);border:1px solid var(--border);color:#ccc;border-radius:10px;width:34px;height:34px;font-size:20px;cursor:pointer;display:flex;align-items:center;justify-content:center;line-height:1;}
+.month-name{font-size:17px;font-weight:900;color:var(--gold);}
+
+/* Calendar */
+.cal-dow-row{display:grid;grid-template-columns:repeat(7,1fr);gap:3px;margin-bottom:4px;}
+.cal-dow{text-align:center;font-size:9px;font-weight:800;color:var(--muted);padding:3px 0;text-transform:uppercase;}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:3px;}
+.cal-cell{border-radius:10px;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:5px 2px;min-height:46px;position:relative;cursor:default;}
+.cal-cell.empty{background:transparent;}
+.cal-cell.future{background:rgba(255,255,255,.02);border:1px solid rgba(255,255,255,.04);}
+.cal-cell.missed{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);}
+.cal-cell.claimed{background:rgba(0,214,143,.07);border:1px solid rgba(0,214,143,.2);}
+.cal-cell.today-open{background:rgba(255,140,66,.1);border:2px solid var(--orange);cursor:pointer;animation:todayPulse 2s ease-in-out infinite;}
+.cal-cell.today-done{background:rgba(0,214,143,.1);border:2px solid var(--green);}
+.day-num{font-size:11px;font-weight:800;line-height:1;margin-bottom:3px;}
+.day-num.muted{color:rgba(255,255,255,.2);}
+.day-num.green{color:var(--green);}
+.day-num.orange{color:var(--orange);}
+.day-icon{font-size:16px;line-height:1;}
+.day-check{position:absolute;top:2px;right:3px;font-size:7px;font-weight:900;color:var(--green);}
+
+@keyframes todayPulse{
+  0%,100%{box-shadow:0 0 0 0 rgba(255,140,66,.3);}
+  50%{box-shadow:0 0 0 5px rgba(255,140,66,0);}
+}
+
+/* Claim section */
+.claim-section{background:var(--card);border:1px solid var(--border);border-radius:18px;padding:18px 16px;margin-top:14px;}
+.claim-sec-title{font-size:12px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:12px;}
+.claim-btn{width:100%;background:linear-gradient(135deg,#ff8c42,#e06018);border:none;border-radius:14px;color:#fff;font-size:17px;font-weight:900;padding:15px;cursor:pointer;font-family:inherit;letter-spacing:.3px;box-shadow:0 4px 16px rgba(255,140,66,.35);}
+.claim-btn:disabled{opacity:.4;cursor:not-allowed;box-shadow:none;}
+.claim-done-msg{text-align:center;}
+.claim-done-lbl{font-size:13px;color:var(--muted);margin-bottom:6px;}
+.claim-cd{font-size:26px;font-weight:900;color:#fff;font-variant-numeric:tabular-nums;}
+.claim-cd-hint{font-size:11px;color:var(--muted);margin-top:4px;}
+
+/* Reward result overlay */
+.result-ov{position:fixed;inset:0;background:rgba(0,0,0,.88);display:none;align-items:center;justify-content:center;z-index:200;}
+.result-ov.show{display:flex;animation:rovIn .3s cubic-bezier(.34,1.56,.64,1);}
+.result-box{background:var(--card);border:1px solid var(--border);border-radius:26px;padding:36px 28px;text-align:center;max-width:300px;width:90%;}
+.res-icon{font-size:72px;display:block;margin-bottom:10px;animation:rBounce .6s cubic-bezier(.34,1.56,.64,1) both;}
+.res-lbl{font-size:13px;font-weight:800;color:var(--muted);letter-spacing:1px;text-transform:uppercase;margin-bottom:8px;}
+.res-amt{font-size:52px;font-weight:900;line-height:1;margin-bottom:16px;}
+.res-amt.rupee{color:var(--green);text-shadow:0 0 30px rgba(0,214,143,.5);}
+.res-amt.diamond{color:var(--diamond);text-shadow:0 0 30px rgba(167,139,250,.5);}
+.res-added{font-size:13px;color:var(--muted);margin-bottom:20px;}
+.res-close{background:rgba(255,255,255,.1);border:1px solid var(--border);border-radius:12px;color:#ccc;font-size:15px;font-weight:800;padding:11px 32px;cursor:pointer;font-family:inherit;}
+@keyframes rovIn{from{opacity:0;transform:scale(.85)}to{opacity:1;transform:scale(1)}}
+@keyframes rBounce{0%{transform:scale(0)}60%{transform:scale(1.2)}100%{transform:scale(1)}}
+
+/* Bottom nav */
+.bottom-nav{background:#0d1220;border-top:1px solid var(--border);display:flex;align-items:flex-end;justify-content:space-around;padding:6px 0 env(safe-area-inset-bottom,6px);flex-shrink:0;z-index:50;}
+.nav-item{display:flex;flex-direction:column;align-items:center;gap:2px;padding:4px 10px;cursor:pointer;flex:1;}
+.nav-icon{font-size:21px;line-height:1;}
+.nav-label{font-size:10px;font-weight:700;color:var(--muted);}
+.nav-label.act{color:var(--orange);}
+.nav-center{flex:0 0 64px;display:flex;flex-direction:column;align-items:center;padding-bottom:2px;}
+.nav-spin-wrap{display:flex;flex-direction:column;align-items:center;gap:1px;}
+.nav-spin-btn{width:52px;height:52px;border-radius:50%;background:linear-gradient(140deg,#ff8c00,#ff4400);display:flex;align-items:center;justify-content:center;box-shadow:0 4px 18px rgba(255,140,0,.45);cursor:pointer;border:3px solid var(--bg);margin-bottom:2px;}
+.nav-spin-lbl{font-size:9px;font-weight:800;color:var(--muted);}
+</style>
+</head>
+<body>
+
+<header>
+  <button class="back-btn" onclick="history.back()">&#8592;</button>
+  <span class="hdr-title">🎁 Daily Rewards</span>
+  <div class="hdr-wallet">₹<span id="walletAmt">0.00</span></div>
+</header>
+
+<div class="scroll">
+
+  <!-- Streak -->
+  <div class="streak-bar">
+    <div class="streak-left">
+      <span class="streak-fire">🔥</span>
+      <div>
+        <div class="streak-days" id="streakNum">0</div>
+        <div class="streak-lbl">Day streak</div>
+      </div>
+    </div>
+    <div class="streak-right">
+      <div class="streak-max-lbl">Max reward</div>
+      <div class="streak-max-val">💎</div>
+    </div>
+  </div>
+
+  <!-- Month nav -->
+  <div class="month-nav">
+    <button class="mnav-btn" onclick="shiftMonth(-1)">&#8249;</button>
+    <div class="month-name" id="monthName"></div>
+    <button class="mnav-btn" onclick="shiftMonth(1)">&#8250;</button>
+  </div>
+
+  <!-- Day-of-week row -->
+  <div class="cal-dow-row">
+    <div class="cal-dow">Sun</div>
+    <div class="cal-dow">Mon</div>
+    <div class="cal-dow">Tue</div>
+    <div class="cal-dow">Wed</div>
+    <div class="cal-dow">Thu</div>
+    <div class="cal-dow">Fri</div>
+    <div class="cal-dow">Sat</div>
+  </div>
+
+  <!-- Calendar grid -->
+  <div class="cal-grid" id="calGrid"></div>
+
+  <!-- Claim section -->
+  <div class="claim-section">
+    <div class="claim-sec-title">Today's Reward</div>
+    <button class="claim-btn" id="claimBtn" onclick="doClaim()">Collect Reward 🎁</button>
+    <div id="claimDoneArea" style="display:none;" class="claim-done-msg">
+      <div class="claim-done-lbl">Next reward in</div>
+      <div class="claim-cd" id="claimCd">--:--:--</div>
+      <div class="claim-cd-hint">Come back tomorrow!</div>
+    </div>
+  </div>
+
+</div>
+
+<!-- Result overlay -->
+<div class="result-ov" id="resultOv" onclick="closeResult()">
+  <div class="result-box" onclick="event.stopPropagation()">
+    <span class="res-icon" id="resIcon">🎁</span>
+    <div class="res-lbl">You Received</div>
+    <div class="res-amt" id="resAmt">+₹2</div>
+    <div class="res-added" id="resAdded">Added to your wallet!</div>
+    <button class="res-close" onclick="closeResult()">Awesome! 🎉</button>
+  </div>
+</div>
+
+<!-- Bottom nav -->
+<nav class="bottom-nav">
+  <div class="nav-item" onclick="location.href='home.html'">
+    <span class="nav-icon">🏠</span>
+    <span class="nav-label">Home</span>
+  </div>
+  <div class="nav-item">
+    <span class="nav-icon">🎁</span>
+    <span class="nav-label act">Activity</span>
+  </div>
+  <div class="nav-center">
+    <div class="nav-spin-wrap">
+      <div class="nav-spin-btn" onclick="location.href='home.html#spin'">
+        <span style="font-size:22px;">🎰</span>
+      </div>
+      <span class="nav-spin-lbl">SPIN</span>
+    </div>
+  </div>
+  <div class="nav-item" onclick="location.href='home.html'">
+    <span class="nav-icon">💰</span>
+    <span class="nav-label">Promotion</span>
+  </div>
+  <div class="nav-item" onclick="location.href='profile.html'">
+    <span class="nav-icon">👤</span>
+    <span class="nav-label">Account</span>
+  </div>
+</nav>
+
+<script>
+const API = '';
+const token = localStorage.getItem('token');
+if (!token) location.href = 'login.html';
+
+const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+const realToday = new Date();
+const realTodayDate = realToday.getDate();
+const realTodayMonth = realToday.getMonth();
+const realTodayYear = realToday.getFullYear();
+
+let viewMonth = realTodayMonth;
+let viewYear  = realTodayYear;
+let canClaim  = false;
+let claimedDates = []; // day-numbers claimed this month
+let cdInt = null;
+
+async function init() {
+  try {
+    const r = await fetch(API + '/api/daily-reward/status', { headers:{ Authorization:'Bearer '+token } });
+    const d = await r.json();
+    canClaim = d.canClaim;
+    claimedDates = d.claimedDates || [];
+    document.getElementById('streakNum').textContent = d.day || 0;
+    // wallet
+    const wr = await fetch(API + '/api/user/me', { headers:{ Authorization:'Bearer '+token } });
+    if (wr.ok) { const wd = await wr.json(); document.getElementById('walletAmt').textContent = parseFloat(wd.wallet||0).toFixed(2); }
+    renderCal();
+    if (!canClaim) showDoneState(d.nextClaim);
+  } catch { renderCal(); }
+}
+
+function renderCal() {
+  const grid = document.getElementById('calGrid');
+  grid.innerHTML = '';
+  document.getElementById('monthName').textContent = `${MONTHS[viewMonth]} ${viewYear}`;
+
+  const firstDow = new Date(viewYear, viewMonth, 1).getDay();
+  const daysInMon = new Date(viewYear, viewMonth + 1, 0).getDate();
+  const isCurrentMonth = viewMonth === realTodayMonth && viewYear === realTodayYear;
+
+  // empty padding cells
+  for (let i = 0; i < firstDow; i++) {
+    const e = document.createElement('div');
+    e.className = 'cal-cell empty';
+    grid.appendChild(e);
+  }
+
+  for (let d = 1; d <= daysInMon; d++) {
+    const cell = document.createElement('div');
+    const isFuture = isCurrentMonth ? d > realTodayDate : (viewYear > realTodayYear || (viewYear === realTodayYear && viewMonth > realTodayMonth));
+    const isToday  = isCurrentMonth && d === realTodayDate;
+    const claimed  = isCurrentMonth && claimedDates.includes(d);
+
+    let cls = 'cal-cell ';
+    let icon = '';
+    let numCls = '';
+
+    if (isToday && canClaim) {
+      cls += 'today-open'; icon = '🎁'; numCls = 'orange';
+      cell.onclick = doClaim;
+    } else if (isToday && !canClaim) {
+      cls += 'today-done'; icon = '✓'; numCls = 'green';
+    } else if (claimed) {
+      cls += 'claimed'; icon = '✓'; numCls = 'green';
+    } else if (isFuture) {
+      cls += 'future'; icon = '🔒'; numCls = 'muted';
+    } else {
+      cls += 'missed'; icon = '🎁'; numCls = 'muted';
+    }
+
+    cell.className = cls;
+    if (claimed || (isToday && !canClaim)) {
+      cell.innerHTML = `<div class="day-check">✓</div><div class="day-num ${numCls}">${d}</div><div class="day-icon">${icon}</div>`;
+    } else {
+      cell.innerHTML = `<div class="day-num ${numCls}">${d}</div><div class="day-icon">${icon}</div>`;
+    }
+    grid.appendChild(cell);
+  }
+}
+
+function shiftMonth(dir) {
+  viewMonth += dir;
+  if (viewMonth > 11) { viewMonth = 0; viewYear++; }
+  if (viewMonth < 0)  { viewMonth = 11; viewYear--; }
+  renderCal();
+}
+
+function showDoneState(nextClaim) {
+  document.getElementById('claimBtn').style.display = 'none';
+  document.getElementById('claimDoneArea').style.display = 'block';
+  if (cdInt) clearInterval(cdInt);
+  cdInt = setInterval(() => {
+    const diff = nextClaim - Date.now();
+    const el = document.getElementById('claimCd');
+    if (!el) { clearInterval(cdInt); return; }
+    if (diff <= 0) { clearInterval(cdInt); location.reload(); return; }
+    const h = Math.floor(diff/3600000), m = Math.floor((diff%3600000)/60000), s = Math.floor((diff%60000)/1000);
+    el.textContent = `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+  }, 1000);
+}
+
+async function doClaim() {
+  if (!canClaim) return;
+  const btn = document.getElementById('claimBtn');
+  btn.disabled = true; btn.textContent = 'Collecting…';
+  try {
+    const r = await fetch(API + '/api/daily-reward/claim', { method:'POST', headers:{ Authorization:'Bearer '+token } });
+    const d = await r.json();
+    if (!r.ok) { btn.disabled = false; btn.textContent = 'Collect Reward 🎁'; return; }
+    canClaim = false;
+    claimedDates.push(realTodayDate);
+    renderCal();
+    // update wallet display
+    if (d.newBalance !== undefined) document.getElementById('walletAmt').textContent = parseFloat(d.newBalance).toFixed(2);
+    document.getElementById('streakNum').textContent = d.nextDay || 1;
+    showDoneState(d.nextClaim);
+    showResult(d.prize);
+  } catch { btn.disabled = false; btn.textContent = 'Collect Reward 🎁'; }
+}
+
+function showResult(prize) {
+  const ov   = document.getElementById('resultOv');
+  const icon = document.getElementById('resIcon');
+  const amt  = document.getElementById('resAmt');
+  const added = document.getElementById('resAdded');
+  if (prize >= 5) {
+    icon.textContent = '💎';
+    amt.className = 'res-amt diamond';
+    amt.textContent = '₹' + prize;
+    added.textContent = 'Diamond reward added!';
+  } else {
+    icon.textContent = '🎁';
+    amt.className = 'res-amt rupee';
+    amt.textContent = '+₹' + prize;
+    added.textContent = 'Added to your wallet!';
+  }
+  ov.classList.add('show');
+}
+
+function closeResult() {
+  document.getElementById('resultOv').classList.remove('show');
+}
+
+init();
+</script>
+</body>
+</html>
