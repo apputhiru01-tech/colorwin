@@ -28,14 +28,53 @@ header{display:flex;align-items:center;justify-content:space-between;padding:16p
 
 .section-lbl{font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:1px;padding:0 16px;margin-bottom:12px;}
 
-.games{display:flex;flex-direction:column;gap:14px;padding:0 16px;flex:1;}
+/* ── 2-col thumbnail game grid ── */
+.game-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;padding:0 16px;margin-bottom:14px;}
+.gc-thumb{border-radius:16px;overflow:hidden;cursor:pointer;transition:transform .15s;background:#1a1a28;box-shadow:0 4px 16px rgba(0,0,0,.4);}
+.gc-thumb:active{transform:scale(.97);}
+.gc-art{height:150px;position:relative;overflow:hidden;display:flex;align-items:flex-end;justify-content:center;}
+.gc-thumb-label{background:rgba(15,15,25,.85);backdrop-filter:blur(4px);padding:9px 12px;font-size:12px;font-weight:800;color:#fff;letter-spacing:.8px;text-transform:uppercase;text-align:center;}
 
+/* Aviator card art */
+.avi-art{background:linear-gradient(160deg,#2a0505 0%,#3d0808 40%,#1a0303 100%);}
+.avi-art::before{content:'';position:absolute;inset:0;background-image:repeating-linear-gradient(45deg,rgba(160,0,0,.18) 0,rgba(160,0,0,.18) 1px,transparent 0,transparent 50%),repeating-linear-gradient(-45deg,rgba(160,0,0,.18) 0,rgba(160,0,0,.18) 1px,transparent 0,transparent 50%);background-size:22px 22px;}
+.avi-art-inner{position:relative;z-index:2;display:flex;flex-direction:column;align-items:center;padding-bottom:12px;width:100%;}
+.avi-plane-svg{font-size:52px;filter:drop-shadow(0 0 14px rgba(220,0,0,.6));transform:scaleX(-1);display:block;line-height:1;}
+.avi-brand-txt{font-size:22px;font-weight:900;font-style:italic;color:#cc1111;font-family:Georgia,serif;text-shadow:0 0 20px rgba(255,0,0,.5);margin-top:2px;letter-spacing:-.5px;}
+.avi-brand-line{width:36px;height:2px;background:linear-gradient(90deg,transparent,#cc1111,transparent);margin:3px auto 0;}
+
+/* Chicken Road card art */
+.cr-art{background:linear-gradient(180deg,#d45000 0%,#e87000 50%,#f09000 100%);}
+.cr-art::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 35% 0%,rgba(255,220,80,.35) 0%,transparent 55%),radial-gradient(ellipse at 75% 0%,rgba(255,180,40,.25) 0%,transparent 45%);}
+.cr-city{position:absolute;bottom:0;left:0;right:0;height:44px;background:#1a0800;clip-path:polygon(0 100%,0 70%,4% 70%,4% 45%,9% 45%,9% 60%,15% 60%,15% 30%,21% 30%,21% 60%,28% 60%,28% 42%,34% 42%,34% 60%,41% 60%,41% 22%,48% 22%,48% 60%,56% 60%,56% 38%,62% 38%,62% 60%,70% 60%,70% 28%,77% 28%,77% 60%,85% 60%,85% 48%,92% 48%,92% 60%,100% 60%,100% 100%);}
+.cr-art-inner{position:relative;z-index:2;display:flex;flex-direction:column;align-items:center;padding-bottom:46px;width:100%;}
+.cr-chicken-icon{font-size:58px;filter:drop-shadow(0 4px 10px rgba(0,0,0,.5));display:block;line-height:1;}
+.cr-brand-txt{font-size:14px;font-weight:900;color:#fff;text-shadow:0 2px 6px rgba(0,0,0,.6);text-align:center;line-height:1.2;}
+
+/* Mines card art */
+.mines-art{background:linear-gradient(160deg,#1a1500 0%,#2a2000 40%,#1a1a00 100%);}
+.mines-art::before{content:'';position:absolute;inset:0;background-image:repeating-linear-gradient(90deg,rgba(255,216,77,.06) 0,rgba(255,216,77,.06) 1px,transparent 0,transparent 30px),repeating-linear-gradient(0deg,rgba(255,216,77,.06) 0,rgba(255,216,77,.06) 1px,transparent 0,transparent 30px);}
+.mines-art-inner{position:relative;z-index:2;display:flex;flex-direction:column;align-items:center;padding-bottom:12px;width:100%;}
+.mines-icon{font-size:44px;display:block;line-height:1;filter:drop-shadow(0 0 12px rgba(255,216,77,.5));}
+.mines-brand-txt{font-size:20px;font-weight:900;color:#ffd84d;text-shadow:0 0 16px rgba(255,216,77,.5);margin-top:4px;letter-spacing:1px;}
+
+/* Color Trading card art */
+.ct-art{background:linear-gradient(160deg,#0d0520 0%,#180a35 40%,#0d1030 100%);}
+.ct-art::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 50% 50%,rgba(155,89,255,.15) 0%,transparent 70%);}
+.ct-art-inner{position:relative;z-index:2;display:flex;flex-direction:column;align-items:center;padding-bottom:12px;width:100%;gap:8px;}
+.ct-dots-row{display:flex;gap:10px;margin-top:4px;}
+.ct-dot{width:28px;height:28px;border-radius:50%;box-shadow:0 0 14px currentColor;}
+.ct-dot.r{background:#ff4d6a;color:#ff4d6a;}
+.ct-dot.g{background:#00d68f;color:#00d68f;}
+.ct-dot.v{background:#9b59ff;color:#9b59ff;}
+.ct-brand-txt{font-size:16px;font-weight:900;color:#fff;letter-spacing:.5px;text-shadow:0 0 12px rgba(155,89,255,.5);}
+
+/* Full-width game cards (legacy style kept for compat) */
+.games{display:flex;flex-direction:column;gap:14px;padding:0 16px;flex:1;}
 .game-card{border-radius:22px;overflow:hidden;cursor:pointer;transition:transform .15s;position:relative;}
 .game-card:active{transform:scale(.98);}
-
 .color-card{background:linear-gradient(135deg,#1a0a2e,#0d1640,#141826);border:1.5px solid rgba(155,89,255,.3);}
 .avi-card{background:linear-gradient(135deg,#0a1628,#0d1f3c,#0f2040);border:1.5px solid rgba(91,143,255,.35);}
-
 .gc-inner{padding:22px 20px 20px;}
 .gc-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;}
 .gc-icon{font-size:44px;line-height:1;}
@@ -50,16 +89,13 @@ header{display:flex;align-items:center;justify-content:space-between;padding:16p
 .gc-play{border:none;border-radius:12px;font-size:14px;font-weight:800;padding:10px 22px;cursor:pointer;font-family:inherit;}
 .color-play{background:linear-gradient(135deg,#9b59ff,#7b39df);color:#fff;}
 .avi-play{background:linear-gradient(135deg,#5b8fff,#3b5fff);color:#fff;}
-
 .color-dots{display:flex;gap:6px;margin-top:8px;}
 .cdot{width:18px;height:18px;border-radius:50%;}
 .cdot.r{background:var(--red);}
 .cdot.g{background:var(--green);}
 .cdot.v{background:var(--violet);}
-
 .avi-bar{display:flex;gap:4px;align-items:flex-end;margin-top:8px;height:24px;}
 .abar{background:var(--accent);border-radius:3px 3px 0 0;width:10px;opacity:.6;}
-
 .bottom-space{height:20px;}
 
 /* Modals */
@@ -118,8 +154,62 @@ header{display:flex;align-items:center;justify-content:space-between;padding:16p
 
 <div class="section-lbl">Choose a Game</div>
 
-<div class="games">
+<!-- 2-col visual game cards -->
+<div class="game-grid">
 
+  <!-- Aviator -->
+  <div class="gc-thumb" onclick="location.href='aviator.html'">
+    <div class="gc-art avi-art">
+      <div class="avi-art-inner">
+        <span class="avi-plane-svg">✈</span>
+        <div class="avi-brand-txt">Aviator</div>
+        <div class="avi-brand-line"></div>
+      </div>
+    </div>
+    <div class="gc-thumb-label">AVIATOR</div>
+  </div>
+
+  <!-- Chicken Road -->
+  <div class="gc-thumb" onclick="location.href='chicken-road.html'">
+    <div class="gc-art cr-art">
+      <div class="cr-city"></div>
+      <div class="cr-art-inner">
+        <span class="cr-chicken-icon">🐔</span>
+        <div class="cr-brand-txt">Chicken<br>Road 2</div>
+      </div>
+    </div>
+    <div class="gc-thumb-label">CHICKEN ROAD 2</div>
+  </div>
+
+  <!-- Mines -->
+  <div class="gc-thumb" onclick="location.href='mines.html'">
+    <div class="gc-art mines-art">
+      <div class="mines-art-inner">
+        <span class="mines-icon">💣</span>
+        <div class="mines-brand-txt">MINES</div>
+      </div>
+    </div>
+    <div class="gc-thumb-label">MINES</div>
+  </div>
+
+  <!-- Color Trading -->
+  <div class="gc-thumb" onclick="location.href='index.html'">
+    <div class="gc-art ct-art">
+      <div class="ct-art-inner">
+        <div class="ct-dots-row">
+          <div class="ct-dot r"></div>
+          <div class="ct-dot g"></div>
+          <div class="ct-dot v"></div>
+        </div>
+        <div class="ct-brand-txt">Color Trading</div>
+      </div>
+    </div>
+    <div class="gc-thumb-label">COLOR TRADING</div>
+  </div>
+
+</div>
+
+<div class="games" style="display:none;">
   <!-- Color Trading -->
   <div class="game-card color-card" onclick="location.href='index.html'">
     <div class="gc-inner">

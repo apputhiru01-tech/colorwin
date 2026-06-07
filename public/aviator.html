@@ -106,42 +106,49 @@ canvas#gc{position:absolute;inset:0;width:100%;height:100%;}
 .bet-panel{background:#111118;border-top:2px solid rgba(255,255,255,.07);padding:10px 12px 12px;flex-shrink:0;}
 
 /* Tabs */
-.bp-tabs{display:flex;gap:2px;margin-bottom:10px;background:rgba(0,0,0,.4);border-radius:8px;padding:3px;}
-.bpt{flex:1;background:none;border:none;border-radius:6px;color:var(--muted);font-size:13px;font-weight:700;padding:7px;cursor:pointer;font-family:inherit;transition:all .15s;}
-.bpt.active{background:#1e1e2e;color:#fff;box-shadow:0 1px 6px rgba(0,0,0,.4);}
+.bp-tabs{display:flex;gap:0;margin-bottom:10px;background:rgba(0,0,0,.5);border-radius:8px;padding:3px;}
+.bpt{flex:1;background:none;border:none;border-radius:6px;color:rgba(255,255,255,.4);font-size:13px;font-weight:700;padding:7px;cursor:pointer;font-family:inherit;transition:all .15s;}
+.bpt.active{background:#2a2a40;color:#fff;box-shadow:0 1px 4px rgba(0,0,0,.5);}
 
-/* Amount control */
-.amt-ctrl{display:flex;align-items:center;gap:8px;background:#0d0d18;border:1.5px solid rgba(255,255,255,.08);border-radius:12px;padding:8px 10px;margin-bottom:8px;}
-.amt-adj{width:36px;height:36px;border-radius:50%;background:#1e1e30;border:1.5px solid rgba(255,255,255,.1);color:#fff;font-size:22px;font-weight:300;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-family:inherit;line-height:1;transition:all .15s;}
-.amt-adj:hover{background:rgba(77,136,255,.2);border-color:var(--accent);}
-.amt-display{flex:1;text-align:center;}
-.amt-display input{background:none;border:none;color:#fff;font-size:20px;font-weight:800;text-align:center;width:100%;outline:none;font-family:inherit;}
+/* Bet row: left controls | right BET button */
+.bet-row{display:flex;gap:8px;align-items:stretch;margin-bottom:8px;min-height:90px;}
+.bet-left{flex:1;display:flex;flex-direction:column;gap:6px;}
 
-/* Quick amounts */
-.quick-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:10px;}
-.qb{background:#161625;border:1px solid rgba(255,255,255,.08);border-radius:8px;color:rgba(255,255,255,.5);font-size:12px;font-weight:700;padding:7px 4px;cursor:pointer;font-family:inherit;transition:all .12s;text-align:center;}
-.qb:hover,.qb.sel{background:rgba(77,136,255,.12);border-color:var(--accent);color:var(--accent);}
+/* Amount ctrl */
+.amt-ctrl{display:flex;align-items:center;gap:5px;background:rgba(0,0,0,.3);border-radius:10px;padding:5px 8px;}
+.adj-btn{width:32px;height:32px;border-radius:50%;background:#252535;border:1.5px solid rgba(255,255,255,.1);color:#fff;font-size:20px;font-weight:300;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-family:inherit;line-height:1;transition:all .12s;}
+.adj-btn:hover{background:rgba(77,136,255,.2);border-color:var(--accent);}
+.amt-inp{flex:1;background:none;border:none;color:#fff;font-size:20px;font-weight:800;text-align:center;outline:none;font-family:inherit;width:0;}
 
-/* BET / cashout button */
-.bet-btn{width:100%;border:none;border-radius:12px;color:#fff;font-size:16px;font-weight:900;padding:14px;cursor:pointer;font-family:inherit;transition:all .15s;position:relative;overflow:hidden;letter-spacing:.5px;}
-.bet-btn.place{background:linear-gradient(135deg,#00d444,#00a835);box-shadow:0 4px 20px rgba(0,212,68,.25);}
+/* 2×2 quick amounts */
+.q22{display:grid;grid-template-columns:1fr 1fr;gap:5px;}
+.qb{background:#1e1e30;border:1px solid rgba(255,255,255,.07);border-radius:7px;color:rgba(255,255,255,.45);font-size:12px;font-weight:700;padding:6px 4px;cursor:pointer;font-family:inherit;transition:all .12s;text-align:center;}
+.qb:hover,.qb.sel{background:rgba(77,136,255,.1);border-color:var(--accent);color:var(--accent);}
+
+/* BET / cashout button — right, full height */
+.bet-right{width:44%;flex-shrink:0;display:flex;}
+.bet-btn{flex:1;border:none;border-radius:12px;color:#fff;font-size:17px;font-weight:900;cursor:pointer;font-family:inherit;transition:all .15s;letter-spacing:.3px;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:10px 8px;}
+.bet-btn.place{background:linear-gradient(170deg,#1fd44f,#00a835);box-shadow:0 4px 18px rgba(0,200,83,.35);}
 .bet-btn.place:disabled{opacity:.4;cursor:not-allowed;}
-.bet-btn.cashout{background:linear-gradient(135deg,#ff6b00,#e64000);animation:cashGlow 1s infinite;}
-@keyframes cashGlow{0%,100%{box-shadow:0 0 0 0 rgba(255,107,0,.4)}50%{box-shadow:0 0 0 10px rgba(255,107,0,0)}}
-.bet-btn.waiting{background:rgba(255,255,255,.05);border:1.5px solid rgba(255,255,255,.1);color:rgba(255,255,255,.35);cursor:not-allowed;}
-.btn-sub{font-size:12px;font-weight:600;opacity:.85;display:block;margin-top:2px;}
+.bet-btn.cashout{background:linear-gradient(170deg,#ff7c00,#e64000);animation:cashGlow 1s infinite;}
+@keyframes cashGlow{0%,100%{box-shadow:0 0 0 0 rgba(255,124,0,.4)}50%{box-shadow:0 0 0 10px rgba(255,124,0,0)}}
+.bet-btn.waiting{background:rgba(255,255,255,.05);border:1.5px solid rgba(255,255,255,.1);color:rgba(255,255,255,.3);cursor:not-allowed;}
+.btn-sub{font-size:12px;font-weight:600;opacity:.85;display:block;margin-top:3px;letter-spacing:0;}
 
-/* Auto Play + Auto Cashout row */
-.auto-row{display:flex;align-items:center;gap:6px;margin-top:8px;}
-.autoplay-btn{background:transparent;border:1.5px solid var(--accent);color:var(--accent);font-size:11px;font-weight:800;padding:7px 10px;border-radius:8px;cursor:pointer;font-family:inherit;white-space:nowrap;letter-spacing:.8px;text-transform:uppercase;}
-.ac-section{flex:1;display:flex;align-items:center;gap:4px;background:#0d0d18;border:1px solid rgba(255,255,255,.08);border-radius:8px;padding:6px 8px;min-width:0;}
-.ac-lbl2{font-size:9px;color:var(--muted);font-weight:600;white-space:nowrap;flex:1;overflow:hidden;text-overflow:ellipsis;}
-.ac-toggle{width:30px;height:16px;background:rgba(255,255,255,.15);border-radius:8px;position:relative;cursor:pointer;transition:background .2s;flex-shrink:0;}
+/* Auto controls row */
+.auto-ctrl-row{display:flex;align-items:center;justify-content:space-between;gap:8px;}
+.a-side{display:flex;align-items:center;gap:5px;}
+.a-lbl{font-size:11px;color:rgba(255,255,255,.35);font-weight:600;white-space:nowrap;}
+.atog{width:28px;height:15px;background:rgba(255,255,255,.15);border-radius:8px;position:relative;cursor:pointer;transition:background .2s;flex-shrink:0;}
+.atog.on{background:#00c853;}
+.atog::after{content:'';position:absolute;top:2px;left:2px;width:11px;height:11px;background:#fff;border-radius:50%;transition:left .2s;box-shadow:0 1px 3px rgba(0,0,0,.3);}
+.atog.on::after{left:15px;}
+.ac-toggle{width:28px;height:15px;background:rgba(255,255,255,.15);border-radius:8px;position:relative;cursor:pointer;transition:background .2s;flex-shrink:0;}
 .ac-toggle.on{background:#00c853;}
-.ac-toggle::after{content:'';position:absolute;top:2px;left:2px;width:12px;height:12px;background:#fff;border-radius:50%;transition:left .2s;box-shadow:0 1px 3px rgba(0,0,0,.3);}
-.ac-toggle.on::after{left:16px;}
-.ac-val{background:none;border:none;color:#fff;font-size:13px;font-weight:800;width:32px;text-align:center;outline:none;font-family:inherit;}
-.ac-clear{background:none;border:none;color:var(--muted);font-size:14px;cursor:pointer;padding:0 1px;line-height:1;}
+.ac-toggle::after{content:'';position:absolute;top:2px;left:2px;width:11px;height:11px;background:#fff;border-radius:50%;transition:left .2s;box-shadow:0 1px 3px rgba(0,0,0,.3);}
+.ac-toggle.on::after{left:15px;}
+.ac-val{background:none;border:none;color:#fff;font-size:13px;font-weight:800;width:34px;text-align:center;outline:none;font-family:inherit;}
+.ac-clear{background:none;border:none;color:rgba(255,255,255,.35);font-size:15px;cursor:pointer;padding:0;line-height:1;}
 
 /* Auto content preset buttons */
 .auto-preset-grid{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px;}
@@ -272,32 +279,41 @@ canvas#gc{position:absolute;inset:0;width:100%;height:100%;}
 
   <!-- Bet content -->
   <div id="betContent">
-    <!-- Amount: − amount + -->
-    <div class="amt-ctrl">
-      <button class="amt-adj" onclick="adjAmt(.5)">−</button>
-      <div class="amt-display">
-        <input id="aviAmt" type="number" min="10" value="1000" oninput="syncBetAmt()"/>
+    <!-- Horizontal: [left: amount + quick] [right: BET button] -->
+    <div class="bet-row">
+      <div class="bet-left">
+        <!-- Amount control -->
+        <div class="amt-ctrl">
+          <button class="adj-btn" onclick="adjAmt(.5)">−</button>
+          <input id="aviAmt" class="amt-inp" type="number" min="10" value="1000" oninput="syncBetAmt()"/>
+          <button class="adj-btn" onclick="adjAmt(2)">+</button>
+        </div>
+        <!-- 2×2 quick amounts -->
+        <div class="q22">
+          <button class="qb" onclick="setA(100)">100</button>
+          <button class="qb" onclick="setA(200)">200</button>
+          <button class="qb" onclick="setA(500)">500</button>
+          <button class="qb sel" onclick="setA(1000)">1,000</button>
+        </div>
       </div>
-      <button class="amt-adj" onclick="adjAmt(2)">+</button>
+      <!-- Right: tall BET button -->
+      <div class="bet-right">
+        <button class="bet-btn place" id="betBtn" onclick="doBet()">
+          Bet<span class="btn-sub" id="btnSub">1,000.00 INR</span>
+        </button>
+      </div>
     </div>
-    <!-- Quick amounts 4-col -->
-    <div class="quick-grid">
-      <button class="qb" onclick="setA(10)">10</button>
-      <button class="qb" onclick="setA(100)">100</button>
-      <button class="qb" onclick="setA(500)">500</button>
-      <button class="qb sel" onclick="setA(1000)">1,000</button>
-    </div>
-    <!-- Main BET button -->
-    <button class="bet-btn place" id="betBtn" onclick="doBet()">
-      BET<span class="btn-sub" id="btnSub">1,000.00 INR</span>
-    </button>
-    <!-- AUTO PLAY + Auto Cash Out row -->
-    <div class="auto-row">
-      <button class="autoplay-btn" onclick="showToast('Auto Play — coming soon!')">AUTO PLAY</button>
-      <div class="ac-section">
-        <span class="ac-lbl2">Auto Cash Out</span>
+
+    <!-- Auto bet + Auto Cash Out row -->
+    <div class="auto-ctrl-row">
+      <div class="a-side">
+        <span class="a-lbl">Auto bet</span>
+        <div class="atog" id="autoBetTog" onclick="this.classList.toggle('on')"></div>
+      </div>
+      <div class="a-side">
+        <span class="a-lbl">Auto Cash Out</span>
         <div class="ac-toggle" id="acToggle" onclick="toggleAC()"></div>
-        <input class="ac-val" id="acValInp" type="number" value="2" min="1.01" step="0.1"/>
+        <input class="ac-val" id="acValInp" type="number" value="2.00" min="1.01" step="0.1"/>
         <button class="ac-clear" onclick="clearAC()">×</button>
       </div>
     </div>
@@ -305,7 +321,7 @@ canvas#gc{position:absolute;inset:0;width:100%;height:100%;}
 
   <!-- Auto tab content -->
   <div id="autoContent" style="display:none;">
-    <div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:10px;">Cashout at multiplier:</div>
+    <div style="font-size:11px;color:rgba(255,255,255,.35);text-transform:uppercase;letter-spacing:1px;margin-bottom:10px;">Auto cashout at multiplier:</div>
     <div class="auto-preset-grid">
       <button class="qb" onclick="setAC(1.2);switchTab('bet')">1.2×</button>
       <button class="qb" onclick="setAC(1.5);switchTab('bet')">1.5×</button>
@@ -314,7 +330,6 @@ canvas#gc{position:absolute;inset:0;width:100%;height:100%;}
       <button class="qb" onclick="setAC(5.0);switchTab('bet')">5×</button>
       <button class="qb" onclick="setAC(10.0);switchTab('bet')">10×</button>
     </div>
-    <div style="margin-top:8px;font-size:11px;color:rgba(255,255,255,.25);">Select a preset to enable auto cashout and switch to Bet tab.</div>
   </div>
 </div>
 
