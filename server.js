@@ -166,8 +166,11 @@ const UserSchema = new mongoose.Schema({
   totalWins:     { type: Number, default: 0 },
   totalWinAmount:{ type: Number, default: 0 },
   totalLost:     { type: Number, default: 0 },
-  newPlayerState:{ type: String, default: 'first' }, // 'first'→force win, 'second'→force loss, 'done'→normal
-  lastSpinDate:  { type: Date, default: null },
+  newPlayerState:  { type: String, default: 'first' },
+  lastSpinDate:    { type: Date,   default: null },
+  spinsUsedToday:  { type: Number, default: 0 },
+  dailyRewardDate: { type: Date,   default: null },
+  dailyRewardDay:  { type: Number, default: 0 },
 }, { timestamps: true });
 const User = mongoose.model('User', UserSchema);
 
@@ -1295,29 +1298,80 @@ function pickSpinPrize() {
   return 0;
 }
 
+const MAX_SPINS_PER_DAY = 3;
+
+// Daily Reward ladder (7-day streak)
+const DAILY_REWARDS = [10, 25, 50, 75, 100, 150, 300];
+
+app.get('/api/daily-reward/status', authMiddleware, async (req, res) => {
+  try {
+    const user = await User.findById(req.user.userId).select('dailyRewardDate dailyRewardDay');
+    const today = new Date(); today.setHours(0, 0, 0, 0);
+    const yesterday = new Date(today); yesterday.setDate(yesterday.getDate() - 1);
+    const lastDate = user.dailyRewardDate ? new Date(user.dailyRewardDate) : null;
+    let day = user.dailyRewardDay || 0;
+    let canClaim = false;
+    if (!lastDate || lastDate < today) {
+      if (lastDate && lastDate >= yesterday) {
+        // Consecutive day — advance streak
+        canClaim = true;
+      } else {
+        // Missed / first time — reset to day 1
+        day = 0; canClaim = true;
+      }
+    }
+    const tomorrow = new Date(today); tomorrow.setDate(tomorrow.getDate() + 1);
+    res.json({ canClaim, day, rewards: DAILY_REWARDS, nextClaim: tomorrow.getTime() });
+  } catch(e) { res.status(500).json({ error: 'Failed' }); }
+});
+
+app.post('/api/daily-reward/claim', authMiddleware, async (req, res) => {
+  try {
+    const user = await User.findById(req.user.userId).select('dailyRewardDate dailyRewardDay wallet');
+    const today = new Date(); today.setHours(0, 0, 0, 0);
+    const yesterday = new Date(today); yesterday.setDate(yesterday.getDate() - 1);
+    const lastDate = user.dailyRewardDate ? new Date(user.dailyRewardDate) : null;
+    if (lastDate && lastDate >= today) return res.status(400).json({ error: 'Already claimed today!' });
+    let day = user.dailyRewardDay || 0;
+    if (!lastDate || lastDate < yesterday) day = 0; // reset streak
+    const prize = DAILY_REWARDS[day % DAILY_REWARDS.length];
+    const nextDay = (day + 1) % DAILY_REWARDS.length;
+    const tomorrow = new Date(today); tomorrow.setDate(tomorrow.getDate() + 1);
+    const updated = await User.findByIdAndUpdate(req.user.userId,
+      { dailyRewardDate: new Date(), dailyRewardDay: nextDay, $inc: { wallet: prize } }, { new: true });
+    res.json({ prize, newBalance: updated.wallet, day, nextDay, nextClaim: tomorrow.getTime() });
+  } catch(e) { res.status(500).json({ error: 'Failed' }); }
+});
+
 app.get('/api/spin/status', authMiddleware, async (req, res) => {
   try {
-    const user = await User.findById(req.user.userId).select('lastSpinDate');
+    const user = await User.findById(req.user.userId).select('lastSpinDate spinsUsedToday');
     const today = new Date(); today.setHours(0, 0, 0, 0);
-    const canSpin = !user.lastSpinDate || new Date(user.lastSpinDate) < today;
     const tomorrow = new Date(today); tomorrow.setDate(tomorrow.getDate() + 1);
-    res.json({ canSpin, nextSpin: tomorrow.getTime() });
+    const isToday = user.lastSpinDate && new Date(user.lastSpinDate) >= today;
+    const used = isToday ? (user.spinsUsedToday || 0) : 0;
+    const spinsLeft = Math.max(0, MAX_SPINS_PER_DAY - used);
+    res.json({ canSpin: spinsLeft > 0, spinsLeft, nextSpin: tomorrow.getTime() });
   } catch(e) { res.status(500).json({ error: 'Failed' }); }
 });
 
 app.post('/api/spin', authMiddleware, async (req, res) => {
   try {
-    const user = await User.findById(req.user.userId).select('lastSpinDate wallet');
+    const user = await User.findById(req.user.userId).select('lastSpinDate spinsUsedToday wallet');
     const today = new Date(); today.setHours(0, 0, 0, 0);
-    if (user.lastSpinDate && new Date(user.lastSpinDate) >= today) {
-      return res.status(400).json({ error: 'Already spun today! Come back tomorrow.' });
+    const tomorrow = new Date(today); tomorrow.setDate(tomorrow.getDate() + 1);
+    const isToday = user.lastSpinDate && new Date(user.lastSpinDate) >= today;
+    const used = isToday ? (user.spinsUsedToday || 0) : 0;
+    if (used >= MAX_SPINS_PER_DAY) {
+      return res.status(400).json({ error: `All ${MAX_SPINS_PER_DAY} spins used! Come back tomorrow.`, nextSpin: tomorrow.getTime() });
     }
     const prize = pickSpinPrize();
-    const updateObj = { lastSpinDate: new Date() };
+    const newUsed = used + 1;
+    const spinsLeft = MAX_SPINS_PER_DAY - newUsed;
+    const updateObj = { lastSpinDate: new Date(), spinsUsedToday: newUsed };
     if (prize > 0) updateObj.$inc = { wallet: prize };
     const updated = await User.findByIdAndUpdate(req.user.userId, updateObj, { new: true });
-    const tomorrow = new Date(today); tomorrow.setDate(tomorrow.getDate() + 1);
-    res.json({ prize, newBalance: updated.wallet, nextSpin: tomorrow.getTime() });
+    res.json({ prize, newBalance: updated.wallet, spinsLeft, nextSpin: tomorrow.getTime() });
   } catch(e) { res.status(500).json({ error: 'Failed' }); }
 });
 

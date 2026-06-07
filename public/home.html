@@ -125,6 +125,31 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,san
 #toast{position:fixed;bottom:90px;left:50%;transform:translateX(-50%) translateY(80px);background:var(--card);border:1px solid var(--border);border-radius:14px;padding:12px 24px;font-size:14px;font-weight:600;z-index:999;transition:transform .35s cubic-bezier(.34,1.56,.64,1);pointer-events:none;white-space:nowrap;}
 #toast.show{transform:translateX(-50%) translateY(0);}
 
+/* ── Daily Rewards Modal ── */
+.dr-overlay{position:fixed;inset:0;background:rgba(0,0,0,.94);z-index:300;display:none;flex-direction:column;align-items:center;justify-content:center;padding:20px;}
+.dr-overlay.show{display:flex;animation:sFadeIn .3s ease;}
+.dr-modal{width:100%;max-width:380px;background:linear-gradient(160deg,#111827,#0d1420);border:1px solid rgba(255,255,255,.08);border-radius:24px;padding:24px 20px;position:relative;}
+.dr-close{position:absolute;top:14px;right:14px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.12);border-radius:50%;width:32px;height:32px;color:#fff;font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;}
+.dr-title{font-size:20px;font-weight:900;text-align:center;background:linear-gradient(135deg,#ffd84d,#ff8c42);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:4px;}
+.dr-sub{font-size:12px;color:var(--muted);text-align:center;margin-bottom:18px;}
+.dr-days{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:16px;}
+.dr-day{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:10px 6px;text-align:center;position:relative;}
+.dr-day.claimed{background:rgba(0,214,143,.08);border-color:rgba(0,214,143,.3);}
+.dr-day.current{background:rgba(255,140,66,.12);border-color:rgba(255,140,66,.5);box-shadow:0 0 12px rgba(255,140,66,.2);}
+.dr-day-num{font-size:9px;font-weight:800;color:var(--muted);margin-bottom:4px;text-transform:uppercase;}
+.dr-day-icon{font-size:20px;margin-bottom:3px;}
+.dr-day-amt{font-size:11px;font-weight:900;color:#fff;}
+.dr-day.claimed .dr-day-amt{color:var(--green);}
+.dr-day.current .dr-day-amt{color:#ff8c42;}
+.dr-check{position:absolute;top:-5px;right:-5px;width:16px;height:16px;background:var(--green);border-radius:50%;font-size:9px;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:900;}
+.dr-day7{grid-column:span 4;background:linear-gradient(135deg,rgba(255,216,77,.12),rgba(255,140,66,.12));border:1px solid rgba(255,216,77,.4);}
+.dr-day7 .dr-day-icon{font-size:28px;}
+.dr-day7 .dr-day-amt{font-size:16px;color:#ffd84d;}
+.dr-claim-btn{width:100%;background:linear-gradient(135deg,#ff8c42,#e06018);border:none;border-radius:14px;color:#fff;font-size:17px;font-weight:900;padding:15px;cursor:pointer;font-family:inherit;letter-spacing:.5px;}
+.dr-claim-btn:disabled{opacity:.45;cursor:not-allowed;}
+.dr-claimed-msg{text-align:center;padding:10px 0;font-size:13px;color:var(--muted);}
+.dr-cd{font-size:20px;font-weight:900;color:#fff;margin-top:4px;font-variant-numeric:tabular-nums;}
+
 /* ── Spin Modal ── */
 .spin-overlay{position:fixed;inset:0;background:rgba(0,0,0,.92);z-index:300;display:none;flex-direction:column;align-items:center;justify-content:center;padding:20px;}
 .spin-overlay.show{display:flex;animation:sFadeIn .3s ease;}
@@ -311,7 +336,7 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,san
     <span class="nav-icon">🏠</span>
     <span class="nav-label" style="color:var(--accent);">Home</span>
   </div>
-  <div class="nav-item" onclick="openDeposit()">
+  <div class="nav-item" onclick="openActivity()">
     <span class="nav-icon">🎁</span>
     <span class="nav-label">Activity</span>
   </div>
@@ -407,13 +432,30 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,san
   </div>
 </div>
 
+<!-- Daily Rewards Modal -->
+<div class="dr-overlay" id="drOverlay">
+  <div class="dr-modal">
+    <button class="dr-close" onclick="closeActivity()">✕</button>
+    <div class="dr-title">🎁 Daily Rewards</div>
+    <div class="dr-sub">Login every day to collect rewards — streaks give bigger prizes!</div>
+    <div class="dr-days" id="drDays"></div>
+    <div id="drAction">
+      <button class="dr-claim-btn" id="drClaimBtn" onclick="claimDailyReward()">Collect Today's Reward</button>
+    </div>
+    <div id="drClaimedMsg" style="display:none;" class="dr-claimed-msg">
+      Already collected today!<br><div class="dr-cd" id="drCdTimer">--:--:--</div>
+      <div style="font-size:11px;margin-top:4px;">Come back tomorrow</div>
+    </div>
+  </div>
+</div>
+
 <!-- Lucky Spin Modal -->
 <div class="spin-overlay" id="spinOverlay">
   <div class="spin-modal">
     <button class="spin-close" onclick="closeSpin()">✕</button>
     <div class="spin-head">
       <div class="spin-title">🎰 LUCKY SPIN</div>
-      <div class="spin-sub">Win up to ₹500 · Free daily spin</div>
+      <div class="spin-sub">Win up to ₹500 · <span id="spinSubLbl">3 free spins daily</span></div>
     </div>
     <div class="spin-wheel-wrap">
       <div class="spin-pointer"></div>
@@ -679,6 +721,83 @@ function spinTo(segIdx, onDone) {
   requestAnimationFrame(frame);
 }
 
+// ── Daily Rewards ──────────────────────────────────
+const DR_LABELS = ['Day 1','Day 2','Day 3','Day 4','Day 5','Day 6','Day 7'];
+const DR_ICONS  = ['🪙','💵','💰','💎','🏆','👑','🎊'];
+let drCdInterval = null;
+
+async function openActivity() {
+  document.getElementById('drOverlay').classList.add('show');
+  try {
+    const r = await fetch(API + '/api/daily-reward/status', { headers: { Authorization: 'Bearer ' + token } });
+    const d = await r.json();
+    renderDrDays(d.day, d.rewards);
+    if (d.canClaim) {
+      document.getElementById('drAction').style.display = 'block';
+      document.getElementById('drClaimedMsg').style.display = 'none';
+    } else {
+      document.getElementById('drAction').style.display = 'none';
+      document.getElementById('drClaimedMsg').style.display = 'block';
+      startDrCountdown(d.nextClaim);
+    }
+  } catch { showToast('Network error'); }
+}
+
+function closeActivity() {
+  document.getElementById('drOverlay').classList.remove('show');
+  if (drCdInterval) { clearInterval(drCdInterval); drCdInterval = null; }
+}
+
+function renderDrDays(currentDay, rewards) {
+  const container = document.getElementById('drDays');
+  container.innerHTML = '';
+  rewards.forEach((amt, i) => {
+    const claimed = i < currentDay;
+    const isCurrent = i === currentDay;
+    const isDay7 = i === 6;
+    const div = document.createElement('div');
+    div.className = 'dr-day' + (claimed ? ' claimed' : '') + (isCurrent ? ' current' : '') + (isDay7 ? ' dr-day7' : '');
+    div.innerHTML = `
+      ${claimed ? '<div class="dr-check">✓</div>' : ''}
+      <div class="dr-day-num">${DR_LABELS[i]}</div>
+      <div class="dr-day-icon">${DR_ICONS[i]}</div>
+      <div class="dr-day-amt">₹${amt}</div>
+    `;
+    container.appendChild(div);
+  });
+}
+
+function startDrCountdown(nextClaim) {
+  const timerEl = document.getElementById('drCdTimer');
+  if (drCdInterval) clearInterval(drCdInterval);
+  drCdInterval = setInterval(() => {
+    const diff = nextClaim - Date.now();
+    if (diff <= 0) { clearInterval(drCdInterval); document.getElementById('drClaimedMsg').style.display = 'none'; document.getElementById('drAction').style.display = 'block'; return; }
+    const h = Math.floor(diff / 3600000), m = Math.floor((diff % 3600000) / 60000), s = Math.floor((diff % 60000) / 1000);
+    timerEl.textContent = `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+  }, 1000);
+}
+
+async function claimDailyReward() {
+  const btn = document.getElementById('drClaimBtn');
+  btn.disabled = true; btn.textContent = 'Collecting…';
+  try {
+    const r = await fetch(API + '/api/daily-reward/claim', { method: 'POST', headers: { Authorization: 'Bearer ' + token } });
+    const d = await r.json();
+    if (!r.ok) { showToast(d.error || 'Try again'); btn.disabled = false; btn.textContent = "Collect Today's Reward"; return; }
+    if (d.newBalance !== undefined) {
+      wallet = d.newBalance;
+      document.getElementById('walletAmt').textContent = parseFloat(d.newBalance).toFixed(2);
+    }
+    showToast(`+₹${d.prize} added to wallet!`);
+    renderDrDays(d.nextDay, [10,25,50,75,100,150,300]);
+    document.getElementById('drAction').style.display = 'none';
+    document.getElementById('drClaimedMsg').style.display = 'block';
+    startDrCountdown(d.nextClaim);
+  } catch { btn.disabled = false; btn.textContent = "Collect Today's Reward"; showToast('Network error'); }
+}
+// ───────────────────────────────────────────────────
+
 async function openSpin() {
   document.getElementById('spinOverlay').classList.add('show');
   document.getElementById('spinResult').style.display = 'none';
@@ -690,8 +809,16 @@ async function openSpin() {
   try {
     const r = await fetch(API + '/api/spin/status', { headers: { Authorization: 'Bearer ' + token } });
     const d = await r.json();
+    updateSpinCounter(d.spinsLeft ?? 3);
     if (!d.canSpin) showCooldown(d.nextSpin);
   } catch {}
+}
+
+function updateSpinCounter(left) {
+  const lbl = document.getElementById('spinSubLbl');
+  if (lbl) lbl.textContent = left > 0 ? `${left} spin${left > 1 ? 's' : ''} left today` : '3 free spins daily';
+  const btn = document.getElementById('spinBtn');
+  if (btn && left > 0) btn.textContent = `SPIN! (${left} left)`;
 }
 
 function closeSpin() {
@@ -732,21 +859,27 @@ async function doSpin() {
     const prize = d.prize;
     const segIdx = prizeToSegIdx(prize);
     spinTo(segIdx, () => {
-      // Update wallet
       if (d.newBalance !== undefined) {
         wallet = d.newBalance;
         document.getElementById('walletAmt').textContent = parseFloat(d.newBalance).toFixed(2);
       }
-      // Show result
       const resEl = document.getElementById('spinResult');
       resEl.style.display = 'block';
-      document.getElementById('spinAction').style.display = 'none';
+      const spinsLeft = d.spinsLeft ?? 0;
       if (prize > 0) {
         resEl.innerHTML = `<span class="spin-result-icon">🎉</span><div class="spin-result-lbl">You Won!</div><div class="spin-result-amt">+₹${prize}</div><div class="spin-try-again" style="color:var(--green);margin-top:8px;">Added to your wallet!</div>`;
       } else {
-        resEl.innerHTML = `<span class="spin-result-icon">😅</span><div class="spin-result-lbl">Better Luck Tomorrow!</div><div class="spin-result-zero">₹0</div><div class="spin-try-again">Come back tomorrow for another spin</div>`;
+        resEl.innerHTML = `<span class="spin-result-icon">😅</span><div class="spin-result-lbl">Better Luck!</div><div class="spin-result-zero">₹0</div>`;
       }
-      showCooldown(d.nextSpin || Date.now() + 86400000);
+      updateSpinCounter(spinsLeft);
+      if (spinsLeft > 0) {
+        document.getElementById('spinAction').style.display = 'block';
+        btn.disabled = false;
+        btn.textContent = `SPIN AGAIN (${spinsLeft} left)`;
+      } else {
+        document.getElementById('spinAction').style.display = 'none';
+        showCooldown(d.nextSpin || Date.now() + 86400000);
+      }
     });
   } catch { btn.disabled = false; btn.textContent = 'SPIN!'; showToast('Network error'); }
 }
