@@ -167,6 +167,7 @@ const UserSchema = new mongoose.Schema({
   totalWinAmount:{ type: Number, default: 0 },
   totalLost:     { type: Number, default: 0 },
   newPlayerState:{ type: String, default: 'first' }, // 'first'→force win, 'second'→force loss, 'done'→normal
+  lastSpinDate:  { type: Date, default: null },
 }, { timestamps: true });
 const User = mongoose.model('User', UserSchema);
 
@@ -1273,6 +1274,51 @@ app.get('/api/chicken/state', authMiddleware, (req, res) => {
   const game = chickenGames.get(req.user.userId.toString());
   if (!game || !game.active) return res.json({ active: false });
   res.json({ active: true, step: game.step, amount: game.amount, multiplier: CHICKEN_MULTS[game.step] });
+});
+
+// ════════════════════════════════════════
+//  DAILY LUCKY SPIN
+// ════════════════════════════════════════
+const SPIN_PRIZES = [
+  { prize: 500, weight: 1   },   // 1%   JACKPOT
+  { prize: 100, weight: 2   },   // 2%
+  { prize: 50,  weight: 4   },   // 4%
+  { prize: 25,  weight: 8   },   // 8%
+  { prize: 10,  weight: 15  },   // 15%
+  { prize: 0,   weight: 70  },   // 70%  ZERO
+];
+const SPIN_TOTAL = SPIN_PRIZES.reduce((s, p) => s + p.weight, 0); // 100
+
+function pickSpinPrize() {
+  let r = Math.random() * SPIN_TOTAL;
+  for (const p of SPIN_PRIZES) { r -= p.weight; if (r <= 0) return p.prize; }
+  return 0;
+}
+
+app.get('/api/spin/status', authMiddleware, async (req, res) => {
+  try {
+    const user = await User.findById(req.user.userId).select('lastSpinDate');
+    const today = new Date(); today.setHours(0, 0, 0, 0);
+    const canSpin = !user.lastSpinDate || new Date(user.lastSpinDate) < today;
+    const tomorrow = new Date(today); tomorrow.setDate(tomorrow.getDate() + 1);
+    res.json({ canSpin, nextSpin: tomorrow.getTime() });
+  } catch(e) { res.status(500).json({ error: 'Failed' }); }
+});
+
+app.post('/api/spin', authMiddleware, async (req, res) => {
+  try {
+    const user = await User.findById(req.user.userId).select('lastSpinDate wallet');
+    const today = new Date(); today.setHours(0, 0, 0, 0);
+    if (user.lastSpinDate && new Date(user.lastSpinDate) >= today) {
+      return res.status(400).json({ error: 'Already spun today! Come back tomorrow.' });
+    }
+    const prize = pickSpinPrize();
+    const updateObj = { lastSpinDate: new Date() };
+    if (prize > 0) updateObj.$inc = { wallet: prize };
+    const updated = await User.findByIdAndUpdate(req.user.userId, updateObj, { new: true });
+    const tomorrow = new Date(today); tomorrow.setDate(tomorrow.getDate() + 1);
+    res.json({ prize, newBalance: updated.wallet, nextSpin: tomorrow.getTime() });
+  } catch(e) { res.status(500).json({ error: 'Failed' }); }
 });
 
 // ════════════════════════════════════════

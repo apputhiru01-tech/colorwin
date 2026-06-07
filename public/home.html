@@ -124,6 +124,33 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,san
 .upi-pay-arrow{color:var(--muted);font-size:20px;}
 #toast{position:fixed;bottom:90px;left:50%;transform:translateX(-50%) translateY(80px);background:var(--card);border:1px solid var(--border);border-radius:14px;padding:12px 24px;font-size:14px;font-weight:600;z-index:999;transition:transform .35s cubic-bezier(.34,1.56,.64,1);pointer-events:none;white-space:nowrap;}
 #toast.show{transform:translateX(-50%) translateY(0);}
+
+/* ── Spin Modal ── */
+.spin-overlay{position:fixed;inset:0;background:rgba(0,0,0,.92);z-index:300;display:none;flex-direction:column;align-items:center;justify-content:center;padding:20px;}
+.spin-overlay.show{display:flex;animation:sFadeIn .3s ease;}
+@keyframes sFadeIn{from{opacity:0}to{opacity:1}}
+.spin-modal{width:100%;max-width:360px;display:flex;flex-direction:column;align-items:center;gap:14px;position:relative;}
+.spin-close{position:absolute;top:-10px;right:0;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.15);border-radius:50%;width:34px;height:34px;color:#fff;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;}
+.spin-head{text-align:center;}
+.spin-title{font-size:22px;font-weight:900;background:linear-gradient(135deg,#ffd84d,#ff8c42,#ff4d6a);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;letter-spacing:1px;}
+.spin-sub{font-size:12px;color:var(--muted);margin-top:3px;letter-spacing:.5px;}
+.spin-wheel-wrap{position:relative;display:flex;align-items:center;justify-content:center;}
+.spin-pointer{position:absolute;top:-14px;left:50%;transform:translateX(-50%);width:0;height:0;border-left:10px solid transparent;border-right:10px solid transparent;border-top:22px solid #ffd84d;filter:drop-shadow(0 0 6px rgba(255,216,77,.8));z-index:5;}
+#spinCanvas{border-radius:50%;box-shadow:0 0 0 3px rgba(255,140,0,.4),0 0 30px rgba(255,140,0,.2);}
+.spin-action-row{text-align:center;width:100%;}
+.spin-btn{width:100%;background:linear-gradient(135deg,#ff8c42,#e06018);border:none;border-radius:16px;color:#fff;font-size:18px;font-weight:900;padding:16px;cursor:pointer;font-family:inherit;box-shadow:0 4px 20px rgba(255,140,66,.4);transition:transform .1s,box-shadow .2s;letter-spacing:.5px;}
+.spin-btn:active:not(:disabled){transform:scale(.96);}
+.spin-btn:disabled{opacity:.5;cursor:not-allowed;}
+.spin-cooldown{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:14px;padding:14px 20px;text-align:center;width:100%;}
+.spin-cd-lbl{font-size:12px;color:var(--muted);margin-bottom:6px;font-weight:700;letter-spacing:.5px;}
+.spin-cd-timer{font-size:26px;font-weight:900;color:#fff;font-variant-numeric:tabular-nums;}
+.spin-result{text-align:center;animation:sResultIn .5s cubic-bezier(.34,1.56,.64,1);}
+@keyframes sResultIn{from{transform:scale(.5);opacity:0}to{transform:scale(1);opacity:1}}
+.spin-result-icon{font-size:52px;display:block;margin-bottom:6px;}
+.spin-result-lbl{font-size:14px;color:var(--muted);font-weight:700;letter-spacing:1px;text-transform:uppercase;}
+.spin-result-amt{font-size:42px;font-weight:900;color:var(--green);}
+.spin-result-zero{font-size:32px;font-weight:900;color:var(--muted);}
+.spin-try-again{font-size:12px;color:var(--muted);margin-top:8px;}
 </style>
 </head>
 <body>
@@ -289,9 +316,9 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,san
     <span class="nav-label">Activity</span>
   </div>
   <div class="nav-center">
-    <div class="nav-spin-btn" onclick="openDeposit()">
+    <div class="nav-spin-btn" onclick="openSpin()">
       <span class="spin-icon">🎰</span>
-      <span class="spin-lbl">Get ₹500</span>
+      <span class="spin-lbl">SPIN!</span>
     </div>
   </div>
   <div class="nav-item" onclick="openDeposit()">
@@ -377,6 +404,25 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,san
     <div class="m-err" id="wErr"></div>
     <div class="success-msg" id="wOk">✅ Withdrawal request submitted! Admin will transfer within 24 hours.</div>
     <button class="m-btn" style="background:linear-gradient(135deg,#00d68f,#00a86b);" onclick="submitWithdraw()">Request Withdrawal →</button>
+  </div>
+</div>
+
+<!-- Lucky Spin Modal -->
+<div class="spin-overlay" id="spinOverlay">
+  <div class="spin-modal">
+    <button class="spin-close" onclick="closeSpin()">✕</button>
+    <div class="spin-head">
+      <div class="spin-title">🎰 LUCKY SPIN</div>
+      <div class="spin-sub">Win up to ₹500 · Free daily spin</div>
+    </div>
+    <div class="spin-wheel-wrap">
+      <div class="spin-pointer"></div>
+      <canvas id="spinCanvas" width="280" height="280"></canvas>
+    </div>
+    <div id="spinAction" class="spin-action-row">
+      <button class="spin-btn" id="spinBtn" onclick="doSpin()">SPIN!</button>
+    </div>
+    <div id="spinResult" style="display:none;" class="spin-result"></div>
   </div>
 </div>
 
@@ -503,6 +549,207 @@ socket.on('wallet:update',d=>{
 });
 
 boot();
+
+// ── Lucky Spin Wheel ──────────────────────────────────────
+const SPIN_SEGS = [
+  { prize:   0, label: 'ZERO',   bg:'#14182a', stroke:'#1e2540', text:'#6b729a' },
+  { prize:  10, label: '₹10',    bg:'#0c2018', stroke:'#1a4a2a', text:'#00d68f' },
+  { prize:   0, label: 'ZERO',   bg:'#14182a', stroke:'#1e2540', text:'#6b729a' },
+  { prize:  25, label: '₹25',    bg:'#0c1830', stroke:'#1a2a50', text:'#5b8fff' },
+  { prize:   0, label: 'ZERO',   bg:'#14182a', stroke:'#1e2540', text:'#6b729a' },
+  { prize:  50, label: '₹50',    bg:'#281408', stroke:'#502a10', text:'#ff8c42' },
+  { prize: 100, label: '₹100',   bg:'#1c0c28', stroke:'#381850', text:'#9b59ff' },
+  { prize: 500, label:'JACKPOT', bg:'#280808', stroke:'#ff4444', text:'#ffd84d' },
+];
+const N_SEGS  = SPIN_SEGS.length;    // 8
+const SEG_DEG = 360 / N_SEGS;        // 45°
+
+let wheelAngle = 0;   // current wheel rotation in degrees
+let wheelSpinning = false;
+let cdInterval = null;
+
+function prizeToSegIdx(prize) {
+  if (prize === 500) return 7;
+  if (prize === 100) return 6;
+  if (prize === 50)  return 5;
+  if (prize === 25)  return 3;
+  if (prize === 10)  return 1;
+  return [0, 2, 4][Math.floor(Math.random() * 3)];
+}
+
+function drawWheel(angle) {
+  const canvas = document.getElementById('spinCanvas');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  const w = canvas.width, h = canvas.height;
+  const cx = w / 2, cy = h / 2, r = cx - 6;
+  ctx.clearRect(0, 0, w, h);
+
+  const rot = (angle - 90) * Math.PI / 180; // -90 so 0° is at top
+  const segRad = (Math.PI * 2) / N_SEGS;
+
+  for (let i = 0; i < N_SEGS; i++) {
+    const seg = SPIN_SEGS[i];
+    const a0 = rot + i * segRad;
+    const a1 = a0 + segRad;
+    const am = a0 + segRad / 2;
+
+    // Segment fill
+    ctx.beginPath();
+    ctx.moveTo(cx, cy);
+    ctx.arc(cx, cy, r, a0, a1);
+    ctx.closePath();
+    ctx.fillStyle = seg.bg;
+    ctx.fill();
+    ctx.strokeStyle = seg.stroke;
+    ctx.lineWidth = 1.5;
+    ctx.stroke();
+
+    // Label text
+    ctx.save();
+    ctx.translate(cx + Math.cos(am) * r * 0.62, cy + Math.sin(am) * r * 0.62);
+    ctx.rotate(am + Math.PI / 2);
+    ctx.fillStyle = seg.text;
+    const isJackpot = seg.prize === 500;
+    ctx.font = `${isJackpot ? 900 : 800} ${isJackpot ? 11 : 13}px 'Segoe UI',sans-serif`;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    if (isJackpot) {
+      ctx.fillStyle = '#ffd84d';
+      ctx.font = '900 10px Segoe UI,sans-serif';
+      ctx.fillText('💰', 0, -7);
+      ctx.fillText(seg.label, 0, 5);
+    } else {
+      ctx.fillText(seg.label, 0, 0);
+    }
+    ctx.restore();
+  }
+
+  // Outer ring glow
+  ctx.beginPath();
+  ctx.arc(cx, cy, r, 0, Math.PI * 2);
+  ctx.strokeStyle = 'rgba(255,140,0,.35)';
+  ctx.lineWidth = 4;
+  ctx.stroke();
+
+  // Center hub
+  const hubR = 24;
+  const grad = ctx.createRadialGradient(cx, cy, 0, cx, cy, hubR);
+  grad.addColorStop(0, '#2a1a00');
+  grad.addColorStop(1, '#0b0e1a');
+  ctx.beginPath();
+  ctx.arc(cx, cy, hubR, 0, Math.PI * 2);
+  ctx.fillStyle = grad;
+  ctx.fill();
+  ctx.strokeStyle = 'rgba(255,140,0,.6)';
+  ctx.lineWidth = 2;
+  ctx.stroke();
+  ctx.font = '16px sans-serif';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText('🎰', cx, cy);
+}
+
+function spinTo(segIdx, onDone) {
+  if (wheelSpinning) return;
+  wheelSpinning = true;
+  const segCenter = segIdx * SEG_DEG + SEG_DEG / 2;  // degrees from top
+  // pointer is at top (0° from top). wheel is rotated so top segment center aligns to pointer.
+  // landAt: how much to rotate so segCenter aligns at top
+  let landAt = (360 - segCenter) % 360;
+  const totalRot = 5 * 360 + landAt;
+  const startAngle = wheelAngle;
+  const targetAngle = startAngle + totalRot;
+  const dur = 4200;
+  const t0 = performance.now();
+
+  function ease(t) { return 1 - Math.pow(1 - t, 4); }
+
+  function frame(now) {
+    const p = Math.min((now - t0) / dur, 1);
+    wheelAngle = startAngle + totalRot * ease(p);
+    drawWheel(wheelAngle);
+    if (p < 1) { requestAnimationFrame(frame); }
+    else {
+      wheelAngle = ((startAngle + totalRot) % 360 + 360) % 360;
+      wheelSpinning = false;
+      if (onDone) onDone();
+    }
+  }
+  requestAnimationFrame(frame);
+}
+
+async function openSpin() {
+  document.getElementById('spinOverlay').classList.add('show');
+  document.getElementById('spinResult').style.display = 'none';
+  document.getElementById('spinAction').style.display = 'block';
+  document.getElementById('spinBtn').disabled = false;
+  document.getElementById('spinBtn').textContent = 'SPIN!';
+  drawWheel(wheelAngle);
+
+  try {
+    const r = await fetch(API + '/api/spin/status', { headers: { Authorization: 'Bearer ' + token } });
+    const d = await r.json();
+    if (!d.canSpin) showCooldown(d.nextSpin);
+  } catch {}
+}
+
+function closeSpin() {
+  document.getElementById('spinOverlay').classList.remove('show');
+  if (cdInterval) { clearInterval(cdInterval); cdInterval = null; }
+}
+
+function showCooldown(nextSpin) {
+  document.getElementById('spinBtn').disabled = true;
+  document.getElementById('spinBtn').style.display = 'none';
+  let cdEl = document.getElementById('spinCd');
+  if (!cdEl) {
+    cdEl = document.createElement('div');
+    cdEl.id = 'spinCd';
+    cdEl.className = 'spin-cooldown';
+    cdEl.innerHTML = '<div class="spin-cd-lbl">NEXT SPIN IN</div><div class="spin-cd-timer" id="spinCdTimer">--:--:--</div>';
+    document.getElementById('spinAction').appendChild(cdEl);
+  }
+  cdEl.style.display = 'block';
+  if (cdInterval) clearInterval(cdInterval);
+  cdInterval = setInterval(() => {
+    const diff = nextSpin - Date.now();
+    if (diff <= 0) { clearInterval(cdInterval); cdEl.style.display = 'none'; document.getElementById('spinBtn').disabled = false; document.getElementById('spinBtn').style.display = 'block'; return; }
+    const h = Math.floor(diff / 3600000), m = Math.floor((diff % 3600000) / 60000), s = Math.floor((diff % 60000) / 1000);
+    document.getElementById('spinCdTimer').textContent = `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+  }, 1000);
+}
+
+async function doSpin() {
+  const btn = document.getElementById('spinBtn');
+  btn.disabled = true;
+  btn.textContent = 'Spinning…';
+  try {
+    const r = await fetch(API + '/api/spin', { method: 'POST', headers: { Authorization: 'Bearer ' + token } });
+    const d = await r.json();
+    if (!r.ok) { showToast(d.error || 'Try again'); btn.disabled = false; btn.textContent = 'SPIN!'; return; }
+
+    const prize = d.prize;
+    const segIdx = prizeToSegIdx(prize);
+    spinTo(segIdx, () => {
+      // Update wallet
+      if (d.newBalance !== undefined) {
+        wallet = d.newBalance;
+        document.getElementById('walletAmt').textContent = parseFloat(d.newBalance).toFixed(2);
+      }
+      // Show result
+      const resEl = document.getElementById('spinResult');
+      resEl.style.display = 'block';
+      document.getElementById('spinAction').style.display = 'none';
+      if (prize > 0) {
+        resEl.innerHTML = `<span class="spin-result-icon">🎉</span><div class="spin-result-lbl">You Won!</div><div class="spin-result-amt">+₹${prize}</div><div class="spin-try-again" style="color:var(--green);margin-top:8px;">Added to your wallet!</div>`;
+      } else {
+        resEl.innerHTML = `<span class="spin-result-icon">😅</span><div class="spin-result-lbl">Better Luck Tomorrow!</div><div class="spin-result-zero">₹0</div><div class="spin-try-again">Come back tomorrow for another spin</div>`;
+      }
+      showCooldown(d.nextSpin || Date.now() + 86400000);
+    });
+  } catch { btn.disabled = false; btn.textContent = 'SPIN!'; showToast('Network error'); }
+}
 </script>
 </body>
 </html>
