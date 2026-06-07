@@ -172,6 +172,10 @@ const UserSchema = new mongoose.Schema({
   dailyRewardDate: { type: Date,   default: null },
   dailyRewardDay:  { type: Number, default: 0 },
   claimDates:      { type: [Date], default: [] },
+  referralCode:    { type: String, default: '' },
+  referredBy:      { type: String, default: '' },
+  referralBonus:   { type: Number, default: 0 },
+  referralCount:   { type: Number, default: 0 },
 }, { timestamps: true });
 const User = mongoose.model('User', UserSchema);
 
@@ -421,10 +425,34 @@ app.post('/api/auth/verify-otp', async (req, res) => {
   } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
 
+async function makeReferralCode(username) {
+  const base = username.substring(0, 4).toUpperCase();
+  let code, tries = 0;
+  do {
+    const suffix = Math.random().toString(36).substring(2, 6).toUpperCase();
+    code = base + suffix;
+    tries++;
+  } while (tries < 5 && await User.exists({ referralCode: code }));
+  return code;
+}
+
+async function applyReferral(newUserId, refCode) {
+  if (!refCode) return;
+  const referrer = await User.findOne({ referralCode: refCode.toUpperCase() });
+  if (!referrer || referrer._id.toString() === newUserId.toString()) return;
+  const BONUS = 50;
+  await User.findByIdAndUpdate(referrer._id, {
+    $inc: { wallet: BONUS, referralBonus: BONUS, referralCount: 1 }
+  });
+  await User.findByIdAndUpdate(newUserId, { referredBy: refCode.toUpperCase() });
+  const sid = userSockets.get(referrer._id.toString());
+  if (sid) io.to(sid).emit('wallet:update', { wallet: (referrer.wallet + BONUS), message: `+₹${BONUS} referral bonus! 🎉` });
+}
+
 // Signup
 app.post('/api/auth/signup', async (req, res) => {
   try {
-    const { name, username, email, phone, upiId, password } = req.body;
+    const { name, username, email, phone, upiId, password, referralCode } = req.body;
     if (!name || !username || !email || !phone || !password)
       return res.status(400).json({ error: 'All fields required' });
     if (password.length < 8)
@@ -440,14 +468,16 @@ app.post('/api/auth/signup', async (req, res) => {
     }
 
     const hashed = await bcrypt.hash(password, 12);
+    const myCode = await makeReferralCode(username);
     const user   = await User.create({
       name, username: username.toLowerCase(), email: email.toLowerCase(),
       phone, upiId: upiId || '', password: hashed, loginMethod: 'email',
-      isVerified: true, wallet: 10,
+      isVerified: true, wallet: 10, referralCode: myCode,
     });
+    await applyReferral(user._id, referralCode);
 
     const token = jwt.sign({ userId: user._id, username: user.username }, JWT_SECRET, { expiresIn: '30d' });
-    res.json({ success: true, token, user: safeUser(user) });
+    res.json({ success: true, token, user: safeUser(await User.findById(user._id)) });
   } catch (e) { console.error(e); res.status(500).json({ error: 'Signup failed' }); }
 });
 
@@ -484,17 +514,19 @@ app.post('/api/auth/google', async (req, res) => {
 // Google — complete profile
 app.post('/api/auth/google/complete', async (req, res) => {
   try {
-    const { email, name, username, phone, upiId } = req.body;
+    const { email, name, username, phone, upiId, referralCode } = req.body;
     if (!email || !username || !phone) return res.status(400).json({ error: 'All fields required' });
     const exists = await User.findOne({ username: username.toLowerCase() });
     if (exists) return res.status(400).json({ error: 'Username already taken' });
 
+    const myCode = await makeReferralCode(username);
     const user = await User.create({
       name, username: username.toLowerCase(), email: email.toLowerCase(),
-      phone, upiId: upiId || '', loginMethod: 'google', isVerified: true, wallet: 10,
+      phone, upiId: upiId || '', loginMethod: 'google', isVerified: true, wallet: 10, referralCode: myCode,
     });
+    await applyReferral(user._id, referralCode);
     const token = jwt.sign({ userId: user._id, username: user.username }, JWT_SECRET, { expiresIn: '30d' });
-    res.json({ success: true, token, user: safeUser(user) });
+    res.json({ success: true, token, user: safeUser(await User.findById(user._id)) });
   } catch (e) { res.status(500).json({ error: 'Profile setup failed' }); }
 });
 
@@ -559,12 +591,18 @@ app.post('/api/admin/login', (req, res) => {
 });
 
 function safeUser(u) {
+  const bonus = u.referralBonus || 0;
   return {
     id: u._id, name: u.name, username: u.username,
     email: u.email, phone: u.phone, upiId: u.upiId,
     wallet: u.wallet, loginMethod: u.loginMethod,
     totalBets: u.totalBets, totalWins: u.totalWins,
+    totalWinAmount: u.totalWinAmount,
     createdAt: u.createdAt,
+    referralCode: u.referralCode || '',
+    referralCount: u.referralCount || 0,
+    referralBonus: bonus,
+    withdrawable: Math.max(0, parseFloat(((u.wallet || 0) - bonus).toFixed(2))),
   };
 }
 
@@ -772,7 +810,8 @@ app.post('/api/payment/withdraw', authMiddleware, async (req, res) => {
     if (!upiId) return res.status(400).json({ error: 'UPI ID is required' });
 
     const user = await User.findById(req.user.userId);
-    if (!user || user.wallet < amount) return res.status(400).json({ error: 'Insufficient balance' });
+    const withdrawable = Math.max(0, (user.wallet || 0) - (user.referralBonus || 0));
+    if (!user || withdrawable < amount) return res.status(400).json({ error: `Insufficient withdrawable balance. Referral bonus (₹${user.referralBonus||0}) cannot be withdrawn.` });
 
     await User.findByIdAndUpdate(req.user.userId, { $inc: { wallet: -amount } });
     const w = await Withdrawal.create({ userId: req.user.userId, amount, upiId });

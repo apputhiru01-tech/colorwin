@@ -65,6 +65,24 @@ header{display:flex;align-items:center;gap:12px;padding:14px 16px;background:var
 .dep-item{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:12px 14px;display:flex;justify-content:space-between;align-items:center;}
 .empty-txt{text-align:center;color:var(--muted);padding:20px;font-size:13px;}
 
+/* Invite & Earn */
+.invite-section{background:linear-gradient(135deg,rgba(91,143,255,.1),rgba(155,89,255,.08));border:1px solid rgba(91,143,255,.25);border-radius:18px;margin:0 16px 14px;padding:18px;}
+.inv-head{display:flex;align-items:center;gap:10px;margin-bottom:12px;}
+.inv-icon{font-size:28px;line-height:1;}
+.inv-title{font-size:16px;font-weight:900;}
+.inv-sub{font-size:12px;color:var(--muted);margin-top:2px;}
+.inv-bonus-badge{background:linear-gradient(135deg,#00d68f,#00a86b);border-radius:20px;padding:4px 14px;font-size:13px;font-weight:900;color:#fff;margin-left:auto;}
+.inv-link-box{background:rgba(0,0,0,.3);border:1px solid var(--border);border-radius:12px;padding:11px 14px;display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:12px;}
+.inv-link-txt{font-size:12px;color:var(--accent);font-family:monospace;word-break:break-all;flex:1;}
+.inv-copy-btn{background:rgba(91,143,255,.2);border:1px solid var(--accent);border-radius:8px;color:var(--accent);font-size:12px;font-weight:700;padding:6px 12px;cursor:pointer;font-family:inherit;flex-shrink:0;}
+.inv-share-btn{width:100%;background:linear-gradient(135deg,#5b8fff,#3b5fff);border:none;border-radius:12px;color:#fff;font-size:14px;font-weight:800;padding:12px;cursor:pointer;font-family:inherit;margin-bottom:12px;}
+.inv-stats{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+.inv-stat{background:rgba(0,0,0,.25);border:1px solid var(--border);border-radius:12px;padding:12px;text-align:center;}
+.inv-stat-val{font-size:20px;font-weight:900;color:var(--yellow);}
+.inv-stat-lbl{font-size:10px;color:var(--muted);margin-top:3px;}
+.inv-note{font-size:11px;color:var(--muted);text-align:center;margin-top:10px;line-height:1.5;}
+.inv-note span{color:var(--red);}
+
 /* Logout */
 .logout-btn-big{width:calc(100% - 32px);margin:0 16px;background:rgba(255,77,106,.08);border:1.5px solid rgba(255,77,106,.25);border-radius:14px;color:var(--red);font-size:15px;font-weight:800;padding:14px;cursor:pointer;font-family:inherit;}
 .logout-btn-big:hover{background:rgba(255,77,106,.14);}
@@ -110,6 +128,7 @@ header{display:flex;align-items:center;gap:12px;padding:14px 16px;background:var
   <div class="wallet-big">
     <div class="wallet-lbl">Wallet Balance</div>
     <div class="wallet-amt">₹<span id="walletAmt">0.00</span></div>
+    <div id="bonusLine" style="display:none;font-size:11px;color:var(--muted);margin-top:4px;">🎁 Referral Bonus: ₹<span id="bonusAmt">0</span> <span style="color:#ff8c42">(play only)</span></div>
   </div>
   <div class="quick-btns">
     <button class="qb add" onclick="openDeposit()">+ Add Money</button>
@@ -197,6 +216,34 @@ header{display:flex;align-items:center;gap:12px;padding:14px 16px;background:var
   <div class="sec-body" id="depHistBody">
     <div class="empty-txt">Loading…</div>
   </div>
+</div>
+
+<!-- Invite & Earn -->
+<div class="invite-section" id="inviteSection" style="display:none;">
+  <div class="inv-head">
+    <span class="inv-icon">🔗</span>
+    <div>
+      <div class="inv-title">Invite & Earn</div>
+      <div class="inv-sub">Refer friends — get ₹50 per referral</div>
+    </div>
+    <div class="inv-bonus-badge">₹50</div>
+  </div>
+  <div class="inv-link-box">
+    <div class="inv-link-txt" id="invLinkTxt">Loading…</div>
+    <button class="inv-copy-btn" onclick="copyLink()">📋 Copy</button>
+  </div>
+  <button class="inv-share-btn" onclick="shareLink()">📤 Share Invite Link</button>
+  <div class="inv-stats">
+    <div class="inv-stat">
+      <div class="inv-stat-val" id="invCount">0</div>
+      <div class="inv-stat-lbl">Friends Referred</div>
+    </div>
+    <div class="inv-stat">
+      <div class="inv-stat-val" id="invEarned">₹0</div>
+      <div class="inv-stat-lbl">Bonus Earned</div>
+    </div>
+  </div>
+  <div class="inv-note">⚠️ Referral bonus is for <span>play only</span> and cannot be withdrawn</div>
 </div>
 
 <!-- Logout -->
@@ -290,6 +337,18 @@ async function boot(){
     document.getElementById('statBets').textContent = user.totalBets||0;
     document.getElementById('statWins').textContent = user.totalWins||0;
     document.getElementById('statWinAmt').textContent = '₹'+(user.totalWinAmount||0).toFixed(0);
+    // Referral / bonus
+    if (user.referralCode) {
+      const link = `${location.origin}/login.html?ref=${user.referralCode}`;
+      document.getElementById('invLinkTxt').textContent = link;
+      document.getElementById('inviteSection').style.display = 'block';
+      document.getElementById('invCount').textContent = user.referralCount || 0;
+      document.getElementById('invEarned').textContent = '₹' + (user.referralBonus || 0);
+    }
+    if ((user.referralBonus||0) > 0) {
+      document.getElementById('bonusLine').style.display = 'block';
+      document.getElementById('bonusAmt').textContent = user.referralBonus;
+    }
     // Pre-fill edit form
     document.getElementById('pName').value = user.name||'';
     document.getElementById('pPhone').value = user.phone||'';
@@ -468,6 +527,18 @@ async function submitWithdraw(){
   }catch{el.textContent='Network error';}
 }
 
+function copyLink(){
+  const link = document.getElementById('invLinkTxt').textContent;
+  navigator.clipboard.writeText(link).then(()=>showToast('Link copied!')).catch(()=>{
+    const ta=document.createElement('textarea'); ta.value=link; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); document.body.removeChild(ta); showToast('Link copied!');
+  });
+}
+function shareLink(){
+  const link = document.getElementById('invLinkTxt').textContent;
+  const msg = `🎰 Join ColorWin and win real cash! Use my referral link and I'll get ₹50 bonus! ${link}`;
+  if(navigator.share){ navigator.share({title:'ColorWin Invite',text:msg,url:link}); }
+  else { navigator.clipboard.writeText(msg).then(()=>showToast('Message copied — share it!')); }
+}
 function doLogout(){localStorage.removeItem('cw_token');location.href='login.html';}
 function showToast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove('show'),2500);}
 

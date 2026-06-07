@@ -7,7 +7,7 @@
 <style>
 :root{--bg:#0d0f1a;--surface:#161926;--card:#1e2235;--border:#2a2f4a;--text:#e8eaf0;--muted:#7880a0;--red:#ff4d6a;--green:#00d68f;--violet:#9b59ff;--yellow:#ffd84d;--accent:#5b8fff;}
 *{box-sizing:border-box;margin:0;padding:0;}
-body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,sans-serif;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px;}
+body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,sans-serif;min-height:100vh;display:flex;align-items:flex-start;justify-content:center;padding:24px 20px 40px;overflow-y:auto;}
 .screen{display:none;flex-direction:column;align-items:center;width:100%;max-width:420px;}
 .screen.active{display:flex;animation:fadeUp .4s ease;}
 @keyframes fadeUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
@@ -46,6 +46,8 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,san
 .back-btn{background:none;border:none;color:var(--muted);font-size:13px;font-weight:600;cursor:pointer;padding:0;display:flex;align-items:center;gap:6px;font-family:inherit;}
 .back-btn:hover{color:var(--text);}
 .upi-note{background:rgba(0,214,143,.08);border:1px solid rgba(0,214,143,.2);border-radius:12px;padding:11px 14px;font-size:12px;color:var(--green);line-height:1.5;}
+.ref-banner{background:linear-gradient(135deg,rgba(91,143,255,.15),rgba(155,89,255,.1));border:1px solid rgba(91,143,255,.35);border-radius:12px;padding:11px 14px;font-size:13px;color:var(--accent);line-height:1.5;font-weight:600;display:none;}
+.ref-banner.show{display:block;}
 .resend{text-align:center;font-size:13px;color:var(--muted);}
 .resend a{color:var(--accent);cursor:pointer;font-weight:700;}
 .success-icon{font-size:64px;margin-bottom:16px;animation:pop .5s cubic-bezier(.34,1.56,.64,1);}
@@ -95,7 +97,8 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,san
   <div class="auth-card">
     <button class="back-btn" onclick="goTo('s-main')">← Back</button>
     <div class="card-title">Create Account</div>
-    <div class="card-sub">Join & get ₹500 signup bonus</div>
+    <div class="card-sub">Join & play to win real cash</div>
+    <div class="ref-banner" id="refBanner">🎁 You were invited by a friend! Sign up and your friend gets ₹50 bonus.</div>
     <div class="inp-row">
       <div class="inp-group" style="flex:1"><div class="inp-label">First Name</div><input class="inp" id="rFirst" type="text" placeholder="Rahul"/></div>
       <div class="inp-group" style="flex:1"><div class="inp-label">Last Name</div><input class="inp" id="rLast" type="text" placeholder="Sharma"/></div>
@@ -160,6 +163,14 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,san
 <script>
 const API = '';
 let flow = '', pendingEmail = '', pendingSignupData = null, pendingGoogleData = null;
+let pendingRefCode = new URLSearchParams(location.search).get('ref') || '';
+
+// If referral link → jump to signup
+if (pendingRefCode) {
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById('s-signup').classList.add('active');
+  document.getElementById('refBanner').classList.add('show');
+}
 
 // Check maintenance mode on boot
 (async()=>{
@@ -246,7 +257,7 @@ async function completeProfile(){
   if(!username||username.length<3){el.textContent='Username must be 3+ characters';return;}
   if(phone.replace(/\D/g,'').length<10){el.textContent='Enter valid 10-digit phone';return;}
   try{
-    const r=await fetch(API+'/api/auth/google/complete',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({...pendingGoogleData,username,phone,upiId})});
+    const r=await fetch(API+'/api/auth/google/complete',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({...pendingGoogleData,username,phone,upiId,referralCode:pendingRefCode})});
     const d=await r.json();
     if(!r.ok){el.textContent=d.error||'Setup failed';return;}
     finish(d.token,`Welcome, ${d.user.name}! ₹500 bonus added!`);
@@ -297,7 +308,7 @@ async function doSignup(){
 
   btn.disabled=true;btn.textContent='Creating account…';
   try{
-    const r=await fetch(API+'/api/auth/signup',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name:first+' '+last,username,email,phone,upiId,password:pass})});
+    const r=await fetch(API+'/api/auth/signup',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name:first+' '+last,username,email,phone,upiId,password:pass,referralCode:pendingRefCode})});
     const d=await r.json();
     if(!r.ok){el.textContent=d.error||'Signup failed';return;}
     finish(d.token,`Welcome to ColorWin, ${first}! ₹500 bonus added!`);
