@@ -205,7 +205,7 @@ header{background:#0d1220;border-bottom:1px solid var(--border);flex-shrink:0;pa
 
 <script>
 const API = '';
-const token = localStorage.getItem('token');
+const token = localStorage.getItem('cw_token');
 if (!token) location.href = 'login.html';
 
 const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
@@ -228,8 +228,8 @@ async function init() {
     claimedDates = d.claimedDates || [];
     document.getElementById('streakNum').textContent = d.day || 0;
     // wallet
-    const wr = await fetch(API + '/api/user/me', { headers:{ Authorization:'Bearer '+token } });
-    if (wr.ok) { const wd = await wr.json(); document.getElementById('walletAmt').textContent = parseFloat(wd.wallet||0).toFixed(2); }
+    const wr = await fetch(API + '/api/auth/me', { headers:{ Authorization:'Bearer '+token } });
+    if (wr.ok) { const wd = await wr.json(); document.getElementById('walletAmt').textContent = parseFloat(wd.user?.wallet||0).toFixed(2); }
     renderCal();
     if (!canClaim) showDoneState(d.nextClaim);
   } catch { renderCal(); }
