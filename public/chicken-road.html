@@ -446,6 +446,11 @@ function setGameMode(mode){
     document.getElementById('jumpBtn').style.display='block';
     document.getElementById('cashoutBtn').style.display='none';
   }
+  if(mode==='setup'){
+    const sb=document.getElementById('startBtn');
+    sb.disabled=false;
+    sb.innerHTML='<span class="start-btn-icon">🐔</span> Start Game';
+  }
 }
 
 async function startGame(){
@@ -602,13 +607,17 @@ async function init(){
       setGameMode('game');
       document.getElementById('cashoutBtn').style.display=d.step>0?'block':'none';
       updateStats(d.step,d.multiplier);
+    } else {
+      setGameMode('setup');
     }
-  }catch{}
+  }catch{ setGameMode('setup'); }
 }
 
 const socket=io();
 socket.on('wallet:update',d=>updateWallet(d.wallet));
 init();
+// Re-init when page is restored from browser back-forward cache
+window.addEventListener('pageshow',e=>{if(e.persisted){gameActive=false;init();}});
 
 // ── Win Animation ──
 let _confettiFrame=null;
